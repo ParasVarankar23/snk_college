@@ -36,7 +36,7 @@ export default function HeroSection() {
             </div>
 
             {/* ================= HERO ================= */}
-            <div className="max-w-7xl mx-auto px-6 py-10 grid md:grid-cols-2 gap-12 items-center">
+            <div className="max-w-7xl mx-auto px-6 py-20 grid md:grid-cols-2 gap-12 items-center">
 
                 {/* LEFT SIDE TEXT */}
                 <div>
