@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { FaEnvelope, FaFacebook, FaInstagram, FaMapMarkerAlt, FaPhone, FaYoutube } from "react-icons/fa";
+import { FaEnvelope, FaFacebook, FaInstagram, FaMapMarkerAlt, FaPhone, FaYoutube, FaWhatsapp, FaLinkedin } from "react-icons/fa";
 
 export default function Footer() {
     return (
@@ -46,6 +46,7 @@ export default function Footer() {
                         <li><Link href="/admissions">Admissions</Link></li>
                         <li><Link href="/gallery">Gallery</Link></li>
                         <li><Link href="/contact">Contact</Link></li>
+                        <li><Link href="/feedback">FeedBack</Link></li>
 
                     </ul>
 
@@ -57,8 +58,6 @@ export default function Footer() {
                     <h3 className="text-lg font-semibold mb-4">Academics</h3>
 
                     <ul className="space-y-2 text-gray-200 cursor-pointer">
-
-                        <li><Link href="/academics">All Programs</Link></li>
                         <li><Link href="/academics/11th-science">11th Science</Link></li>
                         <li><Link href="/academics/11th-commerce">11th Commerce</Link></li>
                         <li><Link href="/academics/11th-arts">11th Arts</Link></li>
@@ -98,8 +97,14 @@ export default function Footer() {
                     <div className="flex gap-4 mt-5 text-xl">
 
                         <FaFacebook className="cursor-pointer hover:text-gray-300" />
+
                         <FaInstagram className="cursor-pointer hover:text-gray-300" />
+
                         <FaYoutube className="cursor-pointer hover:text-gray-300" />
+
+                        <FaWhatsapp className="cursor-pointer hover:text-gray-300" />
+
+                        <FaLinkedin className="cursor-pointer hover:text-gray-300" />
 
                     </div>
 
