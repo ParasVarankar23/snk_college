@@ -3,7 +3,7 @@
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 
 export default function ProfilePage() {
     const router = useRouter();
@@ -86,7 +86,6 @@ export default function ProfilePage() {
 
     return (
         <div className="min-h-screen bg-gray-50 p-6">
-            <Toaster position="top-center" />
             <div className="max-w-4xl mx-auto">
                 <div className="bg-white rounded-lg shadow-lg p-8">
                     <h1 className="text-3xl font-bold text-gray-800 mb-8">My Profile</h1>
