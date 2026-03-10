@@ -1,5 +1,5 @@
 import { sendForgotPasswordEmail } from "@/lib/emailService";
-import { auth } from "@/lib/firebase";
+import { getFirebaseAuth } from "@/lib/firebase";
 import { confirmPasswordReset, sendPasswordResetEmail } from "firebase/auth";
 
 function isValidEmail(email) {
@@ -38,6 +38,7 @@ function mapFirebaseError(error) {
 }
 
 async function handleSendOtp(body) {
+    const auth = getFirebaseAuth();
     const email = String(body?.email || "").trim().toLowerCase();
 
     if (!email) {
@@ -68,6 +69,7 @@ async function handleSendOtp(body) {
 }
 
 async function handleResetPassword(body) {
+    const auth = getFirebaseAuth();
     const code = String(body?.otp || "").trim();
     const newPassword = String(body?.newPassword || "");
     const confirmPassword = String(body?.confirmPassword || "");
