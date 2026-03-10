@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  FaAddressBook,
   FaAward,
   FaBook,
   FaCalendar,
@@ -50,7 +51,12 @@ export default function Sidebar({ setSidebarOpen }) {
     {
       name: "Feedback",
       icon: FaMessage,
-      path: "/contact",
+      path: "/admin/feedback",
+    },
+    {
+      name: "Contact",
+      icon: FaAddressBook,
+      path: "/admin/contact",
     },
   ];
 

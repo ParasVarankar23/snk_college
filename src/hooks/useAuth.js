@@ -50,10 +50,12 @@ export function useAuth() {
                     uid,
                     name: profile?.name || null,
                     email: profile?.email || null,
+                    phone: profile?.phone || null,
+                    address: profile?.address || null,
                 });
             } catch {
                 // Keep auth state from token even if profile fetch fails
-                setUser({ uid, name: null, email: null });
+                setUser({ uid, name: null, email: null, phone: null, address: null });
             } finally {
                 setLoading(false);
             }
@@ -68,10 +70,15 @@ export function useAuth() {
         setIsAuthenticated(false);
     };
 
+    const updateUser = (updates) => {
+        setUser((prev) => (prev ? { ...prev, ...updates } : prev));
+    };
+
     return {
         user,
         loading,
         isAuthenticated,
         logout,
+        updateUser,
     };
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import toast from "react-hot-toast";
 
 export default function ContactPage() {
 
@@ -14,27 +15,80 @@ export default function ContactPage() {
         agree: false
     });
 
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitted, setSubmitted] = useState(false);
+
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
-
-        setFormData({
-            ...formData,
+        setFormData((prev) => ({
+            ...prev,
             [name]: type === "checkbox" ? checked : value
-        });
+        }));
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
         if (!formData.agree) {
-            alert("Please agree to the terms.");
+            toast.error("Please agree to the terms and conditions.");
             return;
         }
 
-        console.log(formData);
+        try {
+            setIsSubmitting(true);
+            const res = await fetch("/api/contact", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    name: formData.name,
+                    email: formData.email,
+                    phone: formData.phone,
+                    course: formData.course,
+                    department: formData.department,
+                    message: formData.message,
+                }),
+            });
 
-        alert("Inquiry Submitted Successfully!");
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Failed to submit inquiry");
+
+            toast.success("Inquiry submitted successfully!");
+            setSubmitted(true);
+        } catch (error) {
+            toast.error(error.message || "Failed to submit inquiry");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
+
+    if (submitted) {
+        return (
+            <section className="bg-gray-50 py-10">
+                <div className="max-w-xl mx-auto px-6">
+                    <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
+                        <div className="w-16 h-16 bg-[#7a1c1c]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg className="w-8 h-8 text-[#7a1c1c]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+                        <h2 className="text-2xl font-bold text-gray-800 mb-2">Inquiry Submitted!</h2>
+                        <p className="text-gray-500 mb-6">
+                            Thank you for your interest. Our team will contact you shortly.
+                        </p>
+                        <button
+                            onClick={() => {
+                                setSubmitted(false);
+                                setFormData({ name: "", email: "", phone: "", course: "", department: "", message: "", agree: false });
+                            }}
+                            className="px-6 py-2.5 rounded-lg bg-[#7a1c1c] text-white font-semibold hover:bg-[#9f2a2a] transition"
+                        >
+                            Submit Another
+                        </button>
+                    </div>
+                </div>
+            </section>
+        );
+    }
 
     return (
         <section className="bg-gray-50 py-10">
@@ -54,30 +108,32 @@ export default function ContactPage() {
                         <div className="grid md:grid-cols-2 gap-4">
 
                             <div>
-                                <label className="block text-gray-700 mb-2">
+                                <label htmlFor="contact-name" className="block text-gray-700 mb-2">
                                     Student Name
                                 </label>
-
                                 <input
+                                    id="contact-name"
                                     type="text"
                                     name="name"
+                                    value={formData.name}
                                     required
                                     onChange={handleChange}
-                                    className="w-full border border-gray-300 p-3 rounded-lg focus:border-[#7a1c1c]"
+                                    className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:border-[#7a1c1c] focus:ring-2 focus:ring-[#7a1c1c]/20"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-gray-700 mb-2">
+                                <label htmlFor="contact-email" className="block text-gray-700 mb-2">
                                     Email ID
                                 </label>
-
                                 <input
+                                    id="contact-email"
                                     type="email"
                                     name="email"
+                                    value={formData.email}
                                     required
                                     onChange={handleChange}
-                                    className="w-full border border-gray-300 p-3 rounded-lg focus:border-[#7a1c1c]"
+                                    className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:border-[#7a1c1c] focus:ring-2 focus:ring-[#7a1c1c]/20"
                                 />
                             </div>
 
@@ -87,29 +143,31 @@ export default function ContactPage() {
                         <div className="grid md:grid-cols-2 gap-4">
 
                             <div>
-                                <label className="block text-gray-700 mb-2">
+                                <label htmlFor="contact-phone" className="block text-gray-700 mb-2">
                                     Phone Number
                                 </label>
-
                                 <input
+                                    id="contact-phone"
                                     type="tel"
                                     name="phone"
+                                    value={formData.phone}
                                     required
                                     onChange={handleChange}
-                                    className="w-full border border-gray-300 p-3 rounded-lg focus:border-[#7a1c1c]"
+                                    className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:border-[#7a1c1c] focus:ring-2 focus:ring-[#7a1c1c]/20"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-gray-700 mb-2">
+                                <label htmlFor="contact-course" className="block text-gray-700 mb-2">
                                     Class
                                 </label>
-
                                 <select
+                                    id="contact-course"
                                     name="course"
+                                    value={formData.course}
                                     required
                                     onChange={handleChange}
-                                    className="w-full border border-gray-300 p-3 rounded-lg"
+                                    className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:border-[#7a1c1c] focus:ring-2 focus:ring-[#7a1c1c]/20"
                                 >
                                     <option value="">Select Class</option>
                                     <option value="11th">11th</option>
@@ -121,62 +179,61 @@ export default function ContactPage() {
 
                         {/* ROW 3 */}
                         <div>
-
-                            <label className="block text-gray-700 mb-2">
+                            <label htmlFor="contact-department" className="block text-gray-700 mb-2">
                                 Department
                             </label>
-
                             <select
+                                id="contact-department"
                                 name="department"
+                                value={formData.department}
                                 required
                                 onChange={handleChange}
-                                className="w-full border border-gray-300 p-3 rounded-lg"
+                                className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:border-[#7a1c1c] focus:ring-2 focus:ring-[#7a1c1c]/20"
                             >
                                 <option value="">Select Department</option>
                                 <option value="Science">Science</option>
                                 <option value="Commerce">Commerce</option>
                                 <option value="Arts">Arts</option>
                             </select>
-
                         </div>
 
                         {/* MESSAGE */}
                         <div>
-
-                            <label className="block text-gray-700 mb-2">
+                            <label htmlFor="contact-message" className="block text-gray-700 mb-2">
                                 Message
                             </label>
-
                             <textarea
+                                id="contact-message"
                                 name="message"
                                 rows="4"
+                                value={formData.message}
                                 onChange={handleChange}
-                                className="w-full border border-gray-300 p-3 rounded-lg"
-                            ></textarea>
-
+                                className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:border-[#7a1c1c] focus:ring-2 focus:ring-[#7a1c1c]/20 resize-none"
+                            />
                         </div>
 
                         {/* TERMS CHECKBOX */}
                         <div className="flex items-center gap-2">
-
                             <input
+                                id="contact-agree"
                                 type="checkbox"
                                 name="agree"
+                                checked={formData.agree}
                                 onChange={handleChange}
+                                className="accent-[#7a1c1c]"
                             />
-
-                            <span className="text-sm text-gray-600">
+                            <label htmlFor="contact-agree" className="text-sm text-gray-600 cursor-pointer">
                                 I agree to the terms and conditions.
-                            </span>
-
+                            </label>
                         </div>
 
                         {/* SUBMIT */}
                         <button
                             type="submit"
-                            className="w-full bg-[#7a1c1c] text-white py-3 rounded-lg hover:bg-[#9f2a2a]"
+                            disabled={isSubmitting}
+                            className="w-full bg-[#7a1c1c] text-white py-3 rounded-lg hover:bg-[#9f2a2a] transition font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
                         >
-                            Submit Inquiry
+                            {isSubmitting ? "Submitting..." : "Submit Inquiry"}
                         </button>
 
                     </form>
