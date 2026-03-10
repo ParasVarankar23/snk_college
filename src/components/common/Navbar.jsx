@@ -5,6 +5,7 @@ import { Bell, LogOut, Menu, Search } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import toast from "react-hot-toast";
 
 // eslint-disable-next-line react/prop-types
 export default function Navbar({ sidebarOpen, setSidebarOpen }) {
@@ -18,6 +19,7 @@ export default function Navbar({ sidebarOpen, setSidebarOpen }) {
 
   const dropdownRef = useRef(null);
   const timerRef = useRef(null);
+  const isLoggingOutRef = useRef(false);
 
   /* ================= REAL-TIME CLOCK ================= */
   useEffect(() => {
@@ -66,13 +68,27 @@ export default function Navbar({ sidebarOpen, setSidebarOpen }) {
   }, [logoutModal]);
 
   const handleFinalLogout = async () => {
-    await logout();
-    router.push("/login");
+    if (isLoggingOutRef.current) return;
+    isLoggingOutRef.current = true;
+
+    clearInterval(timerRef.current);
+    setLogoutModal(false);
+
+    try {
+      await logout();
+      toast.success("Logged out successfully");
+      router.push("/login");
+    } catch {
+      toast.error("Logout failed. Please try again.");
+    } finally {
+      isLoggingOutRef.current = false;
+    }
   };
 
   const cancelLogout = () => {
     clearInterval(timerRef.current);
     setLogoutModal(false);
+    toast("Logout cancelled");
   };
 
   return (

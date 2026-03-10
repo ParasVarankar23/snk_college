@@ -1,10 +1,8 @@
 "use client";
 
 import { useAuth } from "@/hooks/useAuth";
-import { ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
 import {
   FaAward,
   FaBook,
@@ -18,11 +16,6 @@ import {
 export default function Sidebar({ setSidebarOpen }) {
   const pathname = usePathname();
   const { user } = useAuth();
-  const [expandedMenu, setExpandedMenu] = useState(null);
-
-  const toggleMenu = (menuName) => {
-    setExpandedMenu(expandedMenu === menuName ? null : menuName);
-  };
 
   const handleLinkClick = () => {
     setSidebarOpen?.(false);
@@ -32,57 +25,27 @@ export default function Sidebar({ setSidebarOpen }) {
     {
       name: "Academics",
       icon: FaChalkboardUser,
-      submenu: [
-        { label: "11th Arts", path: "/academics/11th-arts" },
-        { label: "11th Commerce", path: "/academics/11th-commerce" },
-        { label: "11th Science", path: "/academics/11th-science" },
-        { label: "12th Arts", path: "/academics/12th-arts" },
-        { label: "12th Commerce", path: "/academics/12th-commerce" },
-        { label: "12th Science", path: "/academics/12th-science" },
-      ],
+      path: "/admin/academics",
     },
     {
       name: "Departments",
       icon: FaBook,
-      submenu: [
-        { label: "Arts", path: "/departments/arts" },
-        { label: "Commerce", path: "/departments/commerce" },
-        { label: "Science", path: "/departments/science" },
-      ],
-    },
-    {
-      name: "Facilities",
-      icon: FaChalkboardUser,
-      submenu: [
-        { label: "Library", path: "/facilities/library" },
-        { label: "Computer Lab", path: "/facilities/computer" },
-        { label: "Laboratory", path: "/facilities/laboratory" },
-        { label: "Sports", path: "/facilities/sports" },
-      ],
-    },
-    {
-      name: "Events",
-      icon: FaCalendar,
-      submenu: [
-        { label: "Annual Day", path: "/events/annualday" },
-        { label: "Cultural", path: "/events/cultural" },
-        { label: "Science Exhibition", path: "/events/scienceexhibition" },
-        { label: "Picnic", path: "/events/picinic" },
-      ],
+      path: "/admin/departments",
     },
     {
       name: "Achievements",
       icon: FaAward,
-      submenu: [
-        { label: "Academic", path: "/achievements/academic" },
-        { label: "Sports", path: "/achievements/sports" },
-        { label: "Awards", path: "/achievements/awards" },
-      ],
+      path: "/admin/achievements",
+    },
+    {
+      name: "Events",
+      icon: FaCalendar,
+      path: "/admin/events",
     },
     {
       name: "Gallery",
       icon: FaImages,
-      path: "/gallery",
+      path: "/admin/gallery",
     },
     {
       name: "Feedback",
@@ -98,7 +61,7 @@ export default function Sidebar({ setSidebarOpen }) {
       {/* HEADER */}
       <div className="sticky top-0 p-6 border-b border-gray-200">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold shadow-lg bg-gradient-to-r from-[#7a1c1c] to-[#5a1414]">
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold shadow-lg bg-linear-to-r from-[#7a1c1c] to-[#5a1414]">
             📚
           </div>
           <div>
@@ -113,68 +76,22 @@ export default function Sidebar({ setSidebarOpen }) {
       {/* NAVIGATION */}
       <nav className="flex-1 px-4 py-6 space-y-2">
         {menuItems.map((item) => {
-          // eslint-disable-next-line complexity
           const IconComponent = item.icon;
           const isActive = pathname.startsWith(item.path || "");
-          const isExpanded = expandedMenu === item.name;
 
           return (
-            <div key={item.name}>
-              {item.submenu ? (
-                /* EXPANDABLE MENU ITEM */
-                <button
-                  onClick={() => toggleMenu(item.name)}
-                  className={`w-full flex items-center justify-between px-4 py-3 rounded-lg font-medium transition ${isExpanded
-                    ? "bg-[#7a1c1c]/10 text-[#7a1c1c]"
-                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                    }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <IconComponent size={18} />
-                    <span>{item.name}</span>
-                  </div>
-                  <ChevronDown
-                    size={18}
-                    className={`transition transform ${isExpanded ? "rotate-180" : ""
-                      }`}
-                  />
-                </button>
-
-                /* SUBMENU ITEMS */
-              ) : (
-                /* SIMPLE MENU ITEM (NO SUBMENU) */
-                <Link
-                  href={item.path}
-                  onClick={handleLinkClick}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition ${isActive
-                    ? "bg-[#7a1c1c]/10 text-[#7a1c1c]"
-                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                    }`}
-                >
-                  <IconComponent size={18} />
-                  <span>{item.name}</span>
-                </Link>
-              )}
-
-              {/* SUBMENU DROPDOWN */}
-              {item.submenu && isExpanded && (
-                <div className="mt-2 ml-4 space-y-1 border-l-2 border-[#7a1c1c]/30 pl-4">
-                  {item.submenu.map((subitem) => (
-                    <Link
-                      key={subitem.path}
-                      href={subitem.path}
-                      onClick={handleLinkClick}
-                      className={`block px-4 py-2 rounded-lg text-sm font-medium transition ${pathname === subitem.path
-                        ? "bg-[#7a1c1c]/10 text-[#7a1c1c]"
-                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-                        }`}
-                    >
-                      → {subitem.label}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
+            <Link
+              key={item.name}
+              href={item.path}
+              onClick={handleLinkClick}
+              className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition ${isActive
+                ? "bg-[#7a1c1c]/10 text-[#7a1c1c]"
+                : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                }`}
+            >
+              <IconComponent size={18} />
+              <span>{item.name}</span>
+            </Link>
           );
         })}
       </nav>

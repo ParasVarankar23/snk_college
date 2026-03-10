@@ -4,6 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import toast from "react-hot-toast";
+import { FaCheckCircle } from "react-icons/fa";
 
 export default function SignupPage() {
     const router = useRouter();
@@ -45,12 +47,15 @@ export default function SignupPage() {
             const data = await response.json();
 
             if (!response.ok) {
-                setError(data.error || "Signup failed");
+                const errorMessage = data.error || "Signup failed";
+                setError(errorMessage);
+                toast.error(errorMessage);
                 return;
             }
 
             setSuccess("Account created successfully! Check your email for login credentials.");
             setGeneratedPassword(data.generatedPassword);
+            toast.success("Account created successfully");
             setFormData({ name: "", email: "" });
 
             // Redirect to login after 2 seconds
@@ -58,42 +63,72 @@ export default function SignupPage() {
                 router.push("/login");
             }, 2000);
         } catch (err) {
-            setError(err.message || "An error occurred during signup");
+            const errorMessage = err.message || "An error occurred during signup";
+            setError(errorMessage);
+            toast.error(errorMessage);
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <section className="min-h-screen flex items-center justify-center bg-gray-100">
-            <div className="max-w-6xl w-full bg-white shadow-lg rounded-xl grid md:grid-cols-2 overflow-hidden">
+        <section className="flex items-center justify-center bg-gray-100 px-4 md:px-6 py-10">
+            <div className="max-w-7xl w-full grid md:grid-cols-2 gap-12 items-center">
+                {/* LEFT SIDE INFORMATION - HIDDEN ON MOBILE */}
+                <div className="hidden md:block">
+                    <div className="relative h-107.5 w-full rounded-2xl overflow-hidden shadow-xl border border-gray-200">
+                        <Image
+                            src="/college/college.jpg"
+                            alt="College Signup"
+                            fill
+                            className="object-cover"
+                            priority
+                        />
+                        <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/20 to-transparent" />
 
-                {/* LEFT SIDE IMAGE */}
-                <div className="hidden md:block relative">
-                    <Image
-                        src="/college/college.jpg"
-                        alt="College Signup"
-                        fill
-                        className="object-cover"
-                    />
+                        <div className="absolute top-25 left-5 p-8 text-white">
+                            <h1 className="text-4xl font-bold leading-tight">
+                                Join SNK Junior College
+                            </h1>
+                            <p className="mt-3 text-sm md:text-base text-white max-w-lg">
+                                Start your academic journey with a secure account and stay connected
+                                with announcements, updates, and activities.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="mt-8 space-y-5">
+                        <div className="flex items-start gap-3 text-gray-700">
+                            <FaCheckCircle className="text-[#7a1c1c] mt-1" />
+                            <p>Quick account creation for students and staff members.</p>
+                        </div>
+
+                        <div className="flex items-start gap-3 text-gray-700">
+                            <FaCheckCircle className="text-[#7a1c1c] mt-1" />
+                            <p>Auto-generated credentials sent securely to your email address.</p>
+                        </div>
+
+                        <div className="flex items-start gap-3 text-gray-700">
+                            <FaCheckCircle className="text-[#7a1c1c] mt-1" />
+                            <p>Access academics, events, facilities, and college updates in one place.</p>
+                        </div>
+                    </div>
                 </div>
 
                 {/* RIGHT SIDE FORM */}
-                <div className="p-10">
-                    <h2 className="text-3xl font-bold text-gray-800 mb-2">
-                        Create Account
-                    </h2>
+                <div className="bg-white shadow-xl border border-gray-200 rounded-2xl p-8 md:p-10 max-w-md w-full mx-auto">
+                    <h2 className="text-3xl font-bold text-gray-900 text-center">Create Account</h2>
 
-                    <p className="text-gray-500 mb-8">
+                    <p className="text-center text-gray-500 mt-2 mb-8">
                         Sign up to access your college account
                     </p>
 
                     {/* SUCCESS MESSAGE */}
                     {success && (
-                        <div className="mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
-                            {success}
+                        <div className="mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg text-sm">
+                            <p>{success}</p>
                             {generatedPassword && (
-                                <p className="mt-2 font-mono font-bold">
+                                <p className="mt-2 font-mono font-semibold break-all">
                                     Generated Password: {generatedPassword}
                                 </p>
                             )}
@@ -102,19 +137,18 @@ export default function SignupPage() {
 
                     {/* ERROR MESSAGE */}
                     {error && (
-                        <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+                        <div className="mb-6 p-3 text-sm bg-red-100 border border-red-400 text-red-700 rounded-lg">
                             {error}
                         </div>
                     )}
 
                     <form onSubmit={handleSubmit} className="space-y-6">
-
-                        {/* NAME */}
                         <div>
-                            <label className="block text-gray-700 mb-2 font-medium">
+                            <label htmlFor="name" className="block font-medium text-gray-700 mb-2">
                                 Full Name
                             </label>
                             <input
+                                id="name"
                                 type="text"
                                 name="name"
                                 placeholder="Enter your full name"
@@ -122,16 +156,16 @@ export default function SignupPage() {
                                 onChange={handleChange}
                                 required
                                 disabled={loading}
-                                className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:border-[#7a1c1c] disabled:bg-gray-100"
+                                className="w-full h-12 px-4 border border-gray-300 rounded-lg focus:border-[#7a1c1c] focus:ring-2 focus:ring-[#7a1c1c] outline-none disabled:bg-gray-100"
                             />
                         </div>
 
-                        {/* EMAIL */}
                         <div>
-                            <label className="block text-gray-700 mb-2 font-medium">
+                            <label htmlFor="email" className="block font-medium text-gray-700 mb-2">
                                 Email Address
                             </label>
                             <input
+                                id="email"
                                 type="email"
                                 name="email"
                                 placeholder="Enter your email"
@@ -139,38 +173,25 @@ export default function SignupPage() {
                                 onChange={handleChange}
                                 required
                                 disabled={loading}
-                                className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:border-[#7a1c1c] disabled:bg-gray-100"
+                                className="w-full h-12 px-4 border border-gray-300 rounded-lg focus:border-[#7a1c1c] focus:ring-2 focus:ring-[#7a1c1c] outline-none disabled:bg-gray-100"
                             />
                         </div>
-
-                        <p className="text-sm text-gray-600 bg-blue-50 p-3 rounded">
-                            ℹ️ Your password will be generated and sent to your email.
-                        </p>
-
-                        {/* SIGNUP BUTTON */}
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-[#7a1c1c] text-white py-3 rounded-lg hover:bg-[#9f2a2a] transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-full h-12 bg-[#7a1c1c] text-white font-semibold rounded-lg hover:bg-[#9f2a2a] transition disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {loading ? "Creating Account..." : "Sign Up"}
                         </button>
-
                     </form>
 
-                    {/* LOGIN LINK */}
                     <p className="text-center text-gray-600 mt-6">
                         Already have an account?{" "}
-                        <Link
-                            href="/login"
-                            className="text-[#7a1c1c] hover:underline font-medium"
-                        >
+                        <Link href="/login" className="text-[#7a1c1c] font-semibold hover:underline">
                             Login here
                         </Link>
                     </p>
-
                 </div>
-
             </div>
         </section>
     );

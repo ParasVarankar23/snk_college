@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import toast from "react-hot-toast";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 export default function ForgotPassword() {
@@ -38,7 +39,9 @@ export default function ForgotPassword() {
         setMessage("");
 
         if (!formData.email.trim()) {
-            setError("Please enter your email");
+            const errorMessage = "Please enter your email";
+            setError(errorMessage);
+            toast.error(errorMessage);
             return;
         }
 
@@ -57,14 +60,20 @@ export default function ForgotPassword() {
             const data = await response.json();
 
             if (!response.ok) {
-                setError(data.error || "Failed to send OTP/reset code");
+                const errorMessage = data.error || "Failed to send OTP/reset code";
+                setError(errorMessage);
+                toast.error(errorMessage);
                 return;
             }
 
-            setMessage(data.message || "OTP/reset code sent to your email");
+            const successMessage = data.message || "OTP/reset code sent to your email";
+            setMessage(successMessage);
+            toast.success(successMessage);
             setStep(2);
         } catch {
-            setError("Network error. Please try again.");
+            const errorMessage = "Network error. Please try again.";
+            setError(errorMessage);
+            toast.error(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -75,17 +84,23 @@ export default function ForgotPassword() {
         setMessage("");
 
         if (!formData.otp.trim()) {
-            setError("Please enter OTP/code");
+            const errorMessage = "Please enter the 6-digit OTP sent to your email";
+            setError(errorMessage);
+            toast.error(errorMessage);
             return;
         }
 
         if (!formData.newPassword || !formData.confirmPassword) {
-            setError("Please fill new password and confirm password");
+            const errorMessage = "Please fill new password and confirm password";
+            setError(errorMessage);
+            toast.error(errorMessage);
             return;
         }
 
         if (formData.newPassword !== formData.confirmPassword) {
-            setError("Passwords do not match");
+            const errorMessage = "Passwords do not match";
+            setError(errorMessage);
+            toast.error(errorMessage);
             return;
         }
 
@@ -97,6 +112,7 @@ export default function ForgotPassword() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     action: "reset-password",
+                    email: formData.email.trim().toLowerCase(),
                     otp: formData.otp.trim(),
                     newPassword: formData.newPassword,
                     confirmPassword: formData.confirmPassword,
@@ -106,17 +122,23 @@ export default function ForgotPassword() {
             const data = await response.json();
 
             if (!response.ok) {
-                setError(data.error || "Failed to reset password");
+                const errorMessage = data.error || "Failed to reset password";
+                setError(errorMessage);
+                toast.error(errorMessage);
                 return;
             }
 
-            setMessage(data.message || "Password reset successful");
+            const successMessage = data.message || "Password reset successful";
+            setMessage(successMessage);
+            toast.success(successMessage);
 
             setTimeout(() => {
                 router.push("/login");
             }, 1200);
         } catch {
-            setError("Network error. Please try again.");
+            const errorMessage = "Network error. Please try again.";
+            setError(errorMessage);
+            toast.error(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -124,7 +146,7 @@ export default function ForgotPassword() {
 
     return (
 
-        <section className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
+        <section className="flex items-center justify-center bg-gray-100 px-4 py-22">
 
             <div className="bg-white shadow-xl border border-gray-200 rounded-2xl p-10 max-w-md w-full">
 
@@ -199,16 +221,17 @@ export default function ForgotPassword() {
                         <div>
 
                             <label htmlFor="otp" className="block text-gray-700 font-medium mb-2">
-                                Enter OTP
+                                Enter 6-Digit OTP
                             </label>
 
                             <input
                                 id="otp"
                                 type="text"
                                 name="otp"
-                                placeholder="Enter OTP"
+                                placeholder="Enter the 6-digit OTP from your email"
                                 value={formData.otp}
                                 onChange={handleChange}
+                                maxLength={6}
                                 className="w-full h-12 px-4 border border-gray-300 rounded-lg
                 focus:ring-2 focus:ring-[#7a1c1c]"
                             />

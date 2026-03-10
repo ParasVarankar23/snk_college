@@ -32,12 +32,9 @@ export async function login(email, password) {
         throw new Error(data.error || "Login failed");
     }
 
-    // Store token and user in localStorage
-    if (data.idToken) {
-        localStorage.setItem("authToken", data.idToken);
-    }
-    if (data.user) {
-        localStorage.setItem("user", JSON.stringify(data.user));
+    // Store only auth token in localStorage
+    if (data.authToken) {
+        localStorage.setItem("authToken", data.authToken);
     }
 
     return data;
@@ -45,26 +42,22 @@ export async function login(email, password) {
 
 export function logout() {
     localStorage.removeItem("authToken");
-    localStorage.removeItem("user");
 }
 
 export function getAuthToken() {
-    if (typeof window !== "undefined") {
+    if (globalThis.window !== undefined) {
         return localStorage.getItem("authToken");
     }
     return null;
 }
 
 export function getStoredUser() {
-    if (typeof window !== "undefined") {
-        const user = localStorage.getItem("user");
-        return user ? JSON.parse(user) : null;
-    }
+    // User object is no longer persisted in localStorage
     return null;
 }
 
 export function isAuthenticated() {
-    if (typeof window !== "undefined") {
+    if (globalThis.window !== undefined) {
         return !!localStorage.getItem("authToken");
     }
     return false;

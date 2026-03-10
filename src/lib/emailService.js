@@ -95,13 +95,11 @@ export async function sendSignupEmail(email, name, generatedPassword) {
 }
 
 /**
- * Send forgot password guidance email
+ * Send forgot password OTP email
  * @param {string} email - User email
+ * @param {string} otp - 6-digit OTP code
  */
-export async function sendForgotPasswordEmail(email) {
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-    const forgotUrl = `${appUrl}/forgot-password`;
-
+export async function sendForgotPasswordEmail(email, otp) {
     const htmlContent = `
         <!DOCTYPE html>
         <html>
@@ -111,7 +109,8 @@ export async function sendForgotPasswordEmail(email) {
                 .container { max-width: 600px; margin: 0 auto; padding: 20px; }
                 .header { background-color: #7a1c1c; color: white; padding: 20px; border-radius: 5px; text-align: center; }
                 .content { background-color: #f9f9f9; padding: 20px; margin: 20px 0; border-radius: 5px; }
-                .button { display: inline-block; background: #7a1c1c; color: white !important; text-decoration: none; padding: 12px 20px; border-radius: 6px; font-weight: bold; }
+                .otp-box { background: #fff; border: 2px solid #7a1c1c; border-radius: 8px; padding: 20px; text-align: center; margin: 20px 0; }
+                .otp-code { font-size: 40px; font-weight: bold; color: #7a1c1c; letter-spacing: 10px; font-family: monospace; }
                 .note { background: #fff3cd; border: 1px solid #ffc107; color: #856404; border-radius: 5px; padding: 10px; margin-top: 16px; }
                 .footer { text-align: center; color: #666; font-size: 12px; margin-top: 20px; }
             </style>
@@ -119,23 +118,23 @@ export async function sendForgotPasswordEmail(email) {
         <body>
             <div class="container">
                 <div class="header">
-                    <h1>Forgot Password Request</h1>
+                    <h1>Password Reset OTP</h1>
                 </div>
 
                 <div class="content">
                     <p>We received a request to reset your password for <strong>${email}</strong>.</p>
 
-                    <p>Please open the forgot password page and complete the reset process:</p>
+                    <p>Use the following 6-digit OTP to reset your password:</p>
 
-                    <p>
-                        <a class="button" href="${forgotUrl}" target="_blank" rel="noopener noreferrer">Open Forgot Password</a>
-                    </p>
-
-                    <div class="note">
-                        We also sent a Firebase password-reset email. If you do not see it, please check your spam/junk folder.
+                    <div class="otp-box">
+                        <p style="margin:0 0 8px 0; color:#555;">Your OTP Code</p>
+                        <div class="otp-code">${otp}</div>
+                        <p style="margin:10px 0 0 0; color:#888; font-size:13px;">Valid for 10 minutes</p>
                     </div>
 
-                    <p>If you did not request this, you can safely ignore this email.</p>
+                    <div class="note">
+                        Do not share this OTP with anyone. If you did not request this, you can safely ignore this email.
+                    </div>
                 </div>
 
                 <div class="footer">
@@ -150,7 +149,7 @@ export async function sendForgotPasswordEmail(email) {
         const mailOptions = {
             from: smtpUser,
             to: email,
-            subject: "SNK Portal - Password Reset Request",
+            subject: "SNK Portal - Your Password Reset OTP",
             html: htmlContent,
         };
 

@@ -1,90 +1,79 @@
-import Image from "next/image";
+"use client";
+
+import { useEffect, useState } from "react";
+
+/* eslint-disable react/prop-types */
 
 export default function SportsAchievements() {
     return (
-        <section className="bg-gray-50 py-10">
+        <AchievementCategoryPage
+            category="sports"
+            title="Sports Achievements"
+            description="Our students actively participate in sports competitions and achieve remarkable success."
+            emptyMessage="No sports achievements added yet."
+        />
+    );
+}
 
+function AchievementCategoryPage({ category, title, description, emptyMessage }) {
+    const [achievements, setAchievements] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+
+    useEffect(() => {
+        const fetchAchievements = async () => {
+            try {
+                const response = await fetch(`/api/achievements?category=${category}`, {
+                    cache: "no-store",
+                });
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || "Failed to load achievements");
+                }
+
+                setAchievements(data.achievements || []);
+            } catch (err) {
+                setError(err.message || "Failed to load achievements");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchAchievements();
+    }, [category]);
+
+    return (
+        <section className="bg-gray-50 py-10 min-h-[60vh]">
             <div className="max-w-7xl mx-auto px-6">
-
                 <div className="text-center mb-12">
-
-                    <h1 className="text-4xl font-bold text-gray-800">
-                        Sports Achievements
-                    </h1>
-
-                    <p className="text-gray-600 mt-4">
-                        Our students actively participate in sports competitions
-                        and achieve remarkable success.
-                    </p>
-
+                    <h1 className="text-4xl font-bold text-gray-800">{title}</h1>
+                    <p className="text-gray-600 mt-4">{description}</p>
                 </div>
 
-                <div className="grid md:grid-cols-3 gap-8">
+                {loading && <p className="text-center text-gray-500">Loading achievements...</p>}
+                {error && <p className="text-center text-rose-600">{error}</p>}
+                {!loading && !error && achievements.length === 0 && (
+                    <p className="text-center text-gray-500">{emptyMessage}</p>
+                )}
 
-                    <div className="bg-white p-6 rounded-xl shadow-md text-center">
+                {!loading && !error && achievements.length > 0 && (
+                    <div className="grid md:grid-cols-3 gap-8">
+                        {achievements.map((achievement) => (
+                            <div key={achievement.id} className="bg-white p-6 rounded-xl shadow-md text-center">
+                                <img
+                                    src={achievement.imageUrl}
+                                    alt={achievement.title}
+                                    className="mx-auto w-full h-56 rounded-lg mb-4 object-cover"
+                                />
 
-                        <Image
-                            src="/achievements/sports1.jpg"
-                            alt="Cricket Team"
-                            width={200}
-                            height={200}
-                            className="mx-auto rounded-lg mb-4"
-                        />
-
-                        <h3 className="font-semibold text-[#7a1c1c]">
-                            Cricket Championship
-                        </h3>
-
-                        <p className="text-gray-600 text-sm">
-                            Winner - Inter College Tournament
-                        </p>
-
+                                <h3 className="font-semibold text-[#7a1c1c] text-lg">{achievement.title}</h3>
+                                <p className="text-gray-600 text-sm mt-2">{achievement.description}</p>
+                            </div>
+                        ))}
                     </div>
-
-                    <div className="bg-white p-6 rounded-xl shadow-md text-center">
-
-                        <Image
-                            src="/achievements/sports2.jpg"
-                            alt="Kabaddi"
-                            width={200}
-                            height={200}
-                            className="mx-auto rounded-lg mb-4"
-                        />
-
-                        <h3 className="font-semibold text-[#7a1c1c]">
-                            Kabaddi Tournament
-                        </h3>
-
-                        <p className="text-gray-600 text-sm">
-                            Runner Up - District Level
-                        </p>
-
-                    </div>
-
-                    <div className="bg-white p-6 rounded-xl shadow-md text-center">
-
-                        <Image
-                            src="/achievements/sports3.jpg"
-                            alt="Athletics"
-                            width={200}
-                            height={200}
-                            className="mx-auto rounded-lg mb-4"
-                        />
-
-                        <h3 className="font-semibold text-[#7a1c1c]">
-                            Athletics Competition
-                        </h3>
-
-                        <p className="text-gray-600 text-sm">
-                            Gold Medal - 100m Race
-                        </p>
-
-                    </div>
-
-                </div>
-
+                )}
             </div>
-
         </section>
     );
 }

@@ -1,6 +1,5 @@
 import { sendForgotPasswordEmail } from "@/lib/emailService";
-import { getFirebaseAuth } from "@/lib/firebase";
-import { confirmPasswordReset, sendPasswordResetEmail } from "firebase/auth";
+import { getAdminAuth, getAdminDb } from "@/lib/firebaseAdmin";
 
 function isValidEmail(email) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -10,35 +9,17 @@ function isStrongPassword(password) {
     return typeof password === "string" && password.length >= 6;
 }
 
-function mapFirebaseError(error) {
-    if (error.code === "auth/user-not-found") {
-        return { error: "User not found", status: 404 };
-    }
+/** Convert email to a safe Firebase DB key (no dots, @, etc.) */
+function emailToKey(email) {
+    return email.replace(/\./g, "_dot_").replace(/@/g, "_at_");
+}
 
-    if (error.code === "auth/invalid-email") {
-        return { error: "Invalid email address", status: 400 };
-    }
-
-    if (error.code === "auth/invalid-action-code") {
-        return { error: "Invalid or expired OTP/code", status: 400 };
-    }
-
-    if (error.code === "auth/expired-action-code") {
-        return { error: "OTP/code expired. Please request again.", status: 400 };
-    }
-
-    if (error.code === "auth/weak-password") {
-        return { error: "Password is too weak", status: 400 };
-    }
-
-    return {
-        error: error.message || "Failed to process forgot password request",
-        status: 500,
-    };
+/** Generate a 6-digit numeric OTP */
+function generateOTP() {
+    return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
 async function handleSendOtp(body) {
-    const auth = getFirebaseAuth();
     const email = String(body?.email || "").trim().toLowerCase();
 
     if (!email) {
@@ -49,34 +30,41 @@ async function handleSendOtp(body) {
         return Response.json({ error: "Invalid email address" }, { status: 400 });
     }
 
-    await sendPasswordResetEmail(auth, email);
-
-    // Best effort: send branded guidance email from SMTP as well.
+    // Verify user exists in Firebase Auth
     try {
-        await sendForgotPasswordEmail(email);
-    } catch (emailError) {
-        console.error("Forgot password guidance email failed:", emailError);
+        await getAdminAuth().getUserByEmail(email);
+    } catch {
+        return Response.json({ error: "No account found with this email" }, { status: 404 });
     }
+
+    const otp = generateOTP();
+    const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
+
+    // Store OTP in Realtime DB
+    const db = getAdminDb();
+    await db.ref(`otps/${emailToKey(email)}`).set({ otp, expiresAt, attempts: 0 });
+
+    // Send OTP via SMTP
+    await sendForgotPasswordEmail(email, otp);
 
     return Response.json(
         {
             success: true,
-            message:
-                "Password reset email sent successfully. Please check your inbox/spam and use the reset flow from email.",
+            message: "A 6-digit OTP has been sent to your email. It expires in 10 minutes.",
         },
         { status: 200 }
     );
 }
 
 async function handleResetPassword(body) {
-    const auth = getFirebaseAuth();
-    const code = String(body?.otp || "").trim();
+    const email = String(body?.email || "").trim().toLowerCase();
+    const otp = String(body?.otp || "").trim();
     const newPassword = String(body?.newPassword || "");
     const confirmPassword = String(body?.confirmPassword || "");
 
-    if (!code || !newPassword || !confirmPassword) {
+    if (!email || !otp || !newPassword || !confirmPassword) {
         return Response.json(
-            { error: "OTP code, new password and confirm password are required" },
+            { error: "Email, OTP, new password and confirm password are required" },
             { status: 400 }
         );
     }
@@ -92,7 +80,42 @@ async function handleResetPassword(body) {
         );
     }
 
-    await confirmPasswordReset(auth, code, newPassword);
+    // Verify OTP from DB
+    const db = getAdminDb();
+    const otpRef = db.ref(`otps/${emailToKey(email)}`);
+    const snapshot = await otpRef.get();
+
+    if (!snapshot.exists()) {
+        return Response.json({ error: "OTP not found. Please request a new OTP." }, { status: 400 });
+    }
+
+    const record = snapshot.val();
+
+    if (record.attempts >= 3) {
+        await otpRef.remove();
+        return Response.json({ error: "Too many failed attempts. Please request a new OTP." }, { status: 400 });
+    }
+
+    if (Date.now() > record.expiresAt) {
+        await otpRef.remove();
+        return Response.json({ error: "OTP has expired. Please request a new OTP." }, { status: 400 });
+    }
+
+    if (record.otp !== otp) {
+        await otpRef.update({ attempts: record.attempts + 1 });
+        const remaining = 3 - record.attempts - 1;
+        return Response.json(
+            { error: `Invalid OTP. ${remaining} attempt(s) remaining.` },
+            { status: 400 }
+        );
+    }
+
+    // OTP valid — delete it and update password
+    await otpRef.remove();
+
+    const adminAuth = getAdminAuth();
+    const user = await adminAuth.getUserByEmail(email);
+    await adminAuth.updateUser(user.uid, { password: newPassword });
 
     return Response.json(
         {

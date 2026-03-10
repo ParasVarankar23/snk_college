@@ -1,6 +1,7 @@
 import { getFirebaseAuth, getFirebaseDb } from "@/lib/firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { get, ref } from "firebase/database";
+import jwt from "jsonwebtoken";
 
 export async function POST(request) {
     try {
@@ -31,7 +32,24 @@ export async function POST(request) {
         const userData = userSnapshot.exists() ? userSnapshot.val() : null;
 
         // Get ID token for client-side verification
-        const idToken = await user.getIdToken();
+        await user.getIdToken();
+
+        const jwtSecret = process.env.JWT_SECRET;
+        const jwtExpiration = process.env.JWT_EXPIRATION || "7d";
+
+        if (!jwtSecret) {
+            return Response.json(
+                { error: "Server configuration error: missing JWT_SECRET" },
+                { status: 500 }
+            );
+        }
+
+        // App token with only user_id claim
+        const appToken = jwt.sign(
+            { user_id: user.uid },
+            jwtSecret,
+            { expiresIn: jwtExpiration }
+        );
 
         return Response.json(
             {
@@ -42,7 +60,7 @@ export async function POST(request) {
                     email: user.email,
                     name: userData?.name || null,
                 },
-                idToken: idToken,
+                authToken: appToken,
             },
             { status: 200 }
         );

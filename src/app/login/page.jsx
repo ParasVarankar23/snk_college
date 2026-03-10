@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import toast from "react-hot-toast";
 import { FaCheckCircle, FaEye, FaEyeSlash } from "react-icons/fa";
 
 export default function LoginPage() {
@@ -45,16 +46,20 @@ export default function LoginPage() {
             const data = await response.json();
 
             if (!response.ok) {
-                setError(data.error || "Login failed");
+                const errorMessage = data.error || "Login failed";
+                setError(errorMessage);
+                toast.error(errorMessage);
                 return;
             }
 
-            localStorage.setItem("authToken", data.idToken);
-            localStorage.setItem("user", JSON.stringify(data.user));
+            localStorage.setItem("authToken", data.authToken);
 
+            toast.success("Login successful");
             router.push("/admin/events");
         } catch (err) {
-            setError(err.message || "Login error");
+            const errorMessage = err.message || "Login error";
+            setError(errorMessage);
+            toast.error(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -98,10 +103,10 @@ export default function LoginPage() {
                             </p>
                         </div>
 
-                            <div className="flex items-start gap-3 text-gray-700">
-                                <FaCheckCircle className="text-[#7a1c1c] mt-1" />
-                                <p>Promoting knowledge, discipline, and excellence in education.</p>
-                            </div>
+                        <div className="flex items-start gap-3 text-gray-700">
+                            <FaCheckCircle className="text-[#7a1c1c] mt-1" />
+                            <p>Promoting knowledge, discipline, and excellence in education.</p>
+                        </div>
                     </div>
                 </div>
 
