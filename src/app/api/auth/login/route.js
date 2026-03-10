@@ -1,9 +1,12 @@
-import { auth, db } from "@/lib/firebase";
+import { getFirebaseAuth, getFirebaseDb } from "@/lib/firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { get, ref } from "firebase/database";
 
 export async function POST(request) {
     try {
+        const auth = getFirebaseAuth();
+        const db = getFirebaseDb();
+
         const { email, password } = await request.json();
 
         // Validation

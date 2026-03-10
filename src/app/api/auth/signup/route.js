@@ -1,5 +1,5 @@
 import { sendSignupEmail } from "@/lib/emailService";
-import { auth, db } from "@/lib/firebase";
+import { getFirebaseAuth, getFirebaseDb } from "@/lib/firebase";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { ref, set } from "firebase/database";
 
@@ -22,6 +22,9 @@ function generatePassword(name) {
 
 export async function POST(request) {
     try {
+        const auth = getFirebaseAuth();
+        const db = getFirebaseDb();
+
         const { name, email } = await request.json();
 
         // Validation
