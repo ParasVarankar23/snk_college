@@ -2,12 +2,12 @@ import Image from "next/image";
 
 export default function LeadershipSection() {
     return (
-        <section className="bg-white py-20">
+        <section className="bg-white py-10">
 
             <div className="max-w-7xl mx-auto px-6">
 
                 {/* TITLE */}
-                <div className="text-center mb-14">
+                <div className="text-center mb-5">
                     <h2 className="text-3xl font-bold text-gray-800">
                         Our Leadership
                     </h2>
@@ -23,7 +23,7 @@ export default function LeadershipSection() {
                     <div className="bg-gray-50 p-6 rounded-xl shadow hover:shadow-xl text-center transition">
 
                         <Image
-                            src="/college/chairman.jpg"
+                            src="/college/supervisor.jpg"
                             alt="Ravindra Dada Kulkarni"
                             width={200}
                             height={200}
@@ -49,7 +49,7 @@ export default function LeadershipSection() {
                     <div className="bg-gray-50 p-6 rounded-xl shadow hover:shadow-xl text-center transition">
 
                         <Image
-                            src="/college/principal1.jpg"
+                            src="/college/supervisor.jpg"
                             alt="Babasaheb Yalmate"
                             width={200}
                             height={200}
@@ -75,7 +75,7 @@ export default function LeadershipSection() {
                     <div className="bg-gray-50 p-6 rounded-xl shadow hover:shadow-xl text-center transition">
 
                         <Image
-                            src="/college/viceprincipal.jpg"
+                            src="/college/supervisor.jpg"
                             alt="Vice Principal"
                             width={200}
                             height={200}

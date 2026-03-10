@@ -7,54 +7,54 @@ export default function ArtsTeachersSection() {
             name: "Patil Madam",
             subject: "History",
             education: "M.A. History, B.Ed.",
-            image: "/teachers/arts1.jpg",
+            image: "/college/supervisor.jpg",
         },
         {
             name: "Kulkarni Sir",
             subject: "Geography",
             education: "M.A. Geography, B.Ed.",
-            image: "/teachers/arts2.jpg",
+            image: "/college/supervisor.jpg",
         },
         {
             name: "Deshmukh Madam",
             subject: "Political Science",
             education: "M.A. Political Science, B.Ed.",
-            image: "/teachers/arts3.jpg",
+            image: "/college/supervisor.jpg",
         },
         {
             name: "Shinde Sir",
             subject: "Economics",
             education: "M.A. Economics, B.Ed.",
-            image: "/teachers/arts4.jpg",
+            image: "/college/supervisor.jpg",
         },
         {
             name: "Dhakane Madam",
             subject: "Marathi",
             education: "M.A. Marathi, B.Ed.",
-            image: "/teachers/arts5.jpg",
+            image: "/college/supervisor.jpg",
         },
         {
             name: "Srushti Madam",
             subject: "English",
             education: "M.A. English, B.Ed.",
-            image: "/teachers/arts6.jpg",
+            image: "/college/supervisor.jpg",
         },
         {
             name: "More Sir",
             subject: "Sociology",
             education: "M.A. Sociology, B.Ed.",
-            image: "/teachers/arts7.jpg",
+            image: "/college/supervisor.jpg",
         },
         {
             name: "Joshi Madam",
             subject: "Psychology",
             education: "M.A. Psychology, B.Ed.",
-            image: "/teachers/arts8.jpg",
+            image: "/college/supervisor.jpg",
         },
     ];
 
     return (
-        <section className="bg-gray-50 py-20">
+        <section className="bg-gray-50 py-10">
 
             <div className="max-w-7xl mx-auto px-6">
 

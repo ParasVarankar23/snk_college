@@ -2,7 +2,7 @@ import Image from "next/image";
 
 export default function AnnualDayPage() {
     return (
-        <section className="bg-gray-50 py-20">
+        <section className="bg-gray-50 py-10">
 
             <div className="max-w-7xl mx-auto px-6">
 
@@ -24,7 +24,7 @@ export default function AnnualDayPage() {
                 <div className="mb-14">
 
                     <Image
-                        src="/events/annual-day.jpg"
+                        src="/college/event1.jpg"
                         alt="Annual Day Event"
                         width={1200}
                         height={500}
@@ -88,7 +88,7 @@ export default function AnnualDayPage() {
                     <div className="grid md:grid-cols-3 gap-6">
 
                         <Image
-                            src="/events/annual1.jpg"
+                            src="/college/event1.jpg"
                             alt="Annual Day Photo"
                             width={400}
                             height={250}
@@ -96,7 +96,7 @@ export default function AnnualDayPage() {
                         />
 
                         <Image
-                            src="/events/annual2.jpg"
+                            src="/college/event2.jpg"
                             alt="Annual Day Photo"
                             width={400}
                             height={250}
@@ -104,7 +104,7 @@ export default function AnnualDayPage() {
                         />
 
                         <Image
-                            src="/events/annual3.jpg"
+                            src="/college/event3.jpg"
                             alt="Annual Day Photo"
                             width={400}
                             height={250}

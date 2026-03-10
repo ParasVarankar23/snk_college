@@ -112,7 +112,12 @@ export default function Navbar() {
 
                     {Object.keys(dropdown).map((key) => (
 
-                        <div key={key} className="relative">
+                        <div
+                            key={key}
+                            className="relative"
+                            onMouseEnter={() => setMenu(key)}
+                            onMouseLeave={() => setMenu(null)}
+                        >
 
                             <button
                                 onClick={() => toggleMenu(key)}
@@ -202,6 +207,6 @@ export default function Navbar() {
             </div>
 
         </header>
-        
+
     );
 }

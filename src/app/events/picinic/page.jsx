@@ -2,7 +2,7 @@ import Image from "next/image";
 
 export default function PicnicPage() {
     return (
-        <section className="bg-gray-50 py-20">
+        <section className="bg-gray-50 py-10">
 
             <div className="max-w-7xl mx-auto px-6">
 

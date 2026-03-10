@@ -2,7 +2,7 @@ import Image from "next/image";
 
 export default function LaboratoryPage() {
     return (
-        <section className="bg-gray-50 py-20">
+        <section className="bg-gray-50 py-10">
 
             <div className="max-w-7xl mx-auto px-6">
 
@@ -40,7 +40,7 @@ export default function LaboratoryPage() {
                                 Physics Laboratory
                             </h2>
 
-                            <p className="text-gray-600 mt-3">
+                            <p className="text-gray-600 mt-3 text-justify">
                                 The Physics Laboratory helps students understand fundamental
                                 concepts of physics through practical experiments related to
                                 mechanics, electricity, magnetism, and optics.
@@ -67,7 +67,7 @@ export default function LaboratoryPage() {
                                 Chemistry Laboratory
                             </h2>
 
-                            <p className="text-gray-600 mt-3">
+                            <p className="text-gray-600 mt-3 text-justify">
                                 The Chemistry Laboratory is equipped for various experiments in
                                 organic, inorganic, and physical chemistry, helping students
                                 develop practical skills and scientific understanding.
@@ -94,7 +94,7 @@ export default function LaboratoryPage() {
                                 Biology Laboratory
                             </h2>
 
-                            <p className="text-gray-600 mt-3">
+                            <p className="text-gray-600 mt-3 text-justify">
                                 The Biology Laboratory provides facilities for studying plant
                                 and animal biology, microscopic observations, and practical
                                 experiments that enhance students' understanding of life

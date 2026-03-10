@@ -1,5 +1,3 @@
-import Link from 'next/link';
-
 export default function Arts11thPage() {
     const subjects = [
         {
@@ -35,23 +33,15 @@ export default function Arts11thPage() {
     ];
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen bg-gradient-to-br from-[#fdf4f4] to-[#f9ecec] py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-7xl mx-auto">
-                {/* Back Button */}
-                <Link href="/academics" className="inline-flex items-center text-purple-600 hover:text-purple-800 mb-8 group transition-colors duration-200">
-                    <svg className="w-5 h-5 mr-2 transform group-hover:-translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                    </svg>
-                    Back to Academics
-                </Link>
-
                 {/* Header Section */}
-                <div className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl shadow-2xl p-8 md:p-12 mb-12 text-white">
+                <div className="bg-gradient-to-r from-[#7a1c1c] to-[#5a1414] rounded-2xl shadow-2xl p-8 md:p-12 mb-12 text-white">
                     <div className="flex items-center mb-4">
                         <span className="text-6xl mr-6">🎨</span>
                         <div>
                             <h1 className="text-4xl md:text-5xl font-bold mb-2">11th Arts</h1>
-                            <p className="text-purple-100 text-lg">Foundation Year - Arts Stream</p>
+                            <p className="text-red-100 text-lg">Foundation Year - Arts Stream</p>
                         </div>
                     </div>
                 </div>
@@ -73,7 +63,7 @@ export default function Arts11thPage() {
 
                 {/* Subjects Table */}
                 <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-                    <div className="px-8 py-6 bg-gradient-to-r from-purple-500 to-pink-500">
+                    <div className="px-8 py-6 bg-gradient-to-r from-[#7a1c1c] to-[#5a1414]">
                         <h2 className="text-2xl font-bold text-white">Subject Details</h2>
                     </div>
 
@@ -95,7 +85,7 @@ export default function Arts11thPage() {
                             </thead>
                             <tbody className="divide-y divide-gray-200">
                                 {subjects.map((subject, index) => (
-                                    <tr key={subject.name} className="hover:bg-purple-50 transition-colors duration-200">
+                                    <tr key={subject.name} className="hover:bg-red-50 transition-colors duration-200">
                                         <td className="px-6 py-5">
                                             <div className="text-base font-semibold text-gray-900">{subject.name}</div>
                                         </td>
@@ -119,7 +109,7 @@ export default function Arts11thPage() {
                     {/* Mobile Card View */}
                     <div className="md:hidden divide-y divide-gray-200">
                         {subjects.map((subject, index) => (
-                            <div key={subject.name} className="p-6 hover:bg-purple-50 transition-colors duration-200">
+                            <div key={subject.name} className="p-6 hover:bg-red-50 transition-colors duration-200">
                                 <h3 className="text-lg font-semibold text-gray-900 mb-2">{subject.name}</h3>
                                 <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium mb-3 ${subject.type.includes('Practical')
                                     ? 'bg-green-100 text-green-800'
@@ -135,19 +125,19 @@ export default function Arts11thPage() {
 
                 {/* Additional Info Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10">
-                    <div className="bg-white rounded-xl shadow-md p-6 border-t-4 border-purple-500">
+                    <div className="bg-white rounded-xl shadow-md p-6 border-t-4 border-[#7a1c1c]">
                         <h3 className="text-lg font-semibold text-gray-900 mb-2">Total Subjects</h3>
-                        <p className="text-3xl font-bold text-purple-600">{subjects.length}</p>
+                        <p className="text-3xl font-bold text-[#7a1c1c]">{subjects.length}</p>
                     </div>
-                    <div className="bg-white rounded-xl shadow-md p-6 border-t-4 border-pink-500">
+                    <div className="bg-white rounded-xl shadow-md p-6 border-t-4 border-[#7a1c1c]">
                         <h3 className="text-lg font-semibold text-gray-900 mb-2">Practical Subjects</h3>
-                        <p className="text-3xl font-bold text-pink-600">
+                        <p className="text-3xl font-bold text-[#7a1c1c]">
                             {subjects.filter(s => s.type.includes('Practical')).length}
                         </p>
                     </div>
-                    <div className="bg-white rounded-xl shadow-md p-6 border-t-4 border-rose-500">
+                    <div className="bg-white rounded-xl shadow-md p-6 border-t-4 border-[#7a1c1c]">
                         <h3 className="text-lg font-semibold text-gray-900 mb-2">Theory Subjects</h3>
-                        <p className="text-3xl font-bold text-rose-600">
+                        <p className="text-3xl font-bold text-[#7a1c1c]">
                             {subjects.filter(s => s.type === 'Theory').length}
                         </p>
                     </div>

@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 export default function HeroSection() {
 
@@ -26,7 +26,7 @@ export default function HeroSection() {
     return (
         <section className="bg-gray-100 relative overflow-hidden">
             {/* ================= HERO ================= */}
-            <div className="max-w-7xl mx-auto px-6 py-20 grid md:grid-cols-2 gap-12 items-center">
+            <div className="max-w-7xl mx-auto px-6 py-10 grid md:grid-cols-2 gap-12 items-center">
 
                 {/* LEFT SIDE TEXT */}
                 <div>
@@ -39,7 +39,11 @@ export default function HeroSection() {
                         Borli Panchatan
                     </h1>
 
-                    <p className="mt-6 text-gray-600 text-lg">
+                    <p className="mt-6 text-justify text-gray-600 text-lg">
+                        Providing quality education and shaping the future of students
+                        through knowledge, discipline, and innovation.
+                        Providing quality education and shaping the future of students
+                        through knowledge, discipline, and innovation.
                         Providing quality education and shaping the future of students
                         through knowledge, discipline, and innovation.
                     </p>

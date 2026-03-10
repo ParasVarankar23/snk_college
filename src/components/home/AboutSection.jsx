@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export default function AboutSection() {
     return (
-        <section className="bg-white py-30">
+        <section className="bg-white py-10">
 
             <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-center">
 
@@ -14,7 +14,7 @@ export default function AboutSection() {
                         src="/college/college.jpg"
                         alt="SNK College Campus"
                         width={600}
-                        height={400}
+                        height={800}
                         className="rounded-xl shadow-lg"
                     />
 
@@ -27,6 +27,13 @@ export default function AboutSection() {
                         About SNK Mahavidyalay
                     </h2>
 
+                    <p className="text-gray-600 leading-relaxed mb-6">
+                        Shri Nanasaheb Kulkarni Kanishta Mahavidyalay Borli Panchatan is
+                        dedicated to providing quality education and fostering academic
+                        excellence among students. The college focuses on holistic
+                        development through modern education, cultural activities, and
+                        discipline.
+                    </p>
                     <p className="text-gray-600 leading-relaxed mb-6">
                         Shri Nanasaheb Kulkarni Kanishta Mahavidyalay Borli Panchatan is
                         dedicated to providing quality education and fostering academic

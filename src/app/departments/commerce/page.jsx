@@ -7,54 +7,54 @@ export default function CommerceTeachersSection() {
             name: "Patil Sir",
             subject: "Accountancy",
             education: "M.Com., B.Ed.",
-            image: "/teachers/teacher1.jpg",
+            image: "/college/supervisor.jpg",
         },
         {
             name: "Joshi Madam",
             subject: "Secretarial Practice (SP)",
             education: "M.Com., B.Ed.",
-            image: "/teachers/teacher2.jpg",
+            image: "/college/supervisor.jpg",
         },
         {
             name: "Kulkarni Sir",
             subject: "Organization of Commerce (OC)",
             education: "M.Com., B.Ed.",
-            image: "/teachers/teacher3.jpg",
+            image: "/college/supervisor.jpg",
         },
         {
             name: "Deshmukh Madam",
             subject: "Economics",
             education: "M.A. Economics, B.Ed.",
-            image: "/teachers/teacher4.jpg",
+            image: "/college/supervisor.jpg",
         },
         {
             name: "Srushti Madam",
             subject: "English",
             education: "M.A. English, B.Ed.",
-            image: "/teachers/teacher5.jpg",
+            image: "/college/supervisor.jpg",
         },
         {
             name: "Dhakane Madam",
             subject: "Marathi",
             education: "M.A. Marathi, B.Ed.",
-            image: "/teachers/teacher6.jpg",
+            image: "/college/supervisor.jpg",
         },
         {
             name: "More Sir",
             subject: "Accountancy",
             education: "M.Com., B.Ed.",
-            image: "/teachers/teacher7.jpg",
+            image: "/college/supervisor.jpg",
         },
         {
             name: "Shinde Madam",
             subject: "Economics",
             education: "M.A. Economics, B.Ed.",
-            image: "/teachers/teacher8.jpg",
+            image: "/college/supervisor.jpg",
         },
     ];
 
     return (
-        <section className="bg-gray-50 py-20">
+        <section className="bg-gray-50 py-10">
 
             <div className="max-w-7xl mx-auto px-6">
 

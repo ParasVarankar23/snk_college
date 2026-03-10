@@ -3,19 +3,19 @@ import Image from "next/image";
 export default function GalleryPage() {
 
     const images = [
-        "/gallery/img1.jpg",
-        "/gallery/img2.jpg",
-        "/gallery/img3.jpg",
-        "/gallery/img4.jpg",
-        "/gallery/img5.jpg",
-        "/gallery/img6.jpg",
-        "/gallery/img7.jpg",
-        "/gallery/img8.jpg",
-        "/gallery/img9.jpg",
+        "/college/event1.jpg",
+        "/college/event2.jpg",
+        "/college/event3.jpg",
+        "/college/event1.jpg",
+        "/college/event2.jpg",
+        "/college/event3.jpg",
+        "/college/event1.jpg",
+        "/college/event2.jpg",
+        "/college/event3.jpg",
     ];
 
     return (
-        <section className="bg-gray-50 py-20">
+        <section className="bg-gray-50 py-10">
 
             <div className="max-w-7xl mx-auto px-6">
 

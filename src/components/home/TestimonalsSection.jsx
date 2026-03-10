@@ -4,21 +4,21 @@ export default function TestimonialsSection() {
     const testimonials = [
         {
             name: "Rahul Patil",
-            image: "/students/student1.jpg",
+            image: "/college/supervisor.jpg",
             rating: 5,
             comment:
                 "SNK Mahavidyalay provided me with excellent education and guidance. The teachers are supportive and the environment is perfect for learning.",
         },
         {
             name: "Sneha Kulkarni",
-            image: "/students/student2.jpg",
+            image: "/college/supervisor.jpg",
             rating: 4,
             comment:
                 "I had a wonderful experience studying here. The college encourages both academic and cultural activities.",
         },
         {
             name: "Amit Deshmukh",
-            image: "/students/student3.jpg",
+            image: "/college/supervisor.jpg",
             rating: 5,
             comment:
                 "Great facilities and dedicated faculty members. This college helped me build confidence for my future.",
@@ -26,7 +26,7 @@ export default function TestimonialsSection() {
     ];
 
     return (
-        <section className="bg-gray-50 py-20">
+        <section className="bg-gray-50 py-10">
 
             <div className="max-w-7xl mx-auto px-6">
 
@@ -59,9 +59,9 @@ export default function TestimonialsSection() {
                                 <Image
                                     src={item.image}
                                     alt={item.name}
-                                    width={80}
+                                    width={110}
                                     height={80}
-                                    className="rounded-full object-cover"
+                                    className="object-cover"
                                 />
 
                             </div>

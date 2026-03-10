@@ -7,30 +7,30 @@ export default function ScienceTeachersSection() {
             name: "Anju Madam",
             subject: "Biology & Chemistry",
             education: "M.Sc., B.Ed.",
-            image: "/teachers/anju.jpg",
+            image: "/college/supervisor.jpg",
         },
         {
             name: "Khopkar Sir",
             subject: "Mathematics & Physics",
             education: "M.Sc., B.Ed.",
-            image: "/teachers/khopkar.jpg",
+            image: "/college/supervisor.jpg",
         },
         {
             name: "Srushti Madam",
             subject: "English",
             education: "M.Sc., B.Ed.",
-            image: "/teachers/srushti.jpg",
+            image: "/college/supervisor.jpg",
         },
         {
             name: "Dhakane Madam",
             subject: "Marathi",
             education: "M.Sc., B.Ed.",
-            image: "/teachers/dhakane.jpg",
+            image: "/college/supervisor.jpg",
         },
     ];
 
     return (
-        <section className="bg-gray-50 py-20">
+        <section className="bg-gray-50 py-10">
 
             <div className="max-w-7xl mx-auto px-6">
 

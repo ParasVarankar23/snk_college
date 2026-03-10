@@ -37,7 +37,7 @@ export default function ContactPage() {
     };
 
     return (
-        <section className="bg-gray-50 py-20">
+        <section className="bg-gray-50 py-10">
 
             <div className="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-12">
 

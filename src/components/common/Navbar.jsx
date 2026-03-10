@@ -124,7 +124,12 @@ export default function Navbar({ sidebarOpen, setSidebarOpen }) {
           </button>
 
           {/* PROFILE DROPDOWN */}
-          <div className="relative" ref={dropdownRef}>
+          <div
+            className="relative"
+            ref={dropdownRef}
+            onMouseEnter={() => setDropdownOpen(true)}
+            onMouseLeave={() => setDropdownOpen(false)}
+          >
             <button
               onClick={() => setDropdownOpen(!dropdownOpen)}
               className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-[#7a1c1c]/10 transition"
