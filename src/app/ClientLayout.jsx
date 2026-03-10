@@ -1,6 +1,5 @@
 "use client";
 
-import { useAuth } from "@/hooks/useAuth";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 
@@ -15,7 +14,6 @@ import Sidebar from "@/components/common/Sidebar";
 // eslint-disable-next-line react/prop-types
 export default function ClientLayout({ children }) {
     const pathname = usePathname();
-    const { isAuthenticated } = useAuth();
 
     /* Sidebar toggle state (for admin mobile view) */
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -27,16 +25,9 @@ export default function ClientLayout({ children }) {
 
 
     /* Authenticated user routes (profile, settings, academics, etc.) */
-    const isAuthenticatedRoute =
+    const isDashboardRoute =
         pathname.startsWith("/profile") ||
-        pathname.startsWith("/settings") ||
-        pathname.startsWith("/academics") ||
-        pathname.startsWith("/departments") ||
-        pathname.startsWith("/facilities") ||
-        pathname.startsWith("/events") ||
-        pathname.startsWith("/achievements") ||
-        pathname.startsWith("/gallery") ||
-        pathname.startsWith("/contact");
+        pathname.startsWith("/settings");
 
     /* ================= ADMIN DASHBOARD ================= */
     if (isAdminRoute) {
@@ -59,7 +50,7 @@ export default function ClientLayout({ children }) {
                 {/* MAIN CONTENT AREA */}
                 <div className="flex-1 flex flex-col overflow-hidden">
                     {/* NAVBAR */}
-                    <header className="h-20 border-b border-gray-200 dark:border-white/10 flex-shrink-0">
+                    <header className="h-20 border-b border-gray-200 dark:border-white/10 shrink-0">
                         <UserNavbar
                             sidebarOpen={sidebarOpen}
                             setSidebarOpen={setSidebarOpen}
@@ -77,7 +68,7 @@ export default function ClientLayout({ children }) {
 
 
     /* ================= AUTHENTICATED ROUTES (WITH SIDEBAR) ================= */
-    if (isAuthenticatedRoute && isAuthenticated) {
+    if (isDashboardRoute) {
         return (
             <div className="h-screen flex flex-col">
                 {/* NAVBAR */}

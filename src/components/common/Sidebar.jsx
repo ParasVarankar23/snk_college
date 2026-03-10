@@ -98,7 +98,7 @@ export default function Sidebar({ setSidebarOpen }) {
       {/* HEADER */}
       <div className="sticky top-0 p-6 border-b border-gray-200">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold shadow-lg bg-gradient-to-r from-indigo-600 to-violet-600">
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold shadow-lg bg-gradient-to-r from-[#7a1c1c] to-[#5a1414]">
             📚
           </div>
           <div>
@@ -125,7 +125,7 @@ export default function Sidebar({ setSidebarOpen }) {
                 <button
                   onClick={() => toggleMenu(item.name)}
                   className={`w-full flex items-center justify-between px-4 py-3 rounded-lg font-medium transition ${isExpanded
-                    ? "bg-indigo-500/10 text-indigo-600"
+                    ? "bg-[#7a1c1c]/10 text-[#7a1c1c]"
                     : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
                     }`}
                 >
@@ -147,7 +147,7 @@ export default function Sidebar({ setSidebarOpen }) {
                   href={item.path}
                   onClick={handleLinkClick}
                   className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition ${isActive
-                    ? "bg-indigo-500/10 text-indigo-600"
+                    ? "bg-[#7a1c1c]/10 text-[#7a1c1c]"
                     : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
                     }`}
                 >
@@ -158,14 +158,14 @@ export default function Sidebar({ setSidebarOpen }) {
 
               {/* SUBMENU DROPDOWN */}
               {item.submenu && isExpanded && (
-                <div className="mt-2 ml-4 space-y-1 border-l-2 border-indigo-400/30 pl-4">
+                <div className="mt-2 ml-4 space-y-1 border-l-2 border-[#7a1c1c]/30 pl-4">
                   {item.submenu.map((subitem) => (
                     <Link
                       key={subitem.path}
                       href={subitem.path}
                       onClick={handleLinkClick}
                       className={`block px-4 py-2 rounded-lg text-sm font-medium transition ${pathname === subitem.path
-                        ? "bg-indigo-100 text-indigo-600"
+                        ? "bg-[#7a1c1c]/10 text-[#7a1c1c]"
                         : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                         }`}
                     >

@@ -1,13 +1,14 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { FaEye, FaEyeSlash, FaCheckCircle } from "react-icons/fa";
 
 export default function LoginPage() {
+
     const router = useRouter();
+
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
@@ -19,10 +20,12 @@ export default function LoginPage() {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
+
         setFormData((prev) => ({
             ...prev,
             [name]: value,
         }));
+
         setError("");
     };
 
@@ -32,6 +35,7 @@ export default function LoginPage() {
         setError("");
 
         try {
+
             const response = await fetch("/api/auth/login", {
                 method: "POST",
                 headers: {
@@ -47,50 +51,100 @@ export default function LoginPage() {
                 return;
             }
 
-            // Store auth token
             localStorage.setItem("authToken", data.idToken);
             localStorage.setItem("user", JSON.stringify(data.user));
 
-            // Redirect to admin events dashboard
             router.push("/admin/events");
+
         } catch (err) {
-            setError(err.message || "An error occurred during login");
+
+            setError(err.message || "Login error");
+
         } finally {
+
             setLoading(false);
+
         }
     };
 
     return (
-        <section className="min-h-screen flex items-center justify-center bg-gray-100">
 
-            <div className="max-w-6xl w-full bg-white shadow-lg rounded-xl grid md:grid-cols-2 overflow-hidden">
+        <section className="flex items-center justify-center bg-gray-100 px-6 py-10">
 
-                {/* LEFT SIDE IMAGE */}
-                <div className="hidden md:block relative">
+            <div className="max-w-7xl w-full grid md:grid-cols-2 gap-12 items-center">
 
-                    <Image
-                        src="/college/college.jpg"
-                        alt="College Login"
-                        fill
-                        className="object-cover"
-                    />
+                {/* LEFT SIDE INFORMATION */}
+
+                <div>
+
+                    <h1 className="text-5xl font-bold text-gray-900 leading-tight">
+
+                        Welcome to <br />
+
+                        <span className="text-[#7a1c1c]">
+                            SNK Junior College
+                        </span>
+
+                    </h1>
+
+                    <p className="mt-6 text-gray-600 text-lg leading-relaxed">
+
+                        Shri Nanasaheb Kulkarni Kanishta Mahavidyalay, Borli Panchatan is
+                        committed to providing quality education and building a strong
+                        academic foundation for students. Our institution focuses on
+                        academic excellence, discipline, and holistic development.
+
+                    </p>
+
+                    <div className="mt-8 space-y-5">
+
+                        <div className="flex items-start gap-3 text-gray-700">
+                            <FaCheckCircle className="text-[#7a1c1c] mt-1" />
+                            <p>
+                                Secure login access for students, teachers, and administration.
+                            </p>
+                        </div>
+
+                        <div className="flex items-start gap-3 text-gray-700">
+                            <FaCheckCircle className="text-[#7a1c1c] mt-1" />
+                            <p>
+                                Access academic records, announcements, and institutional updates.
+                            </p>
+                        </div>
+
+                        <div className="flex items-start gap-3 text-gray-700">
+                            <FaCheckCircle className="text-[#7a1c1c] mt-1" />
+                            <p>
+                                Centralized platform for managing events, admissions, and student information.
+                            </p>
+                        </div>
+
+                        <div className="flex items-start gap-3 text-gray-700">
+                            <FaCheckCircle className="text-[#7a1c1c] mt-1" />
+                            <p>
+                                Promoting knowledge, discipline, and excellence in education.
+                            </p>
+                        </div>
+
+                    </div>
 
                 </div>
 
-                {/* RIGHT SIDE FORM */}
-                <div className="p-10">
 
-                    <h2 className="text-3xl font-bold text-gray-800 mb-6">
-                        Login
+                {/* RIGHT SIDE LOGIN FORM */}
+
+                <div className="bg-white shadow-xl border border-gray-200 rounded-2xl p-10 max-w-md w-full mx-auto">
+
+                    <h2 className="text-3xl font-bold text-gray-900 text-center">
+                        Admin Login
                     </h2>
 
-                    <p className="text-gray-500 mb-8">
-                        Login to access your college account.
+                    <p className="text-center text-gray-500 mt-2 mb-8">
+                        Enter your login credentials
                     </p>
 
-                    {/* ERROR MESSAGE */}
                     {error && (
-                        <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+                        <div className="mb-6 p-3 text-sm bg-red-100 border border-red-400 text-red-700 rounded-lg">
                             {error}
                         </div>
                     )}
@@ -98,9 +152,10 @@ export default function LoginPage() {
                     <form onSubmit={handleSubmit} className="space-y-6">
 
                         {/* EMAIL */}
+
                         <div>
 
-                            <label className="block text-gray-700 mb-2 font-medium">
+                            <label className="block font-medium text-gray-700 mb-2">
                                 Email Address
                             </label>
 
@@ -112,15 +167,18 @@ export default function LoginPage() {
                                 onChange={handleChange}
                                 required
                                 disabled={loading}
-                                className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:border-[#7a1c1c] disabled:bg-gray-100"
+                                className="w-full h-[48px] px-4 border border-gray-300 rounded-lg
+                focus:border-[#7a1c1c] focus:ring-2 focus:ring-[#7a1c1c]
+                outline-none"
                             />
 
                         </div>
 
                         {/* PASSWORD */}
+
                         <div>
 
-                            <label className="block text-gray-700 mb-2 font-medium">
+                            <label className="block font-medium text-gray-700 mb-2">
                                 Password
                             </label>
 
@@ -134,14 +192,15 @@ export default function LoginPage() {
                                     onChange={handleChange}
                                     required
                                     disabled={loading}
-                                    className="w-full border border-gray-300 p-3 rounded-lg pr-10 focus:outline-none focus:border-[#7a1c1c] disabled:bg-gray-100"
+                                    className="w-full h-[48px] px-4 pr-12 border border-gray-300 rounded-lg
+                  focus:border-[#7a1c1c] focus:ring-2 focus:ring-[#7a1c1c]
+                  outline-none"
                                 />
 
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-3 top-3 text-gray-500"
-                                    disabled={loading}
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500"
                                 >
                                     {showPassword ? <FaEyeSlash /> : <FaEye />}
                                 </button>
@@ -151,6 +210,7 @@ export default function LoginPage() {
                         </div>
 
                         {/* FORGOT PASSWORD */}
+
                         <div className="text-right">
 
                             <Link
@@ -162,26 +222,30 @@ export default function LoginPage() {
 
                         </div>
 
-                        {/* LOGIN BUTTON */}
+                        {/* BUTTON */}
+
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-[#7a1c1c] text-white py-3 rounded-lg hover:bg-[#9f2a2a] transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-full h-[48px] bg-[#7a1c1c] text-white font-semibold
+              rounded-lg hover:bg-[#9f2a2a] transition"
                         >
-                            {loading ? "Logging in..." : "Login"}
+                            {loading ? "Signing in..." : "Sign In"}
                         </button>
 
                     </form>
 
-                    {/* SIGNUP LINK */}
                     <p className="text-center text-gray-600 mt-6">
+
                         Don't have an account?{" "}
+
                         <Link
                             href="/signup"
-                            className="text-[#7a1c1c] hover:underline font-medium"
+                            className="text-[#7a1c1c] font-semibold hover:underline"
                         >
-                            Sign up here
+                            Signup
                         </Link>
+
                     </p>
 
                 </div>

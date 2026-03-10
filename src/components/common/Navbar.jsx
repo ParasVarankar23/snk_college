@@ -84,7 +84,7 @@ export default function Navbar({ sidebarOpen, setSidebarOpen }) {
           {/* MOBILE MENU TOGGLE */}
           <button
             onClick={() => setSidebarOpen?.(!sidebarOpen)}
-            className="md:hidden p-2 rounded-lg hover:bg-indigo-500/20 transition"
+            className="md:hidden p-2 rounded-lg hover:bg-[#7a1c1c]/10 transition"
           >
             <Menu size={24} />
           </button>
@@ -94,7 +94,7 @@ export default function Navbar({ sidebarOpen, setSidebarOpen }) {
             <p className="text-xs md:text-sm font-medium text-gray-500">
               Welcome back,
             </p>
-            <h1 className="text-sm md:text-lg font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
+            <h1 className="text-sm md:text-lg font-bold bg-gradient-to-r from-[#7a1c1c] to-[#5a1414] bg-clip-text text-transparent">
               {user?.name || "User"}
             </h1>
           </div>
@@ -106,19 +106,19 @@ export default function Navbar({ sidebarOpen, setSidebarOpen }) {
           <input
             type="text"
             placeholder="Search academics, events..."
-            className="w-full pl-10 pr-4 py-2 rounded-lg outline-none text-sm border transition bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-indigo-400/40"
+            className="w-full pl-10 pr-4 py-2 rounded-lg outline-none text-sm border transition bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-[#7a1c1c]/30"
           />
         </div>
 
         {/* RIGHT - CLOCK, THEME, PROFILE */}
         <div className="flex items-center gap-2 md:gap-4">
           {/* CLOCK */}
-          <div className="hidden md:flex items-center gap-2 px-4 py-2 rounded-lg font-mono text-sm bg-gray-100 text-indigo-600">
+          <div className="hidden md:flex items-center gap-2 px-4 py-2 rounded-lg font-mono text-sm bg-gray-100 text-[#7a1c1c]">
             🕐 {currentTime}
           </div>
 
           {/* NOTIFICATIONS */}
-          <button className="p-2 rounded-lg hover:bg-indigo-500/20 transition relative" title="Notifications">
+          <button className="p-2 rounded-lg hover:bg-[#7a1c1c]/10 transition relative" title="Notifications">
             <Bell size={20} />
             <span className="absolute top-1 right-1 w-2 h-2 bg-rose-500 rounded-full"></span>
           </button>
@@ -127,9 +127,9 @@ export default function Navbar({ sidebarOpen, setSidebarOpen }) {
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setDropdownOpen(!dropdownOpen)}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-indigo-500/20 transition"
+              className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-[#7a1c1c]/10 transition"
             >
-              <div className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold shadow bg-gradient-to-r from-indigo-600 to-violet-600">
+              <div className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold shadow bg-gradient-to-r from-[#7a1c1c] to-[#5a1414]">
                 {user?.name?.charAt(0) || "U"}
               </div>
               <span className="hidden md:inline text-sm font-medium truncate max-w-[100px]">
@@ -144,7 +144,7 @@ export default function Navbar({ sidebarOpen, setSidebarOpen }) {
                 <div className="px-5 py-4 border-b border-gray-200">
                   <p className="text-sm font-bold">{user?.name}</p>
                   <p className="text-xs text-gray-500 mt-1">{user?.email}</p>
-                  <p className="text-xs text-indigo-500 font-medium mt-2 uppercase tracking-wide">
+                  <p className="text-xs text-[#7a1c1c] font-medium mt-2 uppercase tracking-wide">
                     Student/Staff
                   </p>
                 </div>
