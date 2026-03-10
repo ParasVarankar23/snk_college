@@ -25,16 +25,6 @@ export default function HeroSection() {
 
     return (
         <section className="bg-gray-100 relative overflow-hidden">
-
-            {/* ================= THOUGHT MARQUEE ================= */}
-            <div className="bg-[#7a1c1c] text-white py-2 text-sm font-medium">
-                <marquee scrollamount="6">
-                    📚 Knowledge is the Path to Success • 🎓 Excellence in Education •
-                    🌟 Building Bright Futures • Shri Nanasaheb Kulkarni Kanishta
-                    Mahavidyalay Borli Panchatan Shrivardhan Raigad 402403
-                </marquee>
-            </div>
-
             {/* ================= HERO ================= */}
             <div className="max-w-7xl mx-auto px-6 py-20 grid md:grid-cols-2 gap-12 items-center">
 

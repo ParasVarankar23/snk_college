@@ -192,7 +192,16 @@ export default function Navbar() {
                 </div>
 
             )}
+            {/* ================= THOUGHT MARQUEE ================= */}
+            <div className="bg-[#7a1c1c] text-white py-2 text-sm font-medium">
+                <marquee scrollamount="6">
+                    📚 Knowledge is the Path to Success • 🎓 Excellence in Education •
+                    🌟 Building Bright Futures • Shri Nanasaheb Kulkarni Kanishta
+                    Mahavidyalay Borli Panchatan Shrivardhan Raigad 402403
+                </marquee>
+            </div>
 
         </header>
+        
     );
 }

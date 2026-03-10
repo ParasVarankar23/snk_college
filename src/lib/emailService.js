@@ -93,3 +93,72 @@ export async function sendSignupEmail(email, name, generatedPassword) {
         throw new Error("Failed to send email: " + error.message);
     }
 }
+
+/**
+ * Send forgot password guidance email
+ * @param {string} email - User email
+ */
+export async function sendForgotPasswordEmail(email) {
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const forgotUrl = `${appUrl}/forgot-password`;
+
+    const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                .header { background-color: #7a1c1c; color: white; padding: 20px; border-radius: 5px; text-align: center; }
+                .content { background-color: #f9f9f9; padding: 20px; margin: 20px 0; border-radius: 5px; }
+                .button { display: inline-block; background: #7a1c1c; color: white !important; text-decoration: none; padding: 12px 20px; border-radius: 6px; font-weight: bold; }
+                .note { background: #fff3cd; border: 1px solid #ffc107; color: #856404; border-radius: 5px; padding: 10px; margin-top: 16px; }
+                .footer { text-align: center; color: #666; font-size: 12px; margin-top: 20px; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>Forgot Password Request</h1>
+                </div>
+
+                <div class="content">
+                    <p>We received a request to reset your password for <strong>${email}</strong>.</p>
+
+                    <p>Please open the forgot password page and complete the reset process:</p>
+
+                    <p>
+                        <a class="button" href="${forgotUrl}" target="_blank" rel="noopener noreferrer">Open Forgot Password</a>
+                    </p>
+
+                    <div class="note">
+                        We also sent a Firebase password-reset email. If you do not see it, please check your spam/junk folder.
+                    </div>
+
+                    <p>If you did not request this, you can safely ignore this email.</p>
+                </div>
+
+                <div class="footer">
+                    <p>&copy; 2026 SNK Portal. All rights reserved.</p>
+                </div>
+            </div>
+        </body>
+        </html>
+    `;
+
+    try {
+        const mailOptions = {
+            from: smtpUser,
+            to: email,
+            subject: "SNK Portal - Password Reset Request",
+            html: htmlContent,
+        };
+
+        const info = await transporter.sendMail(mailOptions);
+        console.log("Forgot password guidance email sent:", info.messageId);
+        return true;
+    } catch (error) {
+        console.error("Error sending forgot password email:", error);
+        throw new Error("Failed to send forgot password email: " + error.message);
+    }
+}
