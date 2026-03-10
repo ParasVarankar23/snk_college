@@ -3,10 +3,9 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { FaEye, FaEyeSlash, FaCheckCircle } from "react-icons/fa";
+import { FaCheckCircle, FaEye, FaEyeSlash } from "react-icons/fa";
 
 export default function LoginPage() {
-
     const router = useRouter();
 
     const [showPassword, setShowPassword] = useState(false);
@@ -35,7 +34,6 @@ export default function LoginPage() {
         setError("");
 
         try {
-
             const response = await fetch("/api/auth/login", {
                 method: "POST",
                 headers: {
@@ -55,89 +53,61 @@ export default function LoginPage() {
             localStorage.setItem("user", JSON.stringify(data.user));
 
             router.push("/admin/events");
-
         } catch (err) {
-
             setError(err.message || "Login error");
-
         } finally {
-
             setLoading(false);
-
         }
     };
 
     return (
-
-        <section className="flex items-center justify-center bg-gray-100 px-6 py-10">
-
+        <section className="flex items-center justify-center bg-gray-100 px-4 md:px-6 py-10">
             <div className="max-w-7xl w-full grid md:grid-cols-2 gap-12 items-center">
-
-                {/* LEFT SIDE INFORMATION */}
-
-                <div className="text-justify">
-
+                {/* LEFT SIDE INFORMATION - HIDDEN ON MOBILE */}
+                <div className="hidden md:block text-justify">
                     <h1 className="text-5xl font-bold text-gray-900 leading-tight">
-
                         Welcome to <br />
-
-                        <span className="text-[#7a1c1c]">
-                            SNK Junior College
-                        </span>
-
+                        <span className="text-[#7a1c1c] block">SNK Junior College</span>
+                        {" "}
+                        Borli Panchatan
                     </h1>
 
                     <p className="mt-6 text-gray-600 text-lg leading-relaxed">
-
                         Shri Nanasaheb Kulkarni Kanishta Mahavidyalay, Borli Panchatan is
                         committed to providing quality education and building a strong
                         academic foundation for students. Our institution focuses on
                         academic excellence, discipline, and holistic development.
-
                     </p>
 
                     <div className="mt-8 space-y-5">
+                        <div className="flex items-start gap-3 text-gray-700">
+                            <FaCheckCircle className="text-[#7a1c1c] mt-1" />
+                            <p>Secure login access for students, teachers, and administration.</p>
+                        </div>
 
                         <div className="flex items-start gap-3 text-gray-700">
                             <FaCheckCircle className="text-[#7a1c1c] mt-1" />
-                            <p>
-                                Secure login access for students, teachers, and administration.
-                            </p>
+                            <p>Access academic records, announcements, and institutional updates.</p>
                         </div>
 
                         <div className="flex items-start gap-3 text-gray-700">
                             <FaCheckCircle className="text-[#7a1c1c] mt-1" />
                             <p>
-                                Access academic records, announcements, and institutional updates.
+                                Centralized platform for managing events, admissions, and student
+                                information.
                             </p>
                         </div>
 
-                        <div className="flex items-start gap-3 text-gray-700">
-                            <FaCheckCircle className="text-[#7a1c1c] mt-1" />
-                            <p>
-                                Centralized platform for managing events, admissions, and student information.
-                            </p>
-                        </div>
-
-                        <div className="flex items-start gap-3 text-gray-700">
-                            <FaCheckCircle className="text-[#7a1c1c] mt-1" />
-                            <p>
-                                Promoting knowledge, discipline, and excellence in education.
-                            </p>
-                        </div>
-
+                            <div className="flex items-start gap-3 text-gray-700">
+                                <FaCheckCircle className="text-[#7a1c1c] mt-1" />
+                                <p>Promoting knowledge, discipline, and excellence in education.</p>
+                            </div>
                     </div>
-
                 </div>
 
-
                 {/* RIGHT SIDE LOGIN FORM */}
-
-                <div className="bg-white shadow-xl border border-gray-200 rounded-2xl p-10 max-w-md w-full mx-auto">
-
-                    <h2 className="text-3xl font-bold text-gray-900 text-center">
-                        Login
-                    </h2>
+                <div className="bg-white shadow-xl border border-gray-200 rounded-2xl p-8 md:p-10 max-w-md w-full mx-auto">
+                    <h2 className="text-3xl font-bold text-gray-900 text-center">Login</h2>
 
                     <p className="text-center text-gray-500 mt-2 mb-8">
                         Enter your login credentials
@@ -150,16 +120,13 @@ export default function LoginPage() {
                     )}
 
                     <form onSubmit={handleSubmit} className="space-y-6">
-
-                        {/* EMAIL */}
-
                         <div>
-
-                            <label className="block font-medium text-gray-700 mb-2">
+                            <label htmlFor="email" className="block font-medium text-gray-700 mb-2">
                                 Email Address
                             </label>
 
                             <input
+                                id="email"
                                 type="email"
                                 name="email"
                                 placeholder="Enter your email"
@@ -167,24 +134,18 @@ export default function LoginPage() {
                                 onChange={handleChange}
                                 required
                                 disabled={loading}
-                                className="w-full h-[48px] px-4 border border-gray-300 rounded-lg
-                focus:border-[#7a1c1c] focus:ring-2 focus:ring-[#7a1c1c]
-                outline-none"
+                                className="w-full h-12 px-4 border border-gray-300 rounded-lg focus:border-[#7a1c1c] focus:ring-2 focus:ring-[#7a1c1c] outline-none"
                             />
-
                         </div>
 
-                        {/* PASSWORD */}
-
                         <div>
-
-                            <label className="block font-medium text-gray-700 mb-2">
+                            <label htmlFor="password" className="block font-medium text-gray-700 mb-2">
                                 Password
                             </label>
 
                             <div className="relative">
-
                                 <input
+                                    id="password"
                                     type={showPassword ? "text" : "password"}
                                     name="password"
                                     placeholder="Enter your password"
@@ -192,9 +153,7 @@ export default function LoginPage() {
                                     onChange={handleChange}
                                     required
                                     disabled={loading}
-                                    className="w-full h-[48px] px-4 pr-12 border border-gray-300 rounded-lg
-                  focus:border-[#7a1c1c] focus:ring-2 focus:ring-[#7a1c1c]
-                  outline-none"
+                                    className="w-full h-12 px-4 pr-12 border border-gray-300 rounded-lg focus:border-[#7a1c1c] focus:ring-2 focus:ring-[#7a1c1c] outline-none"
                                 />
 
                                 <button
@@ -204,54 +163,32 @@ export default function LoginPage() {
                                 >
                                     {showPassword ? <FaEyeSlash /> : <FaEye />}
                                 </button>
-
                             </div>
-
                         </div>
-
-                        {/* FORGOT PASSWORD */}
 
                         <div className="text-right">
-
-                            <Link
-                                href="/forgot-password"
-                                className="text-sm text-[#7a1c1c] hover:underline"
-                            >
+                            <Link href="/forgot-password" className="text-sm text-[#7a1c1c] hover:underline">
                                 Forgot Password?
                             </Link>
-
                         </div>
-
-                        {/* BUTTON */}
 
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full h-[48px] bg-[#7a1c1c] text-white font-semibold
-              rounded-lg hover:bg-[#9f2a2a] transition"
+                            className="w-full h-12 bg-[#7a1c1c] text-white font-semibold rounded-lg hover:bg-[#9f2a2a] transition"
                         >
                             {loading ? "Signing in..." : "Sign In"}
                         </button>
-
                     </form>
 
                     <p className="text-center text-gray-600 mt-6">
-
                         Don't have an account?{" "}
-
-                        <Link
-                            href="/signup"
-                            className="text-[#7a1c1c] font-semibold hover:underline"
-                        >
+                        <Link href="/signup" className="text-[#7a1c1c] font-semibold hover:underline">
                             Signup
                         </Link>
-
                     </p>
-
                 </div>
-
             </div>
-
         </section>
     );
 }

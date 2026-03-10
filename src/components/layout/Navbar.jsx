@@ -9,8 +9,10 @@ export default function Navbar() {
 
     const [menu, setMenu] = useState(null);
     const [mobileMenu, setMobileMenu] = useState(false);
+    const [mobileDropdown, setMobileDropdown] = useState(null);
 
     const navRef = useRef();
+    const closeTimerRef = useRef(null);
 
     const dropdown = {
         Departments: ["Science", "Commerce", "Arts"],
@@ -73,6 +75,23 @@ export default function Navbar() {
         setMenu(menu === key ? null : key);
     };
 
+    const openDropdown = (key) => {
+        if (closeTimerRef.current) {
+            clearTimeout(closeTimerRef.current);
+        }
+        setMenu(key);
+    };
+
+    const closeDropdownWithDelay = () => {
+        closeTimerRef.current = setTimeout(() => {
+            setMenu(null);
+        }, 120);
+    };
+
+    const toggleMobileDropdown = (key) => {
+        setMobileDropdown((prev) => (prev === key ? null : key));
+    };
+
     /* CLOSE DROPDOWN WHEN CLICK OUTSIDE */
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -85,6 +104,9 @@ export default function Navbar() {
 
         return () => {
             document.removeEventListener("mousedown", handleClickOutside);
+            if (closeTimerRef.current) {
+                clearTimeout(closeTimerRef.current);
+            }
         };
     }, []);
 
@@ -105,23 +127,20 @@ export default function Navbar() {
                 </Link>
 
                 {/* DESKTOP MENU */}
-                <nav className="hidden lg:flex items-center gap-8 font-medium text-gray-700">
+                <nav className="hidden lg:flex items-center gap-5 xl:gap-8 font-medium text-gray-700 text-sm xl:text-base">
 
                     <Link href="/" className="navItem">Home</Link>
                     <Link href="/about" className="navItem">About</Link>
 
                     {Object.keys(dropdown).map((key) => (
 
-                        <div
-                            key={key}
-                            className="relative"
-                            onMouseEnter={() => setMenu(key)}
-                            onMouseLeave={() => setMenu(null)}
-                        >
+                        <div key={key} className="relative">
 
                             <button
                                 onClick={() => toggleMenu(key)}
-                                className="flex items-center gap-1 navItem"
+                                onMouseEnter={() => openDropdown(key)}
+                                onMouseLeave={closeDropdownWithDelay}
+                                className="flex items-center gap-1 navItem cursor-pointer"
                             >
                                 {key}
                                 <FaChevronDown className="text-xs" />
@@ -129,7 +148,13 @@ export default function Navbar() {
 
                             {menu === key && (
 
-                                <div className="absolute left-0 top-full mt-2 w-56 bg-white border rounded-lg shadow-lg py-2 z-50">
+                                <div
+                                    className="absolute left-0 top-full mt-2 w-56 bg-white border rounded-lg shadow-lg py-2 z-50"
+                                    onMouseEnter={() => openDropdown(key)}
+                                    onMouseLeave={closeDropdownWithDelay}
+                                    role="menu"
+                                    tabIndex={-1}
+                                >
 
                                     {dropdown[key].map((item) => (
 
@@ -167,8 +192,13 @@ export default function Navbar() {
 
                 {/* MOBILE BUTTON */}
                 <button
-                    onClick={() => setMobileMenu(!mobileMenu)}
-                    className="lg:hidden text-xl"
+                    onClick={() => {
+                        setMobileMenu(!mobileMenu);
+                        if (mobileMenu) {
+                            setMobileDropdown(null);
+                        }
+                    }}
+                    className="lg:hidden text-xl cursor-pointer"
                 >
                     {mobileMenu ? <FaTimes /> : <FaBars />}
                 </button>
@@ -178,17 +208,51 @@ export default function Navbar() {
             {/* MOBILE MENU */}
             {mobileMenu && (
 
-                <div className="lg:hidden bg-white border-t px-6 py-4 space-y-4 font-medium">
+                <div className="lg:hidden bg-white border-t px-6 py-4 space-y-3 font-medium text-gray-700">
 
-                    <Link href="/" className="block">Home</Link>
-                    <Link href="/about" className="block">About</Link>
-                    <Link href="/academics" className="block">Academics</Link>
-                    <Link href="/gallery" className="block">Gallery</Link>
-                    <Link href="/admissions" className="block">Admissions</Link>
-                    <Link href="/contact" className="block">Contact</Link>
+                    <Link href="/" onClick={() => setMobileMenu(false)} className="block py-1">Home</Link>
+                    <Link href="/about" onClick={() => setMobileMenu(false)} className="block py-1">About</Link>
+
+                    {Object.keys(dropdown).map((key) => (
+                        <div key={key} className="border rounded-lg overflow-hidden">
+                            <button
+                                type="button"
+                                onClick={() => toggleMobileDropdown(key)}
+                                className="w-full px-3 py-2 bg-gray-50 font-semibold text-[#7a1c1c] flex items-center justify-between cursor-pointer"
+                            >
+                                <span>{key}</span>
+                                <FaChevronDown
+                                    className={`text-xs transition-transform duration-200 ${mobileDropdown === key ? "rotate-180" : ""}`}
+                                />
+                            </button>
+
+                            {mobileDropdown === key && (
+                                <div className="bg-white">
+                                    {dropdown[key].map((item) => (
+                                        <Link
+                                            key={item}
+                                            href={dropdownRoutes[key][item]}
+                                            onClick={() => {
+                                                setMobileMenu(false);
+                                                setMobileDropdown(null);
+                                            }}
+                                            className="block px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer"
+                                        >
+                                            {item}
+                                        </Link>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    ))}
+
+                    <Link href="/gallery" onClick={() => setMobileMenu(false)} className="block py-1">Gallery</Link>
+                    <Link href="/admissions" onClick={() => setMobileMenu(false)} className="block py-1">Admissions</Link>
+                    <Link href="/contact" onClick={() => setMobileMenu(false)} className="block py-1">Contact</Link>
 
                     <Link
                         href="/login"
+                        onClick={() => setMobileMenu(false)}
                         className="block bg-[#7a1c1c] text-white text-center py-2 rounded-md"
                     >
                         Login
@@ -199,7 +263,7 @@ export default function Navbar() {
             )}
             {/* ================= THOUGHT MARQUEE ================= */}
             <div className="bg-[#7a1c1c] text-white py-2 text-sm font-medium">
-                <marquee scrollamount="6">
+                <marquee>
                     📚 Knowledge is the Path to Success • 🎓 Excellence in Education •
                     🌟 Building Bright Futures • Shri Nanasaheb Kulkarni Kanishta
                     Mahavidyalay Borli Panchatan Shrivardhan Raigad 402403

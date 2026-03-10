@@ -61,7 +61,8 @@ export default function TestimonialsSection() {
                                     alt={item.name}
                                     width={110}
                                     height={80}
-                                    className="object-cover"
+                                    style={{ width: "110px", height: "80px" }}
+                                    className="object-cover rounded-lg"
                                 />
 
                             </div>

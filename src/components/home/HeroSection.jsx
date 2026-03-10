@@ -78,6 +78,7 @@ export default function HeroSection() {
                         src={images[index]}
                         alt="SNK College"
                         fill
+                        sizes="(max-width: 768px) 100vw, 50vw"
                         className="object-cover rounded-xl shadow-lg transition-opacity duration-700"
                     />
 
