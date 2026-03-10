@@ -49,7 +49,7 @@ export default function LeadershipSection() {
                     <div className="bg-gray-50 p-6 rounded-xl shadow hover:shadow-xl text-center transition">
 
                         <Image
-                            src="/college/principal.jpg"
+                            src="/college/principal1.jpg"
                             alt="Babasaheb Yalmate"
                             width={200}
                             height={200}
@@ -75,7 +75,7 @@ export default function LeadershipSection() {
                     <div className="bg-gray-50 p-6 rounded-xl shadow hover:shadow-xl text-center transition">
 
                         <Image
-                            src="/college/vice-principal.jpg"
+                            src="/college/viceprincipal.jpg"
                             alt="Vice Principal"
                             width={200}
                             height={200}

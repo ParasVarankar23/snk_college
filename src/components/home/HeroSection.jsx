@@ -8,8 +8,8 @@ export default function HeroSection() {
 
     const images = [
         "/college/college.jpg",
-        "/college/college2.jpg",
-        "/college/college3.jpg",
+        "/college/college.jpg",
+        "/college/college.jpg",
     ];
 
     const [index, setIndex] = useState(0);
