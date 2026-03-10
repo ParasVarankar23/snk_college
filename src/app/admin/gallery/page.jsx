@@ -1,6 +1,6 @@
 "use client";
 
-import { Search } from "lucide-react";
+import { Filter, Search } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 
@@ -13,6 +13,7 @@ const initialFormData = {
 export default function AdminGalleryPage() {
     const [items, setItems] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
+    const [timeFilter, setTimeFilter] = useState("all");
     const [loading, setLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -25,12 +26,45 @@ export default function AdminGalleryPage() {
     const [imageFile, setImageFile] = useState(null);
     const [preview, setPreview] = useState("");
 
+    const stats = useMemo(() => {
+        const now = Date.now();
+        const dayStart = new Date();
+        dayStart.setHours(0, 0, 0, 0);
+        const weekAgo = now - 7 * 24 * 60 * 60 * 1000;
+        const monthAgo = now - 30 * 24 * 60 * 60 * 1000;
+
+        return items.reduce(
+            (acc, item) => {
+                const ts = new Date(item.createdAt || item.updatedAt || now).getTime();
+                acc.total += 1;
+                if (ts >= dayStart.getTime()) acc.today += 1;
+                if (ts >= weekAgo) acc.week += 1;
+                if (ts >= monthAgo) acc.month += 1;
+                return acc;
+            },
+            { total: 0, today: 0, week: 0, month: 0 }
+        );
+    }, [items]);
+
     const filteredItems = useMemo(() => {
         const search = searchTerm.trim().toLowerCase();
-        if (!search) return items;
+        const now = Date.now();
 
-        return items.filter((item) => item.description.toLowerCase().includes(search));
-    }, [items, searchTerm]);
+        return items.filter((item) => {
+            const matchesSearch = !search || item.description.toLowerCase().includes(search);
+
+            const itemTs = new Date(item.createdAt || item.updatedAt || now).getTime();
+            const matchesTime =
+                timeFilter === "all" ||
+                (timeFilter === "today" && itemTs >= new Date(new Date().setHours(0, 0, 0, 0)).getTime()) ||
+                (timeFilter === "week" && itemTs >= now - 7 * 24 * 60 * 60 * 1000) ||
+                (timeFilter === "month" && itemTs >= now - 30 * 24 * 60 * 60 * 1000);
+
+            return matchesSearch && matchesTime;
+        });
+    }, [items, searchTerm, timeFilter]);
+
+    const hasActiveFilters = Boolean(searchTerm.trim() || timeFilter !== "all");
 
     let tableContent = null;
     if (loading) {
@@ -236,8 +270,9 @@ export default function AdminGalleryPage() {
                 <section className="rounded-[28px] border border-stone-200 bg-white/90 p-6 shadow-[0_20px_60px_rgba(15,23,42,0.06)] backdrop-blur">
                     <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
                         <div>
-                            <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-900 md:text-4xl">Gallery</h1>
-
+                            <p className="text-xs font-medium uppercase tracking-[0.24em] text-stone-500">Media Records</p>
+                            <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-900 md:text-4xl">Gallery Management</h1>
+                            <p className="mt-2 text-sm text-slate-500">Manage gallery images, descriptions, and visual history.</p>
                         </div>
 
                         <button
@@ -249,21 +284,58 @@ export default function AdminGalleryPage() {
                     </div>
                 </section>
 
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    <GalleryStatCard label="Total Images" value={String(stats.total)} />
+                    <GalleryStatCard label="Added Today" value={String(stats.today)} />
+                    <GalleryStatCard label="Last 7 Days" value={String(stats.week)} />
+                    <GalleryStatCard label="Last 30 Days" value={String(stats.month)} />
+                </div>
+
                 <section className="rounded-[28px] border border-stone-200 bg-white shadow-[0_20px_60px_rgba(15,23,42,0.06)] overflow-hidden">
                     <div className="border-b border-stone-200 px-6 py-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                         <div>
                             <h2 className="text-xl font-semibold text-slate-900">Gallery Records</h2>
-                            <p className="mt-1 text-sm text-slate-500">Search descriptions and manage images in a clean table view.</p>
+                            <p className="mt-1 text-sm text-slate-500">Showing {filteredItems.length} of {items.length} records.</p>
                         </div>
 
-                        <div className="relative w-full md:max-w-sm">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                            <input
-                                value={searchTerm}
-                                onChange={(event) => setSearchTerm(event.target.value)}
-                                placeholder="Search description..."
-                                className="h-11 w-full rounded-2xl border border-stone-200 bg-stone-50 pl-10 pr-4 outline-none transition focus:border-[#7a1c1c]/30 focus:bg-white"
-                            />
+                        <div className="grid w-full gap-3 md:max-w-2xl md:grid-cols-[minmax(0,1fr)_180px_auto]">
+                            <div className="relative">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                                <input
+                                    value={searchTerm}
+                                    onChange={(event) => setSearchTerm(event.target.value)}
+                                    placeholder="Search description..."
+                                    className="h-11 w-full rounded-2xl border border-stone-200 bg-stone-50 pl-10 pr-4 outline-none transition focus:border-[#7a1c1c]/30 focus:bg-white"
+                                />
+                            </div>
+
+                            <div className="relative">
+                                <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                                    <Filter size={16} />
+                                </div>
+                                <select
+                                    value={timeFilter}
+                                    onChange={(event) => setTimeFilter(event.target.value)}
+                                    className="h-11 w-full appearance-none rounded-2xl border border-stone-200 bg-stone-50 pl-9 pr-4 outline-none transition focus:border-[#7a1c1c]/30 focus:bg-white"
+                                >
+                                    <option value="all">All Time</option>
+                                    <option value="today">Today</option>
+                                    <option value="week">Last 7 Days</option>
+                                    <option value="month">Last 30 Days</option>
+                                </select>
+                            </div>
+
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setSearchTerm("");
+                                    setTimeFilter("all");
+                                }}
+                                disabled={!hasActiveFilters}
+                                className="h-11 rounded-2xl border border-stone-200 px-4 text-sm font-medium text-slate-700 hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                Clear
+                            </button>
                         </div>
                     </div>
 
@@ -377,6 +449,15 @@ function GalleryModal({ title, description, preview, isSubmitting, submitLabel, 
                     </div>
                 </form>
             </div>
+        </div>
+    );
+}
+
+function GalleryStatCard({ label, value }) {
+    return (
+        <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
+            <p className="text-sm text-slate-500">{label}</p>
+            <p className="mt-1 text-2xl font-bold text-slate-900">{value}</p>
         </div>
     );
 }

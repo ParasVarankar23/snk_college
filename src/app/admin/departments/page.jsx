@@ -1,5 +1,6 @@
 "use client";
 
+import { Filter, Search } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 
@@ -23,6 +24,9 @@ export default function DepartmentsAdminPage() {
     const [loading, setLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    const [searchTerm, setSearchTerm] = useState("");
+    const [departmentFilter, setDepartmentFilter] = useState("");
+
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -43,6 +47,25 @@ export default function DepartmentsAdminPage() {
         );
     }, [teachers]);
 
+    const filteredTeachers = useMemo(() => {
+        const search = searchTerm.trim().toLowerCase();
+
+        return teachers.filter((teacher) => {
+            const matchesDepartment = !departmentFilter || teacher.department === departmentFilter;
+            const matchesSearch = !search || [
+                teacher.name,
+                teacher.department,
+                teacher.subject,
+                teacher.education,
+            ]
+                .join(" ")
+                .toLowerCase()
+                .includes(search);
+
+            return matchesDepartment && matchesSearch;
+        });
+    }, [teachers, searchTerm, departmentFilter]);
+
     let tableContent = null;
     if (loading) {
         tableContent = (
@@ -52,7 +75,7 @@ export default function DepartmentsAdminPage() {
                 </td>
             </tr>
         );
-    } else if (teachers.length === 0) {
+    } else if (filteredTeachers.length === 0) {
         tableContent = (
             <tr>
                 <td colSpan={7} className="px-4 py-10 text-center text-gray-500">
@@ -61,7 +84,7 @@ export default function DepartmentsAdminPage() {
             </tr>
         );
     } else {
-        tableContent = teachers.map((teacher) => (
+        tableContent = filteredTeachers.map((teacher) => (
             <tr key={teacher.id} className="border-t border-gray-100 hover:bg-gray-50">
                 <td className="px-4 py-3">
                     <img
@@ -288,17 +311,17 @@ export default function DepartmentsAdminPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-100 p-4 md:p-6">
+        <div className="min-h-screen bg-[#f6f3f1] p-4 md:p-6">
             <div className="max-w-7xl mx-auto space-y-6">
-                <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5 md:p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div className="rounded-[28px] border border-stone-200 bg-white/90 p-5 md:p-6 shadow-[0_20px_60px_rgba(15,23,42,0.06)] backdrop-blur flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div>
-                        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Departments Management</h1>
-                        <p className="text-gray-600 mt-1">Manage all department teachers and profile photos</p>
+                        <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Departments Management</h1>
+                        <p className="text-slate-600 mt-1">Manage all department teachers and profile photos</p>
                     </div>
 
                     <button
                         onClick={() => setIsModalOpen(true)}
-                        className="h-11 px-5 rounded-lg bg-[#7a1c1c] text-white font-semibold hover:bg-[#9f2a2a] transition"
+                        className="h-11 px-5 rounded-xl bg-[#7a1c1c] text-white font-semibold hover:bg-[#9f2a2a] transition"
                     >
                         Add Department
                     </button>
@@ -311,14 +334,47 @@ export default function DepartmentsAdminPage() {
                     <StatCard label="Arts" value={String(groupedCounts.arts || 0)} />
                 </div>
 
-                <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
-                    <div className="px-5 py-4 border-b border-gray-200">
-                        <h2 className="text-lg font-semibold text-gray-900">All Teachers</h2>
+                <div className="rounded-[28px] border border-stone-200 bg-white shadow-[0_20px_60px_rgba(15,23,42,0.06)] overflow-hidden">
+                    <div className="px-5 py-4 border-b border-stone-200 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                        <div>
+                            <h2 className="text-lg font-semibold text-slate-900">All Teachers</h2>
+                            <p className="text-sm text-slate-500 mt-1">Search and filter by department quickly.</p>
+                        </div>
+
+                        <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_180px] w-full md:w-auto md:min-w-115">
+                            <div className="relative">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                                <input
+                                    value={searchTerm}
+                                    onChange={(event) => setSearchTerm(event.target.value)}
+                                    placeholder="Search name, subject, education..."
+                                    className="h-11 w-full rounded-2xl border border-stone-200 bg-stone-50 pl-10 pr-4 outline-none transition focus:border-[#7a1c1c]/30 focus:bg-white"
+                                />
+                            </div>
+
+                            <div className="relative">
+                                <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                                    <Filter size={16} />
+                                </div>
+                                <select
+                                    value={departmentFilter}
+                                    onChange={(event) => setDepartmentFilter(event.target.value)}
+                                    className="h-11 w-full appearance-none rounded-2xl border border-stone-200 bg-stone-50 pl-9 pr-4 outline-none transition focus:border-[#7a1c1c]/30 focus:bg-white"
+                                >
+                                    <option value="">All Departments</option>
+                                    {departmentOptions.map((option) => (
+                                        <option key={option.value} value={option.value}>
+                                            {option.label}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
                     </div>
 
                     <div className="overflow-x-auto">
                         <table className="min-w-full text-sm">
-                            <thead className="bg-gray-50 text-gray-700">
+                            <thead className="bg-stone-50 text-slate-600">
                                 <tr>
                                     <th className="px-4 py-3 text-left font-semibold">Image</th>
                                     <th className="px-4 py-3 text-left font-semibold">Name</th>
@@ -567,9 +623,9 @@ export default function DepartmentsAdminPage() {
 
 function StatCard({ label, value }) {
     return (
-        <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
-            <p className="text-sm text-gray-500">{label}</p>
-            <p className="mt-1 text-2xl font-bold text-gray-900">{value}</p>
+        <div className="bg-white border border-stone-200 rounded-2xl p-4 shadow-sm">
+            <p className="text-sm text-slate-500">{label}</p>
+            <p className="mt-1 text-2xl font-bold text-slate-900">{value}</p>
         </div>
     );
 }

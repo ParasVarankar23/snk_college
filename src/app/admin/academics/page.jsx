@@ -86,6 +86,8 @@ export default function AdminAcademicsPage() {
         });
     }, [courses, searchTerm, standardFilter, departmentFilter]);
 
+    const hasActiveFilters = Boolean(searchTerm.trim() || standardFilter || departmentFilter);
+
     let tableContent = null;
     if (loading) {
         tableContent = (
@@ -358,7 +360,9 @@ export default function AdminAcademicsPage() {
                 <section className="rounded-[28px] border border-stone-200 bg-white/90 p-6 shadow-[0_20px_60px_rgba(15,23,42,0.06)] backdrop-blur">
                     <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
                         <div>
-                            <h1 className="text-sm font-medium uppercase tracking-[0.24em] text-stone-500">Academics Records</h1>
+                            <p className="text-xs font-medium uppercase tracking-[0.24em] text-stone-500">Academics Records</p>
+                            <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-900 md:text-4xl">Academics Management</h1>
+                            <p className="mt-2 text-sm text-slate-500">Manage course structure, subjects, and syllabus files in one place.</p>
                         </div>
 
                         <button
@@ -382,9 +386,13 @@ export default function AdminAcademicsPage() {
 
                 <section className="rounded-[28px] border border-stone-200 bg-white shadow-[0_20px_60px_rgba(15,23,42,0.06)] overflow-hidden">
                     <div className="border-b border-stone-200 px-6 py-5">
-                        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+                        <div className="space-y-4">
+                            <div>
+                                <h2 className="text-xl font-semibold text-slate-900">All Academic Courses</h2>
+                                <p className="mt-1 text-sm text-slate-500">Showing {filteredCourses.length} of {courses.length} records</p>
+                            </div>
 
-                            <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_170px_190px] xl:min-w-190">
+                            <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_170px_190px_auto]">
                                 <div className="relative">
                                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                                     <input
@@ -410,6 +418,19 @@ export default function AdminAcademicsPage() {
                                     placeholder="All Departments"
                                     options={departmentOptions}
                                 />
+
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setSearchTerm("");
+                                        setStandardFilter("");
+                                        setDepartmentFilter("");
+                                    }}
+                                    disabled={!hasActiveFilters}
+                                    className="h-11 rounded-2xl border border-stone-200 px-4 text-sm font-medium text-slate-700 hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-50 w-full lg:w-auto"
+                                >
+                                    Clear
+                                </button>
                             </div>
                         </div>
                     </div>
