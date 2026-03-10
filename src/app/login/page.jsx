@@ -75,7 +75,7 @@ export default function LoginPage() {
 
                 {/* LEFT SIDE INFORMATION */}
 
-                <div>
+                <div className="text-justify">
 
                     <h1 className="text-5xl font-bold text-gray-900 leading-tight">
 
@@ -136,7 +136,7 @@ export default function LoginPage() {
                 <div className="bg-white shadow-xl border border-gray-200 rounded-2xl p-10 max-w-md w-full mx-auto">
 
                     <h2 className="text-3xl font-bold text-gray-900 text-center">
-                        Admin Login
+                        Login
                     </h2>
 
                     <p className="text-center text-gray-500 mt-2 mb-8">
