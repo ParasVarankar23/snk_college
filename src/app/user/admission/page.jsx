@@ -14,6 +14,7 @@ import {
     HeartPulse,
     House,
     IdCard,
+    IndianRupee,
     Mail,
     Phone,
     Save,
@@ -24,6 +25,10 @@ import {
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+
+const FORM_PRICE_INR = 200;
+const RAZORPAY_SCRIPT_URL = "https://checkout.razorpay.com/v1/checkout.js";
+let razorpayScriptPromise = null;
 
 const FILE_FIELD_KEYS = [
     "studentPhoto",
@@ -75,6 +80,7 @@ const sectionItems = [
     { id: "academic", label: "10th Academics", icon: GraduationCap },
     { id: "stream", label: "Stream Selection", icon: BookOpen },
     { id: "documents", label: "Documents", icon: FileText },
+    { id: "payment", label: "Payment", icon: IndianRupee },
     { id: "declaration", label: "Declaration", icon: ShieldCheck },
     { id: "extras", label: "Extra Details", icon: BadgeCheck },
 ];
@@ -219,6 +225,45 @@ function mergeLoadedPayloadIntoForm(prev, payload) {
     };
 }
 
+function loadRazorpayScript() {
+    if (typeof globalThis === "undefined") return Promise.resolve(false);
+    if (globalThis.Razorpay) return Promise.resolve(true);
+    if (razorpayScriptPromise) return razorpayScriptPromise;
+
+    razorpayScriptPromise = new Promise((resolve) => {
+        const script = globalThis.document.createElement("script");
+        script.src = RAZORPAY_SCRIPT_URL;
+        script.async = true;
+        script.onload = () => resolve(true);
+        script.onerror = () => resolve(false);
+        globalThis.document.body.appendChild(script);
+    });
+
+    return razorpayScriptPromise;
+}
+
+function openRazorpayCheckout(options) {
+    return new Promise((resolve, reject) => {
+        try {
+            const razorpay = new globalThis.Razorpay({
+                ...options,
+                handler: (response) => resolve(response),
+                modal: {
+                    ondismiss: () => reject(new Error("Payment popup was closed")),
+                },
+            });
+
+            razorpay.on("payment.failed", (response) => {
+                reject(new Error(response?.error?.description || "Payment failed"));
+            });
+
+            razorpay.open();
+        } catch {
+            reject(new Error("Unable to open Razorpay checkout"));
+        }
+    });
+}
+
 export default function AdmissionFormPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -226,10 +271,12 @@ export default function AdmissionFormPage() {
     const [savedDraft, setSavedDraft] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [loadingAdmission, setLoadingAdmission] = useState(false);
+    const [paymentInProgress, setPaymentInProgress] = useState(false);
     const [uploadedDocKeys, setUploadedDocKeys] = useState([]);
     const [serverMessage, setServerMessage] = useState("");
     const [formData, setFormData] = useState(initialFormState);
     const [applicationId, setApplicationId] = useState("Will be generated on submit");
+    const [paymentDetails, setPaymentDetails] = useState(null);
 
     const currentAcademicYear = useMemo(() => {
         const year = new Date().getFullYear();
@@ -335,7 +382,7 @@ export default function AdmissionFormPage() {
         }));
     };
 
-    const handleReset = () => {
+    const handleCancel = () => {
         setFormData({
             ...initialFormState,
             declarationDate: new Date().toISOString().slice(0, 10),
@@ -345,6 +392,7 @@ export default function AdmissionFormPage() {
         setUploadedDocKeys([]);
         setServerMessage("");
         setApplicationId("Will be generated on submit");
+        setPaymentDetails(null);
         router.replace("/user/admission?section=student", { scroll: false });
     };
 
@@ -372,12 +420,74 @@ export default function AdmissionFormPage() {
         setServerMessage("");
 
         try {
+            let verifiedPayment = paymentDetails;
+
+            if (verifiedPayment?.status !== "paid") {
+                setPaymentInProgress(true);
+                const orderResponse = await fetch("/api/razorpay", {
+                    method: "POST",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+
+                const orderData = await orderResponse.json();
+                if (!orderResponse.ok) {
+                    throw new Error(orderData.error || "Failed to create payment order");
+                }
+
+                const scriptLoaded = await loadRazorpayScript();
+                if (!scriptLoaded) {
+                    throw new Error("Unable to load Razorpay checkout script");
+                }
+
+                const paymentResponse = await openRazorpayCheckout({
+                    key: orderData.keyId,
+                    amount: orderData.amountInPaise,
+                    currency: orderData.currency,
+                    name: "SNK Junior College",
+                    description: `FYJC Admission Form Fee (Rs ${FORM_PRICE_INR})`,
+                    order_id: orderData.order?.id,
+                    prefill: {
+                        name: fullName || undefined,
+                        email: formData.email || undefined,
+                        contact: formData.mobileNumber || undefined,
+                    },
+                    notes: {
+                        stream: formData.selectedStream || "",
+                        academicYear: currentAcademicYear,
+                    },
+                    theme: {
+                        color: "#7a1c1c",
+                    },
+                });
+
+                const verifyResponse = await fetch("/api/razorpay", {
+                    method: "PUT",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(paymentResponse),
+                });
+
+                const verifyData = await verifyResponse.json();
+                if (!verifyResponse.ok) {
+                    throw new Error(verifyData.error || "Payment verification failed");
+                }
+
+                verifiedPayment = verifyData.payment;
+                setPaymentDetails(verifyData.payment);
+            }
+
             const payload = {
                 ...Object.fromEntries(
                     Object.entries(formData).filter(([key]) => !FILE_FIELD_KEYS.includes(key))
                 ),
                 academicYear: currentAcademicYear,
                 status: "submitted",
+                payment: verifiedPayment,
+                formPrice: FORM_PRICE_INR,
             };
 
             const submitData = new FormData();
@@ -410,10 +520,11 @@ export default function AdmissionFormPage() {
                 setUploadedDocKeys(Object.keys(data.admission.documents));
             }
 
-            setServerMessage("Admission form submitted successfully.");
+            setServerMessage("Payment successful and admission form submitted successfully.");
         } catch (error) {
             setServerMessage(error.message || "Failed to submit admission form");
         } finally {
+            setPaymentInProgress(false);
             setSubmitting(false);
         }
     };
@@ -438,6 +549,9 @@ export default function AdmissionFormPage() {
                 const payload = data.admission.payload || {};
                 setFormData((prev) => mergeLoadedPayloadIntoForm(prev, payload));
                 setUploadedDocKeys(Object.keys(data.admission.documents || {}));
+                if (payload?.payment?.status === "paid") {
+                    setPaymentDetails(payload.payment);
+                }
                 if (data.admission.applicationId) {
                     setApplicationId(data.admission.applicationId);
                 }
@@ -452,6 +566,13 @@ export default function AdmissionFormPage() {
     }, []);
 
     const hasError = (fieldName) => submitAttempted && !formData[fieldName];
+
+    let submitButtonLabel = `Pay Rs ${FORM_PRICE_INR} & Submit`;
+    if (paymentInProgress) {
+        submitButtonLabel = `Processing Payment (Rs ${FORM_PRICE_INR})...`;
+    } else if (submitting) {
+        submitButtonLabel = "Submitting...";
+    }
 
     return (
         <div className="min-h-screen bg-[linear-gradient(180deg,#fdf5f5_0%,#fbf8f8_38%,#f6f3f3_100%)] px-4 py-6 md:px-6 xl:px-8">
@@ -718,6 +839,35 @@ export default function AdmissionFormPage() {
                         </SectionCard>
                     )}
 
+                    {activeSection === "payment" && (
+                        <SectionCard
+                            id="payment"
+                            icon={IndianRupee}
+                            title="Admission Payment"
+                            subtitle="Review the form fee and complete payment to enable final submission."
+                        >
+                            <div className="grid gap-5 md:grid-cols-2">
+                                <div className="rounded-2xl border border-[#7a1c1c]/15 bg-[#7a1c1c]/5 p-5">
+                                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#7a1c1c]">Form Fee</p>
+                                    <p className="mt-3 text-3xl font-black text-slate-900">Rs {FORM_PRICE_INR}</p>
+                                    <p className="mt-2 text-sm text-slate-600">One-time admission processing payment via Razorpay.</p>
+                                </div>
+
+                                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                                    <p className="text-sm font-semibold text-slate-800">Payment Status</p>
+                                    <p className={`mt-3 inline-flex rounded-full px-3 py-1 text-xs font-semibold ${paymentDetails?.status === "paid" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
+                                        {paymentDetails?.status === "paid" ? "Paid" : "Pending"}
+                                    </p>
+                                    <p className="mt-3 text-sm text-slate-600">
+                                        {paymentDetails?.status === "paid"
+                                            ? `Payment ID: ${paymentDetails.razorpayPaymentId}`
+                                            : "Click the Pay & Submit button below to open Razorpay checkout."}
+                                    </p>
+                                </div>
+                            </div>
+                        </SectionCard>
+                    )}
+
                     {activeSection === "declaration" && (
                         <SectionCard
                             id="declaration"
@@ -779,7 +929,7 @@ export default function AdmissionFormPage() {
                         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                             <div>
                                 <p className="text-sm font-semibold text-slate-800">Ready to continue?</p>
-                                <p className="text-xs text-slate-500">You can save this admission form as draft or submit after reviewing all sections.</p>
+                                <p className="text-xs text-slate-500">Form fee: Rs {FORM_PRICE_INR}. You can save draft or pay and submit after reviewing all sections.</p>
                             </div>
                             <div className="flex flex-col gap-3 sm:flex-row">
                                 <button
@@ -792,17 +942,17 @@ export default function AdmissionFormPage() {
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={handleReset}
+                                    onClick={handleCancel}
                                     className="rounded-xl border border-slate-200 bg-slate-50 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
                                 >
-                                    Reset
+                                    Cancel
                                 </button>
                                 <button
                                     type="submit"
-                                    disabled={submitting}
+                                    disabled={submitting || paymentInProgress}
                                     className="rounded-xl bg-linear-to-r from-[#9f2a2a] via-[#7a1c1c] to-[#5a1414] px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-[#7a1c1c]/20 transition hover:brightness-110"
                                 >
-                                    {submitting ? "Submitting..." : "Submit Admission Form"}
+                                    {submitButtonLabel}
                                 </button>
                             </div>
                         </div>
@@ -821,6 +971,11 @@ export default function AdmissionFormPage() {
                         )}
                         {serverMessage && (
                             <p className="mt-3 text-sm text-slate-700">{serverMessage}</p>
+                        )}
+                        {paymentDetails?.status === "paid" && (
+                            <p className="mt-2 text-xs text-emerald-700">
+                                Payment completed: Rs {paymentDetails.amount} (Payment ID: {paymentDetails.razorpayPaymentId})
+                            </p>
                         )}
                     </div>
                 </form>

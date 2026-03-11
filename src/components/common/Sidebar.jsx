@@ -39,8 +39,14 @@ export default function Sidebar({ setSidebarOpen }) {
   const adminMenuItems = [
     {
       name: "View Admissions",
-      icon: FaAddressBook,
+      icon: FaChalkboardUser,
       path: "/admin/admissions",
+    },
+    {
+      name: "Payment History",
+      icon: FaFilePdf,
+      path: "/admin/admissions",
+      query: { key: "view", value: "payments" },
     },
     {
       name: "Academics",
@@ -101,6 +107,7 @@ export default function Sidebar({ setSidebarOpen }) {
         { name: "Stream Selection", section: "stream" },
         { name: "Documents", section: "documents" },
         { name: "Extra Details", section: "extras" },
+        { name: "Payment", section: "payment" },
         { name: "Declaration", section: "declaration" },
       ],
     },
@@ -153,7 +160,24 @@ export default function Sidebar({ setSidebarOpen }) {
       <nav className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-3 py-4 pr-2 space-y-2 [scrollbar-width:thin] [scrollbar-color:#b0b7c3_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-track]:bg-transparent">
         {menuItems.map((item) => {
           const IconComponent = item.icon;
-          const isActive = pathname.startsWith(item.path || "");
+          const href = item.query
+            ? `${item.path}?${item.query.key}=${item.query.value}`
+            : item.path;
+          const isPathActive = pathname.startsWith(item.path || "");
+          const hasDirectQueryMatch = item.query
+            ? searchParams.get(item.query.key) === item.query.value
+            : true;
+          const siblingQueryItems = menuItems.filter(
+            (menuItem) => menuItem.path === item.path && menuItem.query
+          );
+          const hasAnySiblingQueryMatch = siblingQueryItems.some(
+            (menuItem) => searchParams.get(menuItem.query.key) === menuItem.query.value
+          );
+          let hasQueryMatch = hasDirectQueryMatch;
+          if (!item.query && siblingQueryItems.length > 0) {
+            hasQueryMatch = !hasAnySiblingQueryMatch;
+          }
+          const isActive = isPathActive && hasQueryMatch;
           const hasChildren = Array.isArray(item.children) && item.children.length > 0;
 
           if (hasChildren) {
@@ -162,7 +186,7 @@ export default function Sidebar({ setSidebarOpen }) {
                 <button
                   type="button"
                   onClick={() => setAdmissionOpen((prev) => !prev)}
-                  className={`flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left font-medium text-[15px] transition ${isActive
+                  className={`flex w-full items-center gap-3 rounded-lg border border-transparent px-3 py-3 text-left font-medium text-[15px] outline-none transition focus-visible:border-[#7a1c1c]/25 focus-visible:ring-2 focus-visible:ring-[#7a1c1c]/15 ${isActive
                     ? "bg-[#7a1c1c]/10 text-[#7a1c1c]"
                     : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
                     }`}
@@ -199,7 +223,7 @@ export default function Sidebar({ setSidebarOpen }) {
           return (
             <Link
               key={item.name}
-              href={item.path}
+              href={href}
               onClick={handleLinkClick}
               className={`flex items-center gap-3 px-3 py-3 rounded-lg font-medium text-[15px] transition ${isActive
                 ? "bg-[#7a1c1c]/10 text-[#7a1c1c]"

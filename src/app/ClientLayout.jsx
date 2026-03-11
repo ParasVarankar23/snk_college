@@ -101,32 +101,32 @@ export default function ClientLayout({ children }) {
     /* ================= AUTHENTICATED ROUTES (WITH SIDEBAR) ================= */
     if (isDashboardRoute) {
         return (
-            <div className="h-screen flex flex-col">
-                {/* NAVBAR */}
-                <header className="h-20 fixed top-0 left-0 right-0 z-40">
-                    <UserNavbar
-                        sidebarOpen={sidebarOpen}
-                        setSidebarOpen={setSidebarOpen}
-                    />
-                </header>
+            <div className="h-screen flex flex-col md:flex-row bg-gray-50">
+                {/* SIDEBAR - DESKTOP */}
+                <aside className="hidden md:block w-64 h-screen overflow-hidden shrink-0">
+                    <Sidebar />
+                </aside>
 
-                {/* LAYOUT WITH SIDEBAR */}
-                <div className="flex flex-1 pt-20 overflow-hidden">
-                    {/* DESKTOP SIDEBAR */}
-                    <aside className="hidden md:block w-64 h-full overflow-hidden shrink-0">
-                        <Sidebar />
-                    </aside>
+                {/* SIDEBAR - MOBILE OVERLAY */}
+                {sidebarOpen && (
+                    <div className="md:hidden fixed inset-0 z-30 bg-black/40">
+                        <aside className="w-64 h-screen overflow-hidden shrink-0">
+                            <Sidebar setSidebarOpen={setSidebarOpen} />
+                        </aside>
+                    </div>
+                )}
 
-                    {/* MOBILE SIDEBAR OVERLAY */}
-                    {sidebarOpen && (
-                        <div className="md:hidden fixed inset-0 z-30 bg-black/40">
-                            <div className="w-64 h-full pt-20 overflow-hidden shrink-0">
-                                <Sidebar setSidebarOpen={setSidebarOpen} />
-                            </div>
-                        </div>
-                    )}
+                {/* MAIN CONTENT AREA */}
+                <div className="flex-1 flex flex-col overflow-hidden">
+                    {/* NAVBAR */}
+                    <header className="h-20 border-b border-gray-200 shrink-0">
+                        <UserNavbar
+                            sidebarOpen={sidebarOpen}
+                            setSidebarOpen={setSidebarOpen}
+                        />
+                    </header>
 
-                    {/* MAIN CONTENT */}
+                    {/* PAGE CONTENT */}
                     <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-gray-50">
                         {children}
                     </main>
