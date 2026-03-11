@@ -3,7 +3,7 @@
 import { useAuth } from "@/hooks/useAuth";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import {
   FaAddressBook,
   FaAward,
@@ -20,9 +20,94 @@ import {
 } from "react-icons/fa6";
 
 // eslint-disable-next-line react/prop-types
+function SidebarNavItems({ menuItems, pathname, admissionOpen, setAdmissionOpen, handleLinkClick }) {
+  const searchParams = useSearchParams();
+  return (
+    <nav className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-3 py-4 pr-2 space-y-2 [scrollbar-width:thin] [scrollbar-color:#b0b7c3_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-track]:bg-transparent">
+      {menuItems.map((item) => {
+        const IconComponent = item.icon;
+        const href = item.query
+          ? `${item.path}?${item.query.key}=${item.query.value}`
+          : item.path;
+        const isPathActive = pathname.startsWith(item.path || "");
+        const hasDirectQueryMatch = item.query
+          ? searchParams.get(item.query.key) === item.query.value
+          : true;
+        const siblingQueryItems = menuItems.filter(
+          (menuItem) => menuItem.path === item.path && menuItem.query
+        );
+        const hasAnySiblingQueryMatch = siblingQueryItems.some(
+          (menuItem) => searchParams.get(menuItem.query.key) === menuItem.query.value
+        );
+        let hasQueryMatch = hasDirectQueryMatch;
+        if (!item.query && siblingQueryItems.length > 0) {
+          hasQueryMatch = !hasAnySiblingQueryMatch;
+        }
+        const isActive = isPathActive && hasQueryMatch;
+        const hasChildren = Array.isArray(item.children) && item.children.length > 0;
+
+        if (hasChildren) {
+          return (
+            <div key={item.name} className="space-y-2">
+              <button
+                type="button"
+                onClick={() => setAdmissionOpen((prev) => !prev)}
+                className={`flex w-full items-center gap-3 rounded-lg border border-transparent px-3 py-3 text-left font-medium text-[15px] outline-none transition focus-visible:border-[#7a1c1c]/25 focus-visible:ring-2 focus-visible:ring-[#7a1c1c]/15 ${isActive
+                  ? "bg-[#7a1c1c]/10 text-[#7a1c1c]"
+                  : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                  }`}
+              >
+                <IconComponent size={18} className="shrink-0" />
+                <span className="truncate flex-1">{item.name}</span>
+                <FaChevronDown className={`shrink-0 text-xs transition-transform ${admissionOpen ? "rotate-180" : ""}`} />
+              </button>
+
+              {admissionOpen && (
+                <div className="ml-4 space-y-1 border-l border-gray-200 pl-4">
+                  {item.children.map((child) => {
+                    const childActive = pathname.startsWith(item.path) && searchParams.get("section") === child.section;
+                    return (
+                      <Link
+                        key={child.section}
+                        href={`${item.path}?section=${child.section}`}
+                        onClick={handleLinkClick}
+                        className={`block rounded-lg px-3 py-2 text-sm font-medium transition ${childActive
+                          ? "bg-[#7a1c1c]/10 text-[#7a1c1c]"
+                          : "text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+                          }`}
+                      >
+                        {child.name}
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        }
+
+        return (
+          <Link
+            key={item.name}
+            href={href}
+            onClick={handleLinkClick}
+            className={`flex items-center gap-3 px-3 py-3 rounded-lg font-medium text-[15px] transition ${isActive
+              ? "bg-[#7a1c1c]/10 text-[#7a1c1c]"
+              : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+              }`}
+          >
+            <IconComponent size={18} className="shrink-0" />
+            <span className="truncate">{item.name}</span>
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
+
+// eslint-disable-next-line react/prop-types
 export default function Sidebar({ setSidebarOpen }) {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const { user } = useAuth();
   const [admissionOpen, setAdmissionOpen] = useState(false);
 
@@ -157,85 +242,15 @@ export default function Sidebar({ setSidebarOpen }) {
       </div>
 
       {/* NAVIGATION */}
-      <nav className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-3 py-4 pr-2 space-y-2 [scrollbar-width:thin] [scrollbar-color:#b0b7c3_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-track]:bg-transparent">
-        {menuItems.map((item) => {
-          const IconComponent = item.icon;
-          const href = item.query
-            ? `${item.path}?${item.query.key}=${item.query.value}`
-            : item.path;
-          const isPathActive = pathname.startsWith(item.path || "");
-          const hasDirectQueryMatch = item.query
-            ? searchParams.get(item.query.key) === item.query.value
-            : true;
-          const siblingQueryItems = menuItems.filter(
-            (menuItem) => menuItem.path === item.path && menuItem.query
-          );
-          const hasAnySiblingQueryMatch = siblingQueryItems.some(
-            (menuItem) => searchParams.get(menuItem.query.key) === menuItem.query.value
-          );
-          let hasQueryMatch = hasDirectQueryMatch;
-          if (!item.query && siblingQueryItems.length > 0) {
-            hasQueryMatch = !hasAnySiblingQueryMatch;
-          }
-          const isActive = isPathActive && hasQueryMatch;
-          const hasChildren = Array.isArray(item.children) && item.children.length > 0;
-
-          if (hasChildren) {
-            return (
-              <div key={item.name} className="space-y-2">
-                <button
-                  type="button"
-                  onClick={() => setAdmissionOpen((prev) => !prev)}
-                  className={`flex w-full items-center gap-3 rounded-lg border border-transparent px-3 py-3 text-left font-medium text-[15px] outline-none transition focus-visible:border-[#7a1c1c]/25 focus-visible:ring-2 focus-visible:ring-[#7a1c1c]/15 ${isActive
-                    ? "bg-[#7a1c1c]/10 text-[#7a1c1c]"
-                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                    }`}
-                >
-                  <IconComponent size={18} className="shrink-0" />
-                  <span className="truncate flex-1">{item.name}</span>
-                  <FaChevronDown className={`shrink-0 text-xs transition-transform ${admissionOpen ? "rotate-180" : ""}`} />
-                </button>
-
-                {admissionOpen && (
-                  <div className="ml-4 space-y-1 border-l border-gray-200 pl-4">
-                    {item.children.map((child) => {
-                      const childActive = pathname.startsWith(item.path) && searchParams.get("section") === child.section;
-                      return (
-                        <Link
-                          key={child.section}
-                          href={`${item.path}?section=${child.section}`}
-                          onClick={handleLinkClick}
-                          className={`block rounded-lg px-3 py-2 text-sm font-medium transition ${childActive
-                            ? "bg-[#7a1c1c]/10 text-[#7a1c1c]"
-                            : "text-gray-500 hover:bg-gray-100 hover:text-gray-900"
-                            }`}
-                        >
-                          {child.name}
-                        </Link>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            );
-          }
-
-          return (
-            <Link
-              key={item.name}
-              href={href}
-              onClick={handleLinkClick}
-              className={`flex items-center gap-3 px-3 py-3 rounded-lg font-medium text-[15px] transition ${isActive
-                ? "bg-[#7a1c1c]/10 text-[#7a1c1c]"
-                : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                }`}
-            >
-              <IconComponent size={18} className="shrink-0" />
-              <span className="truncate">{item.name}</span>
-            </Link>
-          );
-        })}
-      </nav>
+      <Suspense fallback={<nav className="flex-1" />}>
+        <SidebarNavItems
+          menuItems={menuItems}
+          pathname={pathname}
+          admissionOpen={admissionOpen}
+          setAdmissionOpen={setAdmissionOpen}
+          handleLinkClick={handleLinkClick}
+        />
+      </Suspense>
 
       {/* FOOTER */}
       <div className="shrink-0 border-t border-gray-200 p-5 text-center text-xs text-gray-600 md:p-6">

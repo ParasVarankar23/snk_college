@@ -53,7 +53,7 @@ function resolvePayment(admission) {
     return null;
 }
 
-export default function AdminAdmissionsPage() {
+function AdminAdmissionsInner() {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
@@ -970,5 +970,13 @@ export default function AdminAdmissionsPage() {
                 )}
             </div>
         </div>
+    );
+}
+
+export default function AdminAdmissionsPage() {
+    return (
+        <Suspense fallback={<div className="flex-1 flex items-center justify-center"><p className="text-slate-500 text-sm">Loading...</p></div>}>
+            <AdminAdmissionsInner />
+        </Suspense>
     );
 }

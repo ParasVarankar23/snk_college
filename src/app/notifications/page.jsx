@@ -15,7 +15,8 @@ export default function NotificationPage() {
     const [loading, setLoading] = useState(true);
 
     const authHeader = useMemo(() => {
-        const token = globalThis.localStorage.getItem("authToken");
+        if (typeof window === "undefined") return null;
+        const token = localStorage.getItem("authToken");
         return token ? { Authorization: `Bearer ${token}` } : null;
     }, []);
 

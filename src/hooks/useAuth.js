@@ -95,6 +95,11 @@ export function useAuth() {
 
     const logout = () => {
         localStorage.removeItem("authToken");
+
+        // Remove all Firebase-cached entries (e.g. firebase:host:*, firebase:previous_websocket_failure)
+        const firebaseKeys = Object.keys(localStorage).filter((k) => k.startsWith("firebase:"));
+        firebaseKeys.forEach((k) => localStorage.removeItem(k));
+
         setUser(null);
         setIsAuthenticated(false);
         globalThis.dispatchEvent(new Event("auth-changed"));

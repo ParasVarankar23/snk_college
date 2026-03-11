@@ -24,7 +24,7 @@ import {
     Users,
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 
 const FORM_PRICE_INR = 200;
@@ -265,7 +265,7 @@ function openRazorpayCheckout(options) {
     });
 }
 
-export default function AdmissionFormPage() {
+function AdmissionFormInner() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [submitAttempted, setSubmitAttempted] = useState(false);
@@ -992,6 +992,14 @@ export default function AdmissionFormPage() {
                 </form>
             </div>
         </div>
+    );
+}
+
+export default function AdmissionFormPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen bg-[linear-gradient(180deg,#fdf5f5_0%,#fbf8f8_38%,#f6f3f3_100%)] flex items-center justify-center"><p className="text-slate-500 text-sm">Loading...</p></div>}>
+            <AdmissionFormInner />
+        </Suspense>
     );
 }
 
