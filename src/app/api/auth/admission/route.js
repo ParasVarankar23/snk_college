@@ -74,6 +74,42 @@ function parsePayloadFromFormData(formData) {
     }
 }
 
+function parseStartYearFromAcademicYear(value) {
+    const text = String(value || "").trim();
+    const match = /(\d{4})/.exec(text);
+    return match ? Number(match[1]) : null;
+}
+
+function formatAcademicYear(startYear) {
+    return `${startYear}-${startYear + 1}`;
+}
+
+function resolveAcademicYearStart({ payload, existingAdmission }) {
+    const payloadYear = parseStartYearFromAcademicYear(payload?.academicYear);
+    if (payloadYear) return payloadYear;
+
+    const existingYear = parseStartYearFromAcademicYear(existingAdmission?.academicYear);
+    if (existingYear) return existingYear;
+
+    return new Date().getFullYear();
+}
+
+function parseYearFilter(value) {
+    const year = parseStartYearFromAcademicYear(value);
+    return year ? formatAcademicYear(year) : null;
+}
+
+async function getNextApplicationId(db, startYear) {
+    const counterRef = db.ref(`admissionCounters/${startYear}`);
+    const transactionResult = await counterRef.transaction((current) => {
+        const safeCurrent = Number(current) || 0;
+        return safeCurrent + 1;
+    });
+
+    const sequence = Number(transactionResult.snapshot.val()) || 1;
+    return `${startYear}SNK${String(sequence).padStart(4, "0")}`;
+}
+
 async function mergeUploadedDocuments({ formData, uid, existingDocuments }) {
     const documents = existingDocuments ? { ...existingDocuments } : {};
 
@@ -94,10 +130,15 @@ export async function GET(request) {
     }
 
     const db = getAdminDb();
+    const { searchParams } = new URL(request.url);
+    const yearFilter = parseYearFilter(searchParams.get("year"));
 
     if (auth.role === "admin") {
         const allSnapshot = await db.ref("admissions").get();
-        const admissions = sortByUpdatedAtDesc(allSnapshot.exists() ? allSnapshot.val() : {});
+        const allAdmissions = sortByUpdatedAtDesc(allSnapshot.exists() ? allSnapshot.val() : {});
+        const admissions = yearFilter
+            ? allAdmissions.filter((item) => item.academicYear === yearFilter)
+            : allAdmissions;
         return Response.json({ success: true, admissions }, { status: 200 });
     }
 
@@ -137,27 +178,32 @@ export async function POST(request) {
     const db = getAdminDb();
     const existingSnapshot = await db.ref(`admissions/${auth.uid}`).get();
     const existingAdmission = existingSnapshot.exists() ? existingSnapshot.val() : null;
+    const academicYearStart = resolveAcademicYearStart({ payload, existingAdmission });
+    const academicYear = formatAcademicYear(academicYearStart);
     const documents = await mergeUploadedDocuments({
         formData,
         uid: auth.uid,
         existingDocuments: existingAdmission?.documents,
     });
 
+    const applicationId =
+        existingAdmission?.applicationId ||
+        (await getNextApplicationId(db, academicYearStart));
+
     const nowIso = new Date().toISOString();
     const admissionData = {
         uid: auth.uid,
-        applicationId:
-            payload.applicationId ||
-            existingAdmission?.applicationId ||
-            `FYJC-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`,
+        applicationId,
+        academicYear,
         status: payload.status || existingAdmission?.status || "submitted",
         selectedStream: payload.selectedStream || existingAdmission?.selectedStream || "",
         payload: existingAdmission?.payload
             ? {
                 ...existingAdmission.payload,
                 ...payload,
+                academicYear,
             }
-            : payload,
+            : { ...payload, academicYear },
         documents,
         createdAt: existingAdmission?.createdAt || nowIso,
         updatedAt: nowIso,

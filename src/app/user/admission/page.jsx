@@ -23,7 +23,7 @@ import {
     Users,
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 const FILE_FIELD_KEYS = [
     "studentPhoto",
@@ -37,6 +37,15 @@ const FILE_FIELD_KEYS = [
     "documentIncomeCertificate",
     "documentDomicileCertificate",
     "documentParentAadhaarCard",
+];
+
+const REQUIRED_UPLOAD_KEYS = [
+    "studentPhoto",
+    "studentSignature",
+    "parentSignature",
+    "tenthMarksheet",
+    "leavingCertificate",
+    "documentAadhaarCard",
 ];
 
 const streamOptions = [
@@ -191,15 +200,23 @@ const initialFormState = {
     emergencyContactNumber: "",
 };
 
-function generateApplicationId() {
-    return `FYJC-2026-${Math.floor(100000 + Math.random() * 900000)}`;
-}
-
 function inputClass(hasError) {
     return `w-full rounded-xl border bg-white px-4 py-3 text-sm text-slate-800 outline-none transition ${hasError
         ? "border-rose-300 ring-2 ring-rose-100"
         : "border-slate-200 focus:border-[#7a1c1c] focus:ring-4 focus:ring-[#7a1c1c]/10"
         }`;
+}
+
+function mergeLoadedPayloadIntoForm(prev, payload) {
+    const safePayload = payload || {};
+    const allowedEntries = Object.entries(safePayload).filter(
+        ([key]) => key in prev && !FILE_FIELD_KEYS.includes(key)
+    );
+
+    return {
+        ...prev,
+        ...Object.fromEntries(allowedEntries),
+    };
 }
 
 export default function AdmissionFormPage() {
@@ -208,9 +225,16 @@ export default function AdmissionFormPage() {
     const [submitAttempted, setSubmitAttempted] = useState(false);
     const [savedDraft, setSavedDraft] = useState(false);
     const [submitting, setSubmitting] = useState(false);
+    const [loadingAdmission, setLoadingAdmission] = useState(false);
+    const [uploadedDocKeys, setUploadedDocKeys] = useState([]);
     const [serverMessage, setServerMessage] = useState("");
     const [formData, setFormData] = useState(initialFormState);
-    const [applicationId] = useState(generateApplicationId);
+    const [applicationId, setApplicationId] = useState("Will be generated on submit");
+
+    const currentAcademicYear = useMemo(() => {
+        const year = new Date().getFullYear();
+        return `${year}-${year + 1}`;
+    }, []);
 
     const activeSection = useMemo(() => {
         const section = searchParams.get("section");
@@ -230,13 +254,24 @@ export default function AdmissionFormPage() {
     }, [formData.firstName, formData.middleName, formData.lastName]);
 
     const completionCount = useMemo(() => {
-        return requiredFieldKeys.filter((key) => {
-            if (key === "selectedStream") return Boolean(formData.selectedStream);
-            return Boolean(formData[key]);
-        }).length + (formData.declarationAccepted ? 1 : 0);
-    }, [formData]);
+        const completedRequiredFields = requiredFieldKeys.filter((key) => {
+            const value = formData[key];
+            if (Array.isArray(value)) return value.length > 0;
+            if (typeof value === "string") return value.trim().length > 0;
+            return Boolean(value);
+        }).length;
 
-    const progressPercent = Math.round((completionCount / (requiredFieldKeys.length + 1)) * 100);
+        const completedUploads = REQUIRED_UPLOAD_KEYS.filter((key) => {
+            const localFile = formData[key];
+            return localFile instanceof File || uploadedDocKeys.includes(key);
+        }).length;
+
+        return completedRequiredFields + completedUploads + (formData.declarationAccepted ? 1 : 0);
+    }, [formData, uploadedDocKeys]);
+
+    const progressPercent = Math.round(
+        (completionCount / (requiredFieldKeys.length + REQUIRED_UPLOAD_KEYS.length + 1)) * 100
+    );
 
     const subjectOptions = useMemo(() => {
         const selectedStream = streamOptions.find((item) => item.value === formData.selectedStream);
@@ -254,6 +289,9 @@ export default function AdmissionFormPage() {
 
     const handleFileChange = (name, file) => {
         setSavedDraft(false);
+        if (file) {
+            setUploadedDocKeys((prev) => (prev.includes(name) ? prev : [...prev, name]));
+        }
         setFormData((prev) => ({
             ...prev,
             [name]: file || null,
@@ -288,7 +326,9 @@ export default function AdmissionFormPage() {
         });
         setSubmitAttempted(false);
         setSavedDraft(false);
+        setUploadedDocKeys([]);
         setServerMessage("");
+        setApplicationId("Will be generated on submit");
         router.replace("/user/admission?section=student", { scroll: false });
     };
 
@@ -320,7 +360,7 @@ export default function AdmissionFormPage() {
                 ...Object.fromEntries(
                     Object.entries(formData).filter(([key]) => !FILE_FIELD_KEYS.includes(key))
                 ),
-                applicationId,
+                academicYear: currentAcademicYear,
                 status: "submitted",
             };
 
@@ -347,6 +387,13 @@ export default function AdmissionFormPage() {
                 throw new Error(data.error || "Failed to submit admission form");
             }
 
+            if (data?.admission?.applicationId) {
+                setApplicationId(data.admission.applicationId);
+            }
+            if (data?.admission?.documents) {
+                setUploadedDocKeys(Object.keys(data.admission.documents));
+            }
+
             setServerMessage("Admission form submitted successfully.");
         } catch (error) {
             setServerMessage(error.message || "Failed to submit admission form");
@@ -354,6 +401,39 @@ export default function AdmissionFormPage() {
             setSubmitting(false);
         }
     };
+
+    useEffect(() => {
+        const loadMyAdmission = async () => {
+            const token = globalThis.localStorage.getItem("authToken");
+            if (!token) return;
+
+            setLoadingAdmission(true);
+            try {
+                const response = await fetch("/api/auth/admission", {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                    cache: "no-store",
+                });
+
+                const data = await response.json();
+                if (!response.ok || !data?.admission) return;
+
+                const payload = data.admission.payload || {};
+                setFormData((prev) => mergeLoadedPayloadIntoForm(prev, payload));
+                setUploadedDocKeys(Object.keys(data.admission.documents || {}));
+                if (data.admission.applicationId) {
+                    setApplicationId(data.admission.applicationId);
+                }
+            } catch {
+                // Keep form usable even if load fails.
+            } finally {
+                setLoadingAdmission(false);
+            }
+        };
+
+        loadMyAdmission();
+    }, []);
 
     const hasError = (fieldName) => submitAttempted && !formData[fieldName];
 
@@ -374,7 +454,7 @@ export default function AdmissionFormPage() {
                                         FYJC / 11th Admission Form
                                     </h1>
                                     <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600 md:text-base">
-                                        Complete your online admission form for Academic Year 2026-27 with accurate personal,
+                                        Complete your online admission form for the selected academic year with accurate personal,
                                         academic, document, and declaration details.
                                     </p>
                                 </div>
@@ -383,7 +463,7 @@ export default function AdmissionFormPage() {
                             <div className="grid gap-3 sm:grid-cols-3 lg:min-w-105">
                                 <InfoBadge label="Application ID" value={applicationId} icon={IdCard} />
                                 <InfoBadge label="Admission Date" value={new Date().toLocaleDateString("en-GB")} icon={CalendarDays} />
-                                <InfoBadge label="Academic Year" value="2026-27" icon={GraduationCap} />
+                                <InfoBadge label="Academic Year" value={currentAcademicYear} icon={GraduationCap} />
                             </div>
                         </div>
 
@@ -391,7 +471,7 @@ export default function AdmissionFormPage() {
                             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                                 <div>
                                     <p className="text-sm font-semibold text-slate-700">Application Progress</p>
-                                    <p className="text-xs text-slate-500">Fill all mandatory details before final submission.</p>
+                                    <p className="text-xs text-slate-500">Live progress updates as you fill fields and upload required documents.</p>
                                 </div>
                                 <div className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-sm font-semibold text-[#7a1c1c] shadow-sm">
                                     <CheckCircle2 className="h-4 w-4" />
@@ -719,6 +799,9 @@ export default function AdmissionFormPage() {
                         )}
                         {savedDraft && !submitAttempted && (
                             <p className="mt-3 text-sm text-[#7a1c1c]">Draft saved locally in the UI preview state for this session.</p>
+                        )}
+                        {loadingAdmission && (
+                            <p className="mt-3 text-sm text-slate-600">Loading your previous admission details...</p>
                         )}
                         {serverMessage && (
                             <p className="mt-3 text-sm text-slate-700">{serverMessage}</p>
