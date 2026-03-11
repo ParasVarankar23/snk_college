@@ -4,44 +4,44 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-export default function HeroSection() {
+const slides = [
+    {
+        src: "/college/college.jpg",
+        title: "Shri Nanasaheb Kulkarni",
+        subtitle: "Kanishta Mahavidyalay",
+        location: "Borli Panchatan",
+        description:
+            "Empowering students through academic excellence, disciplined learning, and future-ready opportunities in Arts, Commerce, and Science.",
+    },
+    {
+        src: "/college/college.jpg",
+        title: "Inspiring Young Minds",
+        subtitle: "A Culture Of Values",
+        location: "Excellence In Every Classroom",
+        description:
+            "From strong fundamentals to modern teaching practices, our campus supports growth, confidence, and meaningful student achievement.",
+    },
+    {
+        src: "/college/college.jpg",
+        title: "Admissions Open",
+        subtitle: "Build Your Next Chapter",
+        location: "Join A Trusted Institution",
+        description:
+            "Explore merit-focused admissions, dedicated faculty mentorship, and a supportive college environment that helps students thrive.",
+    },
+];
 
-    const slides = [
-        {
-            src: "/college/college.jpg",
-            title: "Shri Nanasaheb Kulkarni",
-            subtitle: "Kanishta Mahavidyalay",
-            location: "Borli Panchatan",
-            description:
-                "Empowering students through academic excellence, disciplined learning, and future-ready opportunities in Arts, Commerce, and Science.",
-        },
-        {
-            src: "/college/college.jpg",
-            title: "Inspiring Young Minds",
-            subtitle: "A Culture Of Values",
-            location: "Excellence In Every Classroom",
-            description:
-                "From strong fundamentals to modern teaching practices, our campus supports growth, confidence, and meaningful student achievement.",
-        },
-        {
-            src: "/college/college.jpg",
-            title: "Admissions Open",
-            subtitle: "Build Your Next Chapter",
-            location: "Join A Trusted Institution",
-            description:
-                "Explore merit-focused admissions, dedicated faculty mentorship, and a supportive college environment that helps students thrive.",
-        },
-    ];
+export default function HeroSection() {
 
     const [index, setIndex] = useState(0);
 
     useEffect(() => {
         const interval = setInterval(() => {
             setIndex((prev) => (prev + 1) % slides.length);
-        }, 2000);
+        }, 8000);
 
         return () => clearInterval(interval);
-    }, [slides.length]);
+    }, []);
 
     return (
         <section className="relative isolate min-h-[78vh] md:min-h-[84vh] overflow-hidden">
@@ -71,11 +71,11 @@ export default function HeroSection() {
                     key={index}
                     className="w-full max-w-3xl rounded-2xl border border-white/20 bg-white/10 p-6 text-white shadow-2xl backdrop-blur-sm sm:p-8 md:p-10"
                 >
-                    <p className="slide-in-up text-xs font-semibold uppercase tracking-[0.35em] text-white/80 sm:text-sm">
+                    <p className="anim-1 text-xs font-semibold uppercase tracking-[0.35em] text-white/80 sm:text-sm">
                         Welcome To Our College
                     </p>
 
-                    <h1 className="slide-in-up mt-3 text-3xl font-bold leading-tight sm:text-4xl md:text-5xl">
+                    <h1 className="anim-2 mt-3 text-3xl font-bold leading-tight sm:text-4xl md:text-5xl">
                         {slides[index].title}
                         <span className="mt-1 block text-[#ffcf9f]">{slides[index].subtitle}</span>
                         <span className="mt-1 block text-2xl font-semibold text-white sm:text-3xl">
@@ -83,11 +83,11 @@ export default function HeroSection() {
                         </span>
                     </h1>
 
-                    <p className="slide-in-up mt-5 max-w-2xl text-sm leading-relaxed text-white/90 sm:text-base md:text-lg">
+                    <p className="anim-3 mt-5 max-w-2xl text-sm leading-relaxed text-white/90 sm:text-base md:text-lg">
                         {slides[index].description}
                     </p>
 
-                    <div className="slide-in-up mt-8 flex flex-wrap items-center gap-3 sm:gap-4">
+                    <div className="anim-4 mt-8 flex flex-wrap items-center gap-3 sm:gap-4">
                         <Link
                             href="/admissions"
                             className="group rounded-lg bg-[#7a1c1c] px-5 py-3 text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:-translate-y-1 hover:bg-[#9f2a2a] hover:shadow-xl sm:px-6 sm:text-base"
@@ -113,8 +113,8 @@ export default function HeroSection() {
                                 aria-label={`Go to slide ${dotIndex + 1}`}
                                 onClick={() => setIndex(dotIndex)}
                                 className={`h-2.5 rounded-full transition-all duration-300 sm:h-3 ${dotIndex === index
-                                        ? "w-7 bg-white sm:w-9"
-                                        : "w-2.5 bg-white/50 hover:bg-white/80 sm:w-3"
+                                    ? "w-7 bg-white sm:w-9"
+                                    : "w-2.5 bg-white/50 hover:bg-white/80 sm:w-3"
                                     }`}
                             />
                         ))}
@@ -123,14 +123,27 @@ export default function HeroSection() {
             </div>
 
             <style jsx>{`
-                .slide-in-up {
-                    animation: slideInUp 0.7s ease both;
+                .anim-1 {
+                    animation: fadeSlideUp 1s ease both;
+                    animation-delay: 0ms;
+                }
+                .anim-2 {
+                    animation: fadeSlideUp 1s ease both;
+                    animation-delay: 250ms;
+                }
+                .anim-3 {
+                    animation: fadeSlideUp 1s ease both;
+                    animation-delay: 500ms;
+                }
+                .anim-4 {
+                    animation: fadeSlideUp 1s ease both;
+                    animation-delay: 750ms;
                 }
 
-                @keyframes slideInUp {
+                @keyframes fadeSlideUp {
                     from {
                         opacity: 0;
-                        transform: translateY(24px);
+                        transform: translateY(32px);
                     }
                     to {
                         opacity: 1;
