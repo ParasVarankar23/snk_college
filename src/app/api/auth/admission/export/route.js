@@ -202,6 +202,56 @@ function groupByDepartment(admissions) {
     return groups;
 }
 
+function filterAdmissionsByDepartment(admissions, departmentFilter) {
+    if (departmentFilter === "all") return admissions;
+
+    return admissions.filter((item) => {
+        const stream = String(item.selectedStream || item?.payload?.selectedStream || "")
+            .trim()
+            .toLowerCase();
+        return stream === departmentFilter;
+    });
+}
+
+function appendMeritSheets(workbook, admissions, departmentFilter, meritThresholds) {
+    const meritBuckets = toMeritBuckets(admissions, meritThresholds);
+    XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(meritBuckets.merit1), "Merit_1");
+    XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(meritBuckets.merit2), "Merit_2");
+    XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(meritBuckets.merit3), "Merit_3");
+
+    if (departmentFilter !== "all") return;
+
+    const departmentGroups = groupByDepartment(admissions);
+    const scienceMerits = toMeritBuckets(departmentGroups.science, meritThresholds);
+    const commerceMerits = toMeritBuckets(departmentGroups.commerce, meritThresholds);
+    const artsMerits = toMeritBuckets(departmentGroups.arts, meritThresholds);
+    const otherMerits = toMeritBuckets(departmentGroups.other, meritThresholds);
+
+    XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(scienceMerits.merit1), "Sci_Merit_1");
+    XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(scienceMerits.merit2), "Sci_Merit_2");
+    XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(scienceMerits.merit3), "Sci_Merit_3");
+
+    XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(commerceMerits.merit1), "Com_Merit_1");
+    XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(commerceMerits.merit2), "Com_Merit_2");
+    XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(commerceMerits.merit3), "Com_Merit_3");
+
+    XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(artsMerits.merit1), "Arts_Merit_1");
+    XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(artsMerits.merit2), "Arts_Merit_2");
+    XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(artsMerits.merit3), "Arts_Merit_3");
+
+    XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(otherMerits.merit1), "Other_Merit_1");
+    XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(otherMerits.merit2), "Other_Merit_2");
+    XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(otherMerits.merit3), "Other_Merit_3");
+}
+
+function getModeSuffix(mode) {
+    if (mode === "all") return "All";
+    if (mode === "top") return "Top";
+    if (mode === "merit") return "Merit";
+    if (mode === "both") return "All_Top_Merit";
+    return "All_Top";
+}
+
 export async function GET(request) {
     const auth = getAuthContext(request);
     if (!auth) {
@@ -229,19 +279,10 @@ export async function GET(request) {
         ? allAdmissions.filter((item) => item.academicYear === yearFilter)
         : allAdmissions;
 
-    const admissions = departmentFilter === "all"
-        ? filteredByYear
-        : filteredByYear.filter((item) => {
-            const stream = String(item.selectedStream || item?.payload?.selectedStream || "")
-                .trim()
-                .toLowerCase();
-            return stream === departmentFilter;
-        });
+    const admissions = filterAdmissionsByDepartment(filteredByYear, departmentFilter);
 
     const allRows = toAllRows(admissions);
     const topRows = toTopRows(admissions);
-    const meritBuckets = toMeritBuckets(admissions, meritThresholds);
-    const departmentGroups = groupByDepartment(admissions);
 
     const workbook = XLSX.utils.book_new();
 
@@ -254,32 +295,7 @@ export async function GET(request) {
     }
 
     if (mode === "merit" || mode === "both") {
-        XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(meritBuckets.merit1), "Merit_1");
-        XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(meritBuckets.merit2), "Merit_2");
-        XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(meritBuckets.merit3), "Merit_3");
-
-        if (departmentFilter === "all") {
-            const scienceMerits = toMeritBuckets(departmentGroups.science, meritThresholds);
-            const commerceMerits = toMeritBuckets(departmentGroups.commerce, meritThresholds);
-            const artsMerits = toMeritBuckets(departmentGroups.arts, meritThresholds);
-            const otherMerits = toMeritBuckets(departmentGroups.other, meritThresholds);
-
-            XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(scienceMerits.merit1), "Sci_Merit_1");
-            XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(scienceMerits.merit2), "Sci_Merit_2");
-            XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(scienceMerits.merit3), "Sci_Merit_3");
-
-            XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(commerceMerits.merit1), "Com_Merit_1");
-            XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(commerceMerits.merit2), "Com_Merit_2");
-            XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(commerceMerits.merit3), "Com_Merit_3");
-
-            XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(artsMerits.merit1), "Arts_Merit_1");
-            XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(artsMerits.merit2), "Arts_Merit_2");
-            XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(artsMerits.merit3), "Arts_Merit_3");
-
-            XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(otherMerits.merit1), "Other_Merit_1");
-            XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(otherMerits.merit2), "Other_Merit_2");
-            XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(otherMerits.merit3), "Other_Merit_3");
-        }
+        appendMeritSheets(workbook, admissions, departmentFilter, meritThresholds);
     }
 
     if (workbook.SheetNames.length === 0) {
@@ -290,16 +306,7 @@ export async function GET(request) {
     const fileYear = yearFilter || "All_Years";
     const fileDepartment = departmentFilter === "all" ? "All_Departments" : departmentFilter;
 
-    let modeSuffix = "All_Top";
-    if (mode === "all") {
-        modeSuffix = "All";
-    } else if (mode === "top") {
-        modeSuffix = "Top";
-    } else if (mode === "merit") {
-        modeSuffix = "Merit";
-    } else if (mode === "both") {
-        modeSuffix = "All_Top_Merit";
-    }
+    const modeSuffix = getModeSuffix(mode);
 
     return new Response(output, {
         status: 200,

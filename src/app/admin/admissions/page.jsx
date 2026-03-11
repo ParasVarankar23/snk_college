@@ -87,84 +87,80 @@ export default function AdminAdmissionsPage() {
     const meritByDepartment = useMemo(() => {
         const normalizeRows = (rows) =>
             rows
-            .map((admission) => {
-                const payload = admission.payload || {};
-                const percentage = parsePercentage(payload.percentage);
-                const studentName =
-                    payload.declarationStudentName ||
-                    [payload.firstName, payload.middleName, payload.lastName].filter(Boolean).join(" ") ||
-                    "Student";
+                .map((admission) => {
+                    const payload = admission.payload || {};
+                    const percentage = parsePercentage(payload.percentage);
+                    const studentName =
+                        payload.declarationStudentName ||
+                        [payload.firstName, payload.middleName, payload.lastName].filter(Boolean).join(" ") ||
+                        "Student";
 
-                return {
-                    id: admission.id,
-                    studentName,
-                    percentage,
-                    percentageText: payload.percentage || "-",
-                    department: String(admission.selectedStream || payload.selectedStream || "").toUpperCase(),
-                };
-            })
-            .filter((item) => item.percentage >= 0)
-            .sort((a, b) => b.percentage - a.percentage);
+                    return {
+                        id: admission.id,
+                        studentName,
+                        percentage,
+                        percentageText: payload.percentage || "-",
+                        department: String(admission.selectedStream || payload.selectedStream || "").toUpperCase(),
+                    };
+                })
+                .filter((item) => item.percentage >= 0)
+                .sort((a, b) => b.percentage - a.percentage);
 
-        const merit1 = [];
+        const createBuckets = (rows) => {
+            const merit1 = [];
+            const merit2 = [];
+            const merit3 = [];
 
-            const createBuckets = (rows) => {
-                const merit1 = [];
-                const merit2 = [];
-                const merit3 = [];
+            rows.forEach((item) => {
+                if (item.percentage >= meritThresholds.merit1Min) {
+                    merit1.push(item);
+                    return;
+                }
 
-                rows.forEach((item) => {
-                    if (item.percentage >= meritThresholds.merit1Min) {
-                        merit1.push(item);
-                        return;
-                    }
+                if (item.percentage >= meritThresholds.merit2Min && item.percentage < meritThresholds.merit1Min) {
+                    merit2.push(item);
+                    return;
+                }
 
-                    if (item.percentage >= meritThresholds.merit2Min && item.percentage < meritThresholds.merit1Min) {
-                        merit2.push(item);
-                        return;
-                    }
+                if (item.percentage >= meritThresholds.merit3Min && item.percentage < meritThresholds.merit2Min) {
+                    merit3.push(item);
+                }
+            });
 
-                    if (item.percentage >= meritThresholds.merit3Min && item.percentage < meritThresholds.merit2Min) {
-                        merit3.push(item);
-                    }
-                });
-
-                return { merit1, merit2, merit3 };
-            };
-
-            const scienceRows = normalizeRows(grouped.science || []);
-            const commerceRows = normalizeRows(grouped.commerce || []);
-            const artsRows = normalizeRows(grouped.arts || []);
-            const otherRows = normalizeRows(grouped.other || []);
-
-            return {
-                science: createBuckets(scienceRows),
-                commerce: createBuckets(commerceRows),
-                arts: createBuckets(artsRows),
-                other: createBuckets(otherRows),
-                all: createBuckets(normalizeRows(admissions)),
-            };
-        }, [admissions, grouped, meritThresholds]);
-
-        const activeMeritBuckets = meritByDepartment[selectedDepartmentTab] || {
-            merit1: [],
-            merit2: [],
-            merit3: [],
+            return { merit1, merit2, merit3 };
         };
 
-        const handleThresholdChange = (key, value) => {
-            const numeric = Number(value);
-            setMeritThresholds((prev) => ({
-                ...prev,
-                [key]: Number.isFinite(numeric) ? numeric : prev[key],
-            }));
-        };
+        const scienceRows = normalizeRows(grouped.science || []);
+        const commerceRows = normalizeRows(grouped.commerce || []);
+        const artsRows = normalizeRows(grouped.arts || []);
+        const otherRows = normalizeRows(grouped.other || []);
 
-        const applyDefaultThresholds = () => {
-            setMeritThresholds({ merit1Min: 80, merit2Min: 60, merit3Min: 35 });
+        return {
+            science: createBuckets(scienceRows),
+            commerce: createBuckets(commerceRows),
+            arts: createBuckets(artsRows),
+            other: createBuckets(otherRows),
+            all: createBuckets(normalizeRows(admissions)),
         };
-    }, [admissions]);
+    }, [admissions, grouped, meritThresholds]);
 
+    const activeMeritBuckets = meritByDepartment[selectedDepartmentTab] || {
+        merit1: [],
+        merit2: [],
+        merit3: [],
+    };
+
+    const handleThresholdChange = (key, value) => {
+        const numeric = Number(value);
+        setMeritThresholds((prev) => ({
+            ...prev,
+            [key]: Number.isFinite(numeric) ? numeric : prev[key],
+        }));
+    };
+
+    const applyDefaultThresholds = () => {
+        setMeritThresholds({ merit1Min: 80, merit2Min: 60, merit3Min: 35 });
+    };
     const totalCount = admissions.length;
 
     const activeDepartmentRows = grouped[selectedDepartmentTab] || [];
@@ -343,14 +339,6 @@ export default function AdminAdmissionsPage() {
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={() => handleExport({ mode: "top" })}
-                                    disabled={exporting}
-                                    className="h-12 rounded-xl border border-[#7a1c1c]/20 bg-[#7a1c1c]/5 px-4 text-sm font-semibold text-[#7a1c1c] disabled:opacity-60"
-                                >
-                                    Export Top Percentage
-                                </button>
-                                <button
-                                    type="button"
                                     onClick={() => handleExport({ mode: "merit", department: selectedDepartmentTab })}
                                     disabled={exporting}
                                     className="h-12 rounded-xl border border-[#7a1c1c]/20 bg-[#7a1c1c]/10 px-4 text-sm font-semibold text-[#7a1c1c] disabled:opacity-60"
@@ -386,6 +374,14 @@ export default function AdminAdmissionsPage() {
                         >
                             Export Arts Excel
                         </button>
+                        <button
+                            type="button"
+                            onClick={() => handleExport({ mode: "top" })}
+                            disabled={exporting}
+                            className="h-12 rounded-xl border border-[#7a1c1c]/20 bg-[#7a1c1c]/5 px-4 text-sm font-semibold text-[#7a1c1c] disabled:opacity-60"
+                        >
+                            Export Top Percentage
+                        </button>
                     </div>
                 </section>
 
@@ -400,7 +396,7 @@ export default function AdminAdmissionsPage() {
 
                     <div className="mt-4 grid gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 md:grid-cols-4">
                         <label className="text-xs font-semibold text-slate-600">
-                            Merit 1 Minimum %
+                            <span>Merit 1 Minimum %</span>
                             <input
                                 type="number"
                                 min="0"
@@ -411,7 +407,7 @@ export default function AdminAdmissionsPage() {
                             />
                         </label>
                         <label className="text-xs font-semibold text-slate-600">
-                            Merit 2 Minimum %
+                            <span>Merit 2 Minimum %</span>
                             <input
                                 type="number"
                                 min="0"
@@ -422,7 +418,7 @@ export default function AdminAdmissionsPage() {
                             />
                         </label>
                         <label className="text-xs font-semibold text-slate-600">
-                            Merit 3 Minimum %
+                            <span>Merit 3 Minimum %</span>
                             <input
                                 type="number"
                                 min="0"
