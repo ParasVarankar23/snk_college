@@ -5,14 +5,16 @@ import Link from "next/link";
 import {
     FaArrowRight,
     FaEnvelope,
-    FaFacebook,
-    FaInstagram,
-    FaLinkedin,
     FaMapMarkerAlt,
     FaPhone,
+} from "react-icons/fa";
+import {
+    FaFacebookF,
+    FaInstagram,
+    FaLinkedinIn,
     FaWhatsapp,
     FaYoutube,
-} from "react-icons/fa";
+} from "react-icons/fa6";
 
 const quickLinks = [
     { label: "Home", href: "/" },
@@ -34,11 +36,11 @@ const academicLinks = [
 ];
 
 const socialLinks = [
-    { icon: <FaFacebook />, href: "#", label: "Facebook", color: "hover:bg-blue-600" },
+    { icon: <FaFacebookF />, href: "#", label: "Facebook", color: "hover:bg-blue-600" },
     { icon: <FaInstagram />, href: "#", label: "Instagram", color: "hover:bg-pink-600" },
     { icon: <FaYoutube />, href: "#", label: "YouTube", color: "hover:bg-red-600" },
     { icon: <FaWhatsapp />, href: "#", label: "WhatsApp", color: "hover:bg-green-600" },
-    { icon: <FaLinkedin />, href: "#", label: "LinkedIn", color: "hover:bg-blue-700" },
+    { icon: <FaLinkedinIn />, href: "#", label: "LinkedIn", color: "hover:bg-blue-700" },
 ];
 
 export default function Footer() {
@@ -153,8 +155,8 @@ export default function Footer() {
                                 <span className="w-8 h-8 min-w-[2rem] rounded-lg bg-white/10 flex items-center justify-center text-red-300 group-hover:bg-red-700/50 transition-colors duration-200">
                                     <FaPhone className="text-xs" />
                                 </span>
-                                <a href="tel:+919421160366" className="text-sm text-red-100/80 hover:text-white transition-colors duration-200">
-                                    +91 94211 60366
+                                <a href="tel:+919309940782" className="text-sm text-red-100/80 hover:text-white transition-colors duration-200">
+                                    +91 9309940782
                                 </a>
                             </li>
 
