@@ -84,7 +84,7 @@ export default function LeadershipSection() {
     };
 
     return (
-        <section className="relative overflow-hidden bg-linear-to-b from-white via-[#fff8f8] to-white py-5 md:py-10">
+        <section className="relative overflow-hidden bg-linear-to-b from-white via-[#fff8f8] to-white py-2 md:py-5">
             {/* Decorative Background */}
             <div className="absolute top-10 left-0 h-40 w-40 rounded-full bg-[#7a1c1c]/10 blur-3xl"></div>
             <div className="absolute bottom-10 right-0 h-52 w-52 rounded-full bg-[#7a1c1c]/10 blur-3xl"></div>
@@ -99,7 +99,7 @@ export default function LeadershipSection() {
                     viewport={{ once: true }}
                 >
 
-                    <h2 className="text-3xl font-bold text-gray-800 md:text-5xl">
+                    <h2 className="text-2xl font-bold text-gray-800 md:text-5xl">
                         Our <span className="text-[#7a1c1c]">Leadership</span>
                     </h2>
 
@@ -173,7 +173,7 @@ export default function LeadershipSection() {
                                             {leader.name}
                                         </h3>
 
-                                        <p className="mt-1 text-xs font-medium uppercase tracking-wide text-gray-500">
+                                        <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
                                             {leader.role}
                                         </p>
 
