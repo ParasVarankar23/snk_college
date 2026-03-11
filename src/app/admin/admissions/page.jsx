@@ -3,6 +3,7 @@
 import { Trash2, UserRound } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import toast from "react-hot-toast";
 
 const streamLabelMap = {
     science: "Science Department",
@@ -333,7 +334,9 @@ export default function AdminAdmissionsPage() {
 
             setAdmissions(data.admissions || []);
         } catch (err) {
-            setError(err.message || "Failed to fetch admissions");
+            const errorMessage = err.message || "Failed to fetch admissions";
+            setError(errorMessage);
+            toast.error(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -389,8 +392,11 @@ export default function AdminAdmissionsPage() {
             }
             const departmentSuffix = department === "all" ? "All_Departments" : department;
             downloadBlob(blob, `SNK_Admissions_${selectedYear}_${departmentSuffix}_${suffix}.xlsx`);
+            toast.success("Admissions export downloaded");
         } catch (err) {
-            setError(err.message || "Failed to export admissions");
+            const errorMessage = err.message || "Failed to export admissions";
+            setError(errorMessage);
+            toast.error(errorMessage);
         } finally {
             setExporting(false);
         }
@@ -419,8 +425,11 @@ export default function AdminAdmissionsPage() {
 
             setAdmissions((prev) => prev.filter((item) => item.id !== id));
             if (expandedId === id) setExpandedId("");
+            toast.success("Admission deleted successfully");
         } catch (err) {
-            setError(err.message || "Failed to delete admission");
+            const errorMessage = err.message || "Failed to delete admission";
+            setError(errorMessage);
+            toast.error(errorMessage);
         }
     };
 

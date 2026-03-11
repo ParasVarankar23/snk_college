@@ -1,5 +1,7 @@
 "use client";
 
+import { getFirebaseAuth } from "@/lib/firebase";
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -10,6 +12,7 @@ import { FaCheckCircle } from "react-icons/fa";
 export default function SignupPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
+    const [googleLoading, setGoogleLoading] = useState(false);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
     const [generatedPassword, setGeneratedPassword] = useState("");
@@ -26,6 +29,14 @@ export default function SignupPage() {
             [name]: value,
         }));
         setError("");
+    };
+
+    const normalizeRole = (role) => String(role || "").trim().toLowerCase();
+
+    const redirectToDashboard = (role) => {
+        const normalizedRole = normalizeRole(role) || "student";
+        const targetPath = normalizedRole === "admin" ? "/admin/events" : "/user/admission";
+        globalThis.location.replace(targetPath);
     };
 
     const handleSubmit = async (e) => {
@@ -68,6 +79,51 @@ export default function SignupPage() {
             toast.error(errorMessage);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleGoogleSignup = async () => {
+        setGoogleLoading(true);
+        setError("");
+        setSuccess("");
+
+        try {
+            const provider = new GoogleAuthProvider();
+            provider.setCustomParameters({ prompt: "select_account" });
+            const auth = getFirebaseAuth();
+
+            const result = await signInWithPopup(auth, provider);
+            const idToken = await result.user.getIdToken();
+
+            const response = await fetch("/api/auth/google-login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    idToken,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                const errorMessage = data.error || "Google signup failed";
+                setError(errorMessage);
+                toast.error(errorMessage);
+                return;
+            }
+
+            localStorage.setItem("authToken", data.authToken);
+            globalThis.dispatchEvent(new Event("auth-changed"));
+            toast.success("Google signup/login successful");
+            redirectToDashboard(data?.user?.role);
+        } catch (err) {
+            const errorMessage = err.message || "Google signup failed";
+            setError(errorMessage);
+            toast.error(errorMessage);
+        } finally {
+            setGoogleLoading(false);
         }
     };
 
@@ -155,7 +211,7 @@ export default function SignupPage() {
                                 value={formData.name}
                                 onChange={handleChange}
                                 required
-                                disabled={loading}
+                                disabled={loading || googleLoading}
                                 className="w-full h-12 px-4 border border-gray-300 rounded-lg focus:border-[#7a1c1c] focus:ring-2 focus:ring-[#7a1c1c] outline-none disabled:bg-gray-100"
                             />
                         </div>
@@ -172,16 +228,25 @@ export default function SignupPage() {
                                 value={formData.email}
                                 onChange={handleChange}
                                 required
-                                disabled={loading}
+                                disabled={loading || googleLoading}
                                 className="w-full h-12 px-4 border border-gray-300 rounded-lg focus:border-[#7a1c1c] focus:ring-2 focus:ring-[#7a1c1c] outline-none disabled:bg-gray-100"
                             />
                         </div>
                         <button
                             type="submit"
-                            disabled={loading}
+                            disabled={loading || googleLoading}
                             className="w-full h-12 bg-[#7a1c1c] text-white font-semibold rounded-lg hover:bg-[#9f2a2a] transition disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {loading ? "Creating Account..." : "Sign Up"}
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={handleGoogleSignup}
+                            disabled={loading || googleLoading}
+                            className="w-full h-12 border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {googleLoading ? "Signing up with Google..." : "Continue with Google"}
                         </button>
                     </form>
 

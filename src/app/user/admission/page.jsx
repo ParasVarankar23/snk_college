@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import toast from "react-hot-toast";
 
 const FORM_PRICE_INR = 200;
 const RAZORPAY_SCRIPT_URL = "https://checkout.razorpay.com/v1/checkout.js";
@@ -398,6 +399,7 @@ export default function AdmissionFormPage() {
 
     const handleSaveDraft = () => {
         setSavedDraft(true);
+        toast.success("Draft saved for this session");
     };
 
     const handleSubmit = async (event) => {
@@ -406,13 +408,17 @@ export default function AdmissionFormPage() {
 
         const isValid = requiredFieldKeys.every((key) => Boolean(formData[key])) && formData.declarationAccepted;
         if (!isValid) {
-            setServerMessage("Please complete all required fields before submission.");
+            const message = "Please complete all required fields before submission.";
+            setServerMessage(message);
+            toast.error(message);
             return;
         }
 
         const token = globalThis.localStorage.getItem("authToken");
         if (!token) {
-            setServerMessage("Please login again to submit admission details.");
+            const message = "Please login again to submit admission details.";
+            setServerMessage(message);
+            toast.error(message);
             return;
         }
 
@@ -478,6 +484,7 @@ export default function AdmissionFormPage() {
 
                 verifiedPayment = verifyData.payment;
                 setPaymentDetails(verifyData.payment);
+                toast.success("Payment verified successfully");
             }
 
             const payload = {
@@ -520,9 +527,13 @@ export default function AdmissionFormPage() {
                 setUploadedDocKeys(Object.keys(data.admission.documents));
             }
 
-            setServerMessage("Payment successful and admission form submitted successfully.");
+            const successMessage = "Payment successful and admission form submitted successfully.";
+            setServerMessage(successMessage);
+            toast.success(successMessage);
         } catch (error) {
-            setServerMessage(error.message || "Failed to submit admission form");
+            const errorMessage = error.message || "Failed to submit admission form";
+            setServerMessage(errorMessage);
+            toast.error(errorMessage);
         } finally {
             setPaymentInProgress(false);
             setSubmitting(false);
