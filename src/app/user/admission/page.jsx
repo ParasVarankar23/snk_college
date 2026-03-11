@@ -8,6 +8,8 @@ import {
     CalendarDays,
     CheckCircle2,
     CircleDot,
+    Download,
+    ExternalLink,
     FileBadge,
     FileText,
     GraduationCap,
@@ -74,6 +76,41 @@ const streamOptions = [
         subjects: ["History", "Political Science", "Sociology", "Psychology", "Geography", "Economics"],
     },
 ];
+
+const _year = new Date().getFullYear();
+const passingYearOptions = Array.from({ length: 11 }, (_, i) => String(_year - i));
+
+const religionOptions = ["Hindu", "Muslim", "Christian", "Sikh", "Buddhist", "Jain", "Parsi", "Judaist", "Other"];
+
+const casteCategoryOptions = [
+    "General / Open", "OBC", "SC", "ST",
+    "NT-A", "NT-B", "NT-C", "NT-D",
+    "SBC", "VJNT", "VJ / DT", "EWS", "Other",
+];
+
+const subCategoryOptions = [
+    "N/A", "NT-A", "NT-B", "NT-C", "NT-D",
+    "VJ / DT", "SBC", "OBC-A", "Creamy Layer", "Non-Creamy Layer", "Other",
+];
+
+const mediumOfStudyOptions = ["English", "Marathi", "Hindi", "Semi-English", "Urdu"];
+
+const reservationCategoryOptions = [
+    "N/A", "General / Open", "OBC", "SC", "ST",
+    "NT-A", "NT-B", "NT-C", "NT-D",
+    "VJ / DT", "SBC", "VJNT", "EWS", "Other",
+];
+
+function autoGrade(pct) {
+    if (pct >= 91) return "A1";
+    if (pct >= 81) return "A2";
+    if (pct >= 71) return "B1";
+    if (pct >= 61) return "B2";
+    if (pct >= 51) return "C1";
+    if (pct >= 41) return "C2";
+    if (pct >= 35) return "D";
+    return "E";
+}
 
 const sectionItems = [
     { id: "student", label: "Student Details", icon: User },
@@ -274,6 +311,7 @@ function AdmissionFormInner() {
     const [loadingAdmission, setLoadingAdmission] = useState(false);
     const [paymentInProgress, setPaymentInProgress] = useState(false);
     const [uploadedDocKeys, setUploadedDocKeys] = useState([]);
+    const [uploadedDocUrls, setUploadedDocUrls] = useState({});
     const [serverMessage, setServerMessage] = useState("");
     const [formData, setFormData] = useState(initialFormState);
     const [applicationId, setApplicationId] = useState("Will be generated on submit");
@@ -325,12 +363,13 @@ function AdmissionFormInner() {
         }).length;
 
         const declarationCompleted = formData.declarationAccepted ? 1 : 0;
+        const paymentCompleted = paymentDetails?.status === "paid" ? 1 : 0;
 
-        const completed = normalizedRequiredFields + completedUploads + declarationCompleted;
-        const total = totalRequiredFields + REQUIRED_UPLOAD_KEYS.length + 1;
+        const completed = normalizedRequiredFields + completedUploads + declarationCompleted + paymentCompleted;
+        const total = totalRequiredFields + REQUIRED_UPLOAD_KEYS.length + 1 + 1;
 
         return { completed, total };
-    }, [formData, uploadedDocKeys]);
+    }, [formData, uploadedDocKeys, paymentDetails]);
 
     const progressPercent = Math.max(
         0,
@@ -345,10 +384,19 @@ function AdmissionFormInner() {
     const handleChange = (event) => {
         const { name, value, type, checked } = event.target;
         setSavedDraft(false);
-        setFormData((prev) => ({
-            ...prev,
-            [name]: type === "checkbox" ? checked : value,
-        }));
+        setFormData((prev) => {
+            const updated = { ...prev, [name]: type === "checkbox" ? checked : value };
+            if (name === "totalMarks" || name === "outOfMarks") {
+                const total = Number.parseFloat(name === "totalMarks" ? value : prev.totalMarks);
+                const outOf = Number.parseFloat(name === "outOfMarks" ? value : prev.outOfMarks);
+                if (!Number.isNaN(total) && !Number.isNaN(outOf) && outOf > 0 && total >= 0) {
+                    const pct = Number.parseFloat(((total / outOf) * 100).toFixed(2));
+                    updated.percentage = String(pct);
+                    updated.grade = autoGrade(pct);
+                }
+            }
+            return updated;
+        });
     };
 
     const handleFileChange = (name, file) => {
@@ -391,6 +439,7 @@ function AdmissionFormInner() {
         setSubmitAttempted(false);
         setSavedDraft(false);
         setUploadedDocKeys([]);
+        setUploadedDocUrls({});
         setServerMessage("");
         setApplicationId("Will be generated on submit");
         setPaymentDetails(null);
@@ -524,7 +573,11 @@ function AdmissionFormInner() {
                 setApplicationId(data.admission.applicationId);
             }
             if (data?.admission?.documents) {
-                setUploadedDocKeys(Object.keys(data.admission.documents));
+                const docs = data.admission.documents;
+                setUploadedDocKeys(Object.keys(docs));
+                setUploadedDocUrls(Object.fromEntries(
+                    Object.entries(docs).map(([key, doc]) => [key, doc?.url || ""])
+                ));
             }
 
             const successMessage = "Payment successful and admission form submitted successfully.";
@@ -559,7 +612,11 @@ function AdmissionFormInner() {
 
                 const payload = data.admission.payload || {};
                 setFormData((prev) => mergeLoadedPayloadIntoForm(prev, payload));
-                setUploadedDocKeys(Object.keys(data.admission.documents || {}));
+                const loadedDocs = data.admission.documents || {};
+                setUploadedDocKeys(Object.keys(loadedDocs));
+                setUploadedDocUrls(Object.fromEntries(
+                    Object.entries(loadedDocs).map(([key, doc]) => [key, doc?.url || ""])
+                ));
                 if (payload?.payment?.status === "paid") {
                     setPaymentDetails(payload.payment);
                 }
@@ -577,6 +634,22 @@ function AdmissionFormInner() {
     }, []);
 
     const hasError = (fieldName) => submitAttempted && !formData[fieldName];
+
+    const fieldError = (fieldName) => {
+        if (!submitAttempted) return "";
+        const value = String(formData[fieldName] || "").trim();
+        if (fieldName === "aadhaarNumber") {
+            if (!value) return "Aadhaar number is required.";
+            if (!/^\d{12}$/.test(value)) return "Aadhaar number must be exactly 12 digits.";
+            return "";
+        }
+        if (fieldName === "mobileNumber") {
+            if (!value) return "Mobile number is required.";
+            if (!/^\d{10}$/.test(value)) return "Mobile number must be exactly 10 digits.";
+            return "";
+        }
+        return value ? "" : "This field is required.";
+    };
 
     let submitButtonLabel = `Pay Rs ${FORM_PRICE_INR} & Submit`;
     if (paymentInProgress) {
@@ -666,8 +739,8 @@ function AdmissionFormInner() {
                         >
                             <div className="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
                                 <div className="space-y-5">
-                                    <UploadField label="Student Passport Size Photo" fieldName="studentPhoto" file={formData.studentPhoto} onFileChange={handleFileChange} />
-                                    <UploadField label="Student Signature Upload" fieldName="studentSignature" file={formData.studentSignature} onFileChange={handleFileChange} />
+                                    <UploadField label="Student Passport Size Photo" fieldName="studentPhoto" file={formData.studentPhoto} onFileChange={handleFileChange} existingUrl={uploadedDocUrls.studentPhoto} required />
+                                    <UploadField label="Student Signature Upload" fieldName="studentSignature" file={formData.studentSignature} onFileChange={handleFileChange} existingUrl={uploadedDocUrls.studentSignature} required />
                                     <div className="rounded-2xl border border-[#7a1c1c]/10 bg-[#7a1c1c]/5 p-4 text-sm text-slate-600">
                                         <p className="font-semibold text-[#7a1c1c]">Form Preview Note</p>
                                         <p className="mt-2">Your full name auto-displays below based on the entered first, middle, and last name.</p>
@@ -683,14 +756,14 @@ function AdmissionFormInner() {
                                     <SelectField label="Gender" name="gender" value={formData.gender} onChange={handleChange} required hasError={hasError("gender")} options={["Male", "Female", "Other"]} />
                                     <InputField label="Date of Birth" type="date" name="dob" value={formData.dob} onChange={handleChange} required hasError={hasError("dob")} />
                                     <SelectField label="Blood Group" name="bloodGroup" value={formData.bloodGroup} onChange={handleChange} options={["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]} />
-                                    <InputField label="Aadhaar Number" name="aadhaarNumber" value={formData.aadhaarNumber} onChange={handleChange} required hasError={hasError("aadhaarNumber")} />
-                                    <InputField label="Mobile Number" name="mobileNumber" value={formData.mobileNumber} onChange={handleChange} required hasError={hasError("mobileNumber")} icon={Phone} />
+                                    <InputField label="Aadhaar Number" name="aadhaarNumber" value={formData.aadhaarNumber} onChange={handleChange} maxLength={12} required hasError={fieldError("aadhaarNumber")} />
+                                    <InputField label="Mobile Number" name="mobileNumber" value={formData.mobileNumber} onChange={handleChange} maxLength={10} required hasError={fieldError("mobileNumber")} icon={Phone} />
                                     <InputField label="Alternate Mobile Number" name="alternateMobileNumber" value={formData.alternateMobileNumber} onChange={handleChange} icon={Phone} />
                                     <InputField label="Email ID" type="email" name="email" value={formData.email} onChange={handleChange} required hasError={hasError("email")} icon={Mail} />
                                     <InputField label="Nationality" name="nationality" value={formData.nationality} onChange={handleChange} required hasError={hasError("nationality")} />
-                                    <InputField label="Religion" name="religion" value={formData.religion} onChange={handleChange} required hasError={hasError("religion")} />
-                                    <InputField label="Caste Category" name="casteCategory" value={formData.casteCategory} onChange={handleChange} required hasError={hasError("casteCategory")} />
-                                    <InputField label="Sub Category" name="subCategory" value={formData.subCategory} onChange={handleChange} />
+                                    <SelectField label="Religion" name="religion" value={formData.religion} onChange={handleChange} required hasError={hasError("religion")} options={religionOptions} />
+                                    <SelectField label="Caste Category" name="casteCategory" value={formData.casteCategory} onChange={handleChange} required hasError={hasError("casteCategory")} options={casteCategoryOptions} />
+                                    <SelectField label="Sub Category" name="subCategory" value={formData.subCategory} onChange={handleChange} options={subCategoryOptions} />
                                     <InputField label="Address Line 1" name="addressLine1" value={formData.addressLine1} onChange={handleChange} required hasError={hasError("addressLine1")} icon={House} className="md:col-span-2" />
                                     <InputField label="Address Line 2" name="addressLine2" value={formData.addressLine2} onChange={handleChange} className="md:col-span-2" />
                                     <InputField label="City / Taluka" name="cityTaluka" value={formData.cityTaluka} onChange={handleChange} required hasError={hasError("cityTaluka")} />
@@ -723,7 +796,7 @@ function AdmissionFormInner() {
                                 <InputField label="Guardian Relation" name="guardianRelation" value={formData.guardianRelation} onChange={handleChange} />
                                 <InputField label="Guardian Contact Number" name="guardianContactNumber" value={formData.guardianContactNumber} onChange={handleChange} icon={Phone} />
                                 <div className="md:col-span-2">
-                                    <UploadField label="Parent / Guardian Signature Upload" fieldName="parentSignature" file={formData.parentSignature} onFileChange={handleFileChange} compact />
+                                    <UploadField label="Parent / Guardian Signature Upload" fieldName="parentSignature" file={formData.parentSignature} onFileChange={handleFileChange} compact existingUrl={uploadedDocUrls.parentSignature} required />
                                 </div>
                             </div>
                         </SectionCard>
@@ -739,18 +812,18 @@ function AdmissionFormInner() {
                             <div className="grid gap-5 md:grid-cols-2">
                                 <SelectField label="Board Name" name="boardName" value={formData.boardName} onChange={handleChange} required hasError={hasError("boardName")} options={["SSC", "CBSE", "ICSE", "Other"]} />
                                 <InputField label="School Name" name="schoolName" value={formData.schoolName} onChange={handleChange} required hasError={hasError("schoolName")} />
-                                <InputField label="School UDISE Number" name="schoolUdiseNumber" value={formData.schoolUdiseNumber} onChange={handleChange} />
+                                <InputField label="School UDISE Number (Optional)" name="schoolUdiseNumber" value={formData.schoolUdiseNumber} onChange={handleChange} />
                                 <InputField label="Seat Number / Roll Number" name="seatNumber" value={formData.seatNumber} onChange={handleChange} required hasError={hasError("seatNumber")} />
-                                <InputField label="Passing Year" name="passingYear" value={formData.passingYear} onChange={handleChange} required hasError={hasError("passingYear")} />
-                                <InputField label="Total Marks Obtained" name="totalMarks" value={formData.totalMarks} onChange={handleChange} required hasError={hasError("totalMarks")} />
-                                <InputField label="Out Of Marks" name="outOfMarks" value={formData.outOfMarks} onChange={handleChange} required hasError={hasError("outOfMarks")} />
-                                <InputField label="Percentage" name="percentage" value={formData.percentage} onChange={handleChange} required hasError={hasError("percentage")} />
-                                <InputField label="Grade" name="grade" value={formData.grade} onChange={handleChange} />
+                                <SelectField label="Passing Year" name="passingYear" value={formData.passingYear} onChange={handleChange} required hasError={hasError("passingYear")} options={passingYearOptions} />
+                                <InputField label="Total Marks Obtained" name="totalMarks" type="number" min="0" value={formData.totalMarks} onChange={handleChange} required hasError={hasError("totalMarks")} />
+                                <InputField label="Out Of Marks" name="outOfMarks" type="number" min="1" value={formData.outOfMarks} onChange={handleChange} required hasError={hasError("outOfMarks")} />
+                                <InputField label="Percentage (Auto-calculated)" name="percentage" value={formData.percentage} readOnly required hasError={hasError("percentage")} className="bg-slate-50 cursor-not-allowed" />
+                                <InputField label="Grade (Auto-calculated)" name="grade" value={formData.grade} readOnly className="bg-slate-50 cursor-not-allowed" />
                                 <SelectField label="Result Status" name="resultStatus" value={formData.resultStatus} onChange={handleChange} required hasError={hasError("resultStatus")} options={["Pass", "ATKT"]} />
-                                <InputField label="Medium of Study" name="mediumOfStudy" value={formData.mediumOfStudy} onChange={handleChange} required hasError={hasError("mediumOfStudy")} />
+                                <SelectField label="Medium of Study" name="mediumOfStudy" value={formData.mediumOfStudy} onChange={handleChange} required hasError={hasError("mediumOfStudy")} options={mediumOfStudyOptions} />
                                 <InputField label="Last School Address" name="lastSchoolAddress" value={formData.lastSchoolAddress} onChange={handleChange} required hasError={hasError("lastSchoolAddress")} className="md:col-span-2" />
-                                <UploadField label="Upload 10th Marksheet" fieldName="tenthMarksheet" file={formData.tenthMarksheet} onFileChange={handleFileChange} compact />
-                                <UploadField label="Upload Leaving Certificate / Transfer Certificate" fieldName="leavingCertificate" file={formData.leavingCertificate} onFileChange={handleFileChange} compact />
+                                <UploadField label="Upload 10th Marksheet" fieldName="tenthMarksheet" file={formData.tenthMarksheet} onFileChange={handleFileChange} compact existingUrl={uploadedDocUrls.tenthMarksheet} required />
+                                <UploadField label="Upload Leaving Certificate / Transfer Certificate" fieldName="leavingCertificate" file={formData.leavingCertificate} onFileChange={handleFileChange} compact existingUrl={uploadedDocUrls.leavingCertificate} required />
                             </div>
                         </SectionCard>
                     )}
@@ -840,12 +913,12 @@ function AdmissionFormInner() {
                             </div>
 
                             <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-                                <UploadField label="Aadhaar Card" fieldName="documentAadhaarCard" file={formData.documentAadhaarCard} onFileChange={handleFileChange} compact />
-                                <UploadField label="Birth Certificate" fieldName="documentBirthCertificate" file={formData.documentBirthCertificate} onFileChange={handleFileChange} compact />
-                                <UploadField label="Caste Certificate" fieldName="documentCasteCertificate" file={formData.documentCasteCertificate} onFileChange={handleFileChange} compact />
-                                <UploadField label="Income Certificate" fieldName="documentIncomeCertificate" file={formData.documentIncomeCertificate} onFileChange={handleFileChange} compact />
-                                <UploadField label="Domicile Certificate" fieldName="documentDomicileCertificate" file={formData.documentDomicileCertificate} onFileChange={handleFileChange} compact />
-                                <UploadField label="Parent Aadhaar Card" fieldName="documentParentAadhaarCard" file={formData.documentParentAadhaarCard} onFileChange={handleFileChange} compact />
+                                <UploadField label="Aadhaar Card" fieldName="documentAadhaarCard" file={formData.documentAadhaarCard} onFileChange={handleFileChange} compact existingUrl={uploadedDocUrls.documentAadhaarCard} required />
+                                <UploadField label="Birth Certificate" fieldName="documentBirthCertificate" file={formData.documentBirthCertificate} onFileChange={handleFileChange} compact existingUrl={uploadedDocUrls.documentBirthCertificate} />
+                                <UploadField label="Caste Certificate" fieldName="documentCasteCertificate" file={formData.documentCasteCertificate} onFileChange={handleFileChange} compact existingUrl={uploadedDocUrls.documentCasteCertificate} />
+                                <UploadField label="Income Certificate" fieldName="documentIncomeCertificate" file={formData.documentIncomeCertificate} onFileChange={handleFileChange} compact existingUrl={uploadedDocUrls.documentIncomeCertificate} />
+                                <UploadField label="Domicile Certificate" fieldName="documentDomicileCertificate" file={formData.documentDomicileCertificate} onFileChange={handleFileChange} compact existingUrl={uploadedDocUrls.documentDomicileCertificate} />
+                                <UploadField label="Parent Aadhaar Card" fieldName="documentParentAadhaarCard" file={formData.documentParentAadhaarCard} onFileChange={handleFileChange} compact existingUrl={uploadedDocUrls.documentParentAadhaarCard} />
                             </div>
                         </SectionCard>
                     )}
@@ -928,7 +1001,7 @@ function AdmissionFormInner() {
                                 <DisplayField label="Application ID" value={applicationId} />
                                 <DisplayField label="Admission Date" value={new Date().toLocaleDateString("en-GB")} />
                                 <DisplayField label="Academic Year" value="2026-27" />
-                                <InputField label="Reservation Category" name="reservationCategory" value={formData.reservationCategory} onChange={handleChange} required hasError={hasError("reservationCategory")} />
+                                <SelectField label="Reservation Category" name="reservationCategory" value={formData.reservationCategory} onChange={handleChange} required hasError={hasError("reservationCategory")} options={reservationCategoryOptions} />
                                 <SelectField label="Minority Status" name="minorityStatus" value={formData.minorityStatus} onChange={handleChange} required hasError={hasError("minorityStatus")} options={["Yes", "No"]} />
                                 <SelectField label="Disability / Special Needs" name="disabilityStatus" value={formData.disabilityStatus} onChange={handleChange} required hasError={hasError("disabilityStatus")} options={["Yes", "No"]} />
                                 <InputField label="Emergency Contact Number" name="emergencyContactNumber" value={formData.emergencyContactNumber} onChange={handleChange} required hasError={hasError("emergencyContactNumber")} icon={HeartPulse} />
@@ -939,32 +1012,53 @@ function AdmissionFormInner() {
                     <div className="sticky bottom-4 z-20 rounded-2xl border border-[#7a1c1c]/10 bg-white/95 p-4 shadow-[0_18px_50px_rgba(122,28,28,0.12)] backdrop-blur">
                         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                             <div>
-                                <p className="text-sm font-semibold text-slate-800">Ready to continue?</p>
-                                <p className="text-xs text-slate-500">Form fee: Rs {FORM_PRICE_INR}. You can save draft or pay and submit after reviewing all sections.</p>
+                                <p className="text-sm font-semibold text-slate-800">
+                                    {paymentDetails?.status === "paid" ? "Application Submitted" : "Ready to continue?"}
+                                </p>
+                                <p className="text-xs text-slate-500">
+                                    {paymentDetails?.status === "paid"
+                                        ? "Your admission form has been submitted successfully. Download a copy for your records."
+                                        : `Form fee: Rs ${FORM_PRICE_INR}. You can save draft or pay and submit after reviewing all sections.`}
+                                </p>
                             </div>
                             <div className="flex flex-col gap-3 sm:flex-row">
-                                <button
-                                    type="button"
-                                    onClick={handleSaveDraft}
-                                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[#7a1c1c]/30 hover:text-[#7a1c1c]"
-                                >
-                                    <Save className="h-4 w-4" />
-                                    Save Draft
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={handleCancel}
-                                    className="rounded-xl border border-slate-200 bg-slate-50 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={submitting || paymentInProgress}
-                                    className="rounded-xl bg-linear-to-r from-[#9f2a2a] via-[#7a1c1c] to-[#5a1414] px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-[#7a1c1c]/20 transition hover:brightness-110"
-                                >
-                                    {submitButtonLabel}
-                                </button>
+                                {paymentDetails?.status !== "paid" && (
+                                    <button
+                                        type="button"
+                                        onClick={handleSaveDraft}
+                                        className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[#7a1c1c]/30 hover:text-[#7a1c1c]"
+                                    >
+                                        <Save className="h-4 w-4" />
+                                        Save Draft
+                                    </button>
+                                )}
+                                {paymentDetails?.status !== "paid" && (
+                                    <button
+                                        type="button"
+                                        onClick={handleCancel}
+                                        className="rounded-xl border border-slate-200 bg-slate-50 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+                                    >
+                                        Cancel
+                                    </button>
+                                )}
+                                {paymentDetails?.status === "paid" ? (
+                                    <button
+                                        type="button"
+                                        onClick={() => router.push("/user/admission/preview")}
+                                        className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#7a1c1c] px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-[#7a1c1c]/20 transition hover:bg-[#8f2323]"
+                                    >
+                                        <ExternalLink className="h-4 w-4" />
+                                        Preview &amp; Download Form
+                                    </button>
+                                ) : (
+                                    <button
+                                        type="submit"
+                                        disabled={submitting || paymentInProgress}
+                                        className="rounded-xl bg-linear-to-r from-[#9f2a2a] via-[#7a1c1c] to-[#5a1414] px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-[#7a1c1c]/20 transition hover:brightness-110"
+                                    >
+                                        {submitButtonLabel}
+                                    </button>
+                                )}
                             </div>
                         </div>
                         {submitAttempted && (
@@ -1047,13 +1141,19 @@ function FieldShell({ label, required, className = "", children }) {
 }
 
 function InputField({ label, required = false, hasError = false, className = "", icon: IconComponent, ...props }) {
+    let errorMsg = "";
+    if (typeof hasError === "string") {
+        errorMsg = hasError;
+    } else if (hasError) {
+        errorMsg = "This field is required.";
+    }
     return (
         <FieldShell label={label} required={required} className={className}>
             <div className="relative">
                 {IconComponent && <IconComponent className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />}
-                <input {...props} className={`${inputClass(hasError)} ${IconComponent ? "pl-11" : ""}`} />
+                <input {...props} className={`${inputClass(Boolean(hasError))} ${IconComponent ? "pl-11" : ""}`} />
             </div>
-            {hasError && <p className="mt-2 text-xs font-medium text-rose-500">This field is required.</p>}
+            {errorMsg && <p className="mt-2 text-xs font-medium text-rose-500">{errorMsg}</p>}
         </FieldShell>
     );
 }
@@ -1083,30 +1183,100 @@ function DisplayField({ label, value }) {
     );
 }
 
-function UploadField({ label, fieldName, file, onFileChange, compact = false }) {
+function toCloudinaryViewUrl(url) {
+    if (!url) return url;
+    // PDFs stored as image type need /raw/upload/ to be renderable in browser
+    if (url.includes("/image/upload/") && url.toLowerCase().endsWith(".pdf")) {
+        return url.replace("/image/upload/", "/raw/upload/");
+    }
+    return url;
+}
+
+function toCloudinaryDownloadUrl(url) {
+    if (!url) return url;
+    // fl_attachment makes Cloudinary serve the file as a download (works for both image and raw)
+    if (url.includes("/image/upload/")) {
+        if (url.toLowerCase().endsWith(".pdf")) {
+            return url.replace("/image/upload/", "/raw/upload/fl_attachment/");
+        }
+        return url.replace("/image/upload/", "/image/upload/fl_attachment/");
+    }
+    if (url.includes("/raw/upload/")) {
+        return url.replace("/raw/upload/", "/raw/upload/fl_attachment/");
+    }
+    return url;
+}
+
+function UploadField({ label, fieldName, file, onFileChange, compact = false, existingUrl = null, required = false }) {
+    const showExisting = Boolean(existingUrl) && !file;
+    const viewUrl = toCloudinaryViewUrl(existingUrl);
+    const downloadUrl = toCloudinaryDownloadUrl(existingUrl);
+
     return (
         <div>
-            <p className="mb-2 block text-sm font-semibold text-slate-700">{label}</p>
-            <label className={`group flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#7a1c1c]/20 bg-linear-to-br from-[#7a1c1c]/5 to-white text-center transition hover:border-[#7a1c1c]/45 hover:shadow-md ${compact ? "min-h-40 p-5" : "min-h-52 p-6"}`}>
-                <input
-                    type="file"
-                    className="hidden"
-                    accept=".jpg,.jpeg,.png,.pdf"
-                    onChange={(event) => onFileChange(fieldName, event.target.files?.[0] || null)}
-                />
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#7a1c1c] text-white shadow-lg shadow-[#7a1c1c]/15">
-                    <Upload className="h-6 w-6" />
-                </div>
-                <p className="mt-4 text-sm font-semibold text-slate-800">Upload file</p>
-                <p className="mt-1 text-xs text-slate-500">Drag and drop or click to browse</p>
-                <p className="mt-3 text-xs text-slate-400">JPG, PNG, PDF up to 2MB</p>
-                {file && (
-                    <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-                        <FileBadge className="h-3.5 w-3.5" />
-                        {file.name}
+            <p className="mb-2 block text-sm font-semibold text-slate-700">
+                {label}
+                {required && <span className="ml-1 text-rose-500">*</span>}
+            </p>
+            {showExisting ? (
+                <div className={`flex flex-col items-center justify-center gap-3 rounded-2xl border border-[#7a1c1c]/20 bg-[#7a1c1c]/5 text-center ${compact ? "min-h-40 p-5" : "min-h-52 p-6"}`}>
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#7a1c1c] text-white shadow-lg shadow-[#7a1c1c]/15">
+                        <CheckCircle2 className="h-6 w-6" />
                     </div>
-                )}
-            </label>
+                    <p className="text-sm font-semibold text-[#7a1c1c]">Already Uploaded</p>
+                    <div className="flex flex-wrap justify-center gap-2">
+                        <a
+                            href={viewUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1.5 rounded-lg bg-[#7a1c1c] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#9f2a2a]"
+                        >
+                            <ExternalLink className="h-3 w-3" />
+                            View
+                        </a>
+                        <a
+                            href={downloadUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1.5 rounded-lg bg-[#7a1c1c] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#9f2a2a]"
+                        >
+                            <Download className="h-3 w-3" />
+                            Download
+                        </a>
+                        <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-[#7a1c1c]/20 bg-white px-3 py-1.5 text-xs font-semibold text-[#7a1c1c] hover:bg-[#7a1c1c]/5">
+                            <Upload className="h-3 w-3" />
+                            Replace
+                            <input
+                                type="file"
+                                className="hidden"
+                                accept=".jpg,.jpeg,.png,.pdf"
+                                onChange={(event) => onFileChange(fieldName, event.target.files?.[0] || null)}
+                            />
+                        </label>
+                    </div>
+                </div>
+            ) : (
+                <label className={`group flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#7a1c1c]/20 bg-linear-to-br from-[#7a1c1c]/5 to-white text-center transition hover:border-[#7a1c1c]/45 hover:shadow-md ${compact ? "min-h-40 p-5" : "min-h-52 p-6"}`}>
+                    <input
+                        type="file"
+                        className="hidden"
+                        accept=".jpg,.jpeg,.png,.pdf"
+                        onChange={(event) => onFileChange(fieldName, event.target.files?.[0] || null)}
+                    />
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#7a1c1c] text-white shadow-lg shadow-[#7a1c1c]/15">
+                        <Upload className="h-6 w-6" />
+                    </div>
+                    <p className="mt-4 text-sm font-semibold text-slate-800">Upload file</p>
+                    <p className="mt-1 text-xs text-slate-500">Drag and drop or click to browse</p>
+                    <p className="mt-3 text-xs text-slate-400">JPG, PNG, PDF up to 2MB</p>
+                    {file && (
+                        <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-[#7a1c1c]/10 px-3 py-1 text-xs font-semibold text-[#7a1c1c]">
+                            <FileBadge className="h-3.5 w-3.5" />
+                            {file.name}
+                        </div>
+                    )}
+                </label>
+            )}
         </div>
     );
 }
