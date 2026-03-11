@@ -1,76 +1,95 @@
+"use client";
+
+import { motion } from "framer-motion";
 import Image from "next/image";
+
+const sports = [
+    { id: "cricket", name: "Cricket", type: "Outdoor Sport", icon: "🏏" },
+    { id: "kabaddi", name: "Kabaddi", type: "Traditional Sport", icon: "🤼" },
+    { id: "volleyball", name: "Volleyball", type: "Team Sport", icon: "🏐" },
+    { id: "athletics", name: "Athletics", type: "Track & Field", icon: "🏃" },
+];
+
+const paragraphs = [
+    "Shri Nanasaheb Kulkarni Kanishta Mahavidyalay encourages students to participate in sports and physical activities for maintaining health, discipline, and teamwork.",
+    "The college organizes various indoor and outdoor sports activities that help students develop physical fitness and competitive spirit.",
+    "Students actively participate in sports events, tournaments, and inter-college competitions which promote leadership and teamwork.",
+];
 
 export default function SportsSection() {
     return (
-        <section className="bg-gray-50 py-10">
+        <section className="relative overflow-hidden bg-gray-50 py-5 md:py-5">
+            <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 sm:px-6 md:grid-cols-2 lg:px-8">
 
-            <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-center">
+                {/* TEXT — slides in from left */}
+                <motion.div
+                    initial={{ opacity: 0, x: -60 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.75, ease: "easeOut" }}
+                    viewport={{ once: true }}
+                >
 
-                {/* TEXT CONTENT */}
-                <div>
-
-                    <h2 className="text-3xl font-bold text-gray-800 mb-6">
-                        Sports & Physical Activities
+                    <h2 className="mt-4 mb-5 text-3xl font-bold text-gray-800 md:text-4xl">
+                        Sports &amp; Physical Activities
                     </h2>
 
-                    <p className="text-gray-600 leading-relaxed mb-4">
-                        Shri Nanasaheb Kulkarni Kanishta Mahavidyalay encourages students
-                        to participate in sports and physical activities for maintaining
-                        health, discipline, and teamwork.
-                    </p>
+                    {paragraphs.map((text, i) => (
+                        <motion.p
+                            key={text.slice(0, 24)}
+                            className="mb-4 leading-relaxed text-gray-600"
+                            initial={{ opacity: 0, y: 18 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5, delay: 0.2 + i * 0.13 }}
+                            viewport={{ once: true }}
+                        >
+                            {text}
+                        </motion.p>
+                    ))}
 
-                    <p className="text-gray-600 leading-relaxed mb-4">
-                        The college organizes various indoor and outdoor sports activities
-                        that help students develop physical fitness and competitive spirit.
-                    </p>
-
-                    <p className="text-gray-600 leading-relaxed mb-6">
-                        Students actively participate in sports events, tournaments, and
-                        inter-college competitions which promote leadership and teamwork.
-                    </p>
-
-                    {/* SPORTS HIGHLIGHTS */}
-                    <div className="grid grid-cols-2 gap-6 mt-6">
-
-                        <div className="bg-white p-4 rounded-lg shadow">
-                            <p className="text-[#7a1c1c] font-semibold text-lg">Cricket</p>
-                            <p className="text-gray-600 text-sm">Outdoor Sport</p>
-                        </div>
-
-                        <div className="bg-white p-4 rounded-lg shadow">
-                            <p className="text-[#7a1c1c] font-semibold text-lg">Kabaddi</p>
-                            <p className="text-gray-600 text-sm">Traditional Sport</p>
-                        </div>
-
-                        <div className="bg-white p-4 rounded-lg shadow">
-                            <p className="text-[#7a1c1c] font-semibold text-lg">Volleyball</p>
-                            <p className="text-gray-600 text-sm">Team Sport</p>
-                        </div>
-
-                        <div className="bg-white p-4 rounded-lg shadow">
-                            <p className="text-[#7a1c1c] font-semibold text-lg">Athletics</p>
-                            <p className="text-gray-600 text-sm">Track & Field</p>
-                        </div>
-
+                    {/* SPORT TILES — spring pop-in, staggered */}
+                    <div className="mt-6 grid grid-cols-2 gap-4">
+                        {sports.map((sport, i) => (
+                            <motion.div
+                                key={sport.id}
+                                initial={{ opacity: 0, scale: 0.6 }}
+                                whileInView={{ opacity: 1, scale: 1 }}
+                                whileHover={{ scale: 1.06, y: -4 }}
+                                transition={{
+                                    delay: 0.45 + i * 0.1,
+                                    type: "spring",
+                                    stiffness: 300,
+                                    damping: 18,
+                                }}
+                                viewport={{ once: true }}
+                                className="flex items-center gap-3 rounded-xl border border-gray-100 bg-white p-4 shadow-sm hover:shadow-md transition-shadow duration-200"
+                            >
+                                <span className="text-2xl">{sport.icon}</span>
+                                <div>
+                                    <p className="font-bold text-[#7a1c1c]">{sport.name}</p>
+                                    <p className="text-xs text-gray-500">{sport.type}</p>
+                                </div>
+                            </motion.div>
+                        ))}
                     </div>
+                </motion.div>
 
-                </div>
-
-                {/* IMAGE */}
-                <div>
-
+                {/* IMAGE — slides in from right */}
+                <motion.div
+                    initial={{ opacity: 0, x: 60 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.75, ease: "easeOut", delay: 0.12 }}
+                    viewport={{ once: true }}
+                >
                     <Image
                         src="/college/sports.jpg"
                         alt="College Sports Activities"
                         width={600}
                         height={400}
-                        className="rounded-xl shadow-lg"
+                        className="rounded-2xl shadow-xl"
                     />
-
-                </div>
+                </motion.div>
 
             </div>
-
         </section>
     );
 }

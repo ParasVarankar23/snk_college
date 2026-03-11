@@ -1,100 +1,128 @@
+"use client";
+
+import { motion } from "framer-motion";
 import Link from "next/link";
+
+const courses = [
+    {
+        id: "science",
+        icon: "🔬",
+        title: "Science",
+        description:
+            "Focus on Physics, Chemistry, Biology, and Mathematics with practical laboratory learning.",
+        href: "/departments/science",
+    },
+    {
+        id: "commerce",
+        icon: "💼",
+        title: "Commerce",
+        description:
+            "Learn accounting, economics, and business studies to build a strong foundation for business careers.",
+        href: "/departments/commerce",
+    },
+    {
+        id: "arts",
+        icon: "🎨",
+        title: "Arts",
+        description:
+            "Explore humanities and social sciences while developing creativity, communication, and critical thinking.",
+        href: "/departments/arts",
+    },
+];
+
+const containerVariants = {
+    hidden: {},
+    visible: {
+        transition: { staggerChildren: 0.18 },
+    },
+};
+
+const cardVariants = {
+    hidden: { opacity: 0, y: 40, scale: 0.96 },
+    visible: {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        transition: { duration: 0.55, ease: "easeOut" },
+    },
+};
 
 export default function CoursesSection() {
     return (
-        <section className="bg-gray-50 py-10">
+        <section className="relative overflow-hidden bg-gray-50 py-14 md:py-20">
 
-            <div className="max-w-7xl mx-auto px-6">
+            {/* Soft decorative blobs */}
+            <div className="pointer-events-none absolute -top-10 -left-10 h-64 w-64 rounded-full bg-[#7a1c1c]/6 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-10 -right-10 h-64 w-64 rounded-full bg-[#7a1c1c]/6 blur-3xl" />
+
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 
                 {/* SECTION TITLE */}
-                <div className="text-center mb-14">
-
-                    <h2 className="text-3xl font-bold text-gray-800">
-                        Courses We Offer
+                <motion.div
+                    className="mb-14 text-center"
+                    initial={{ opacity: 0, y: 24 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.65 }}
+                    viewport={{ once: true }}
+                >
+                    <h2 className="mt-4 text-3xl font-bold text-gray-800 md:text-5xl">
+                        Courses We <span className="text-[#7a1c1c]">Offer</span>
                     </h2>
 
-                    <p className="text-gray-600 mt-3">
+                    <p className="mx-auto mt-4 max-w-xl text-base text-gray-500 md:text-lg">
                         Explore the streams available at SNK Mahavidyalay for your academic journey.
                     </p>
-
-                </div>
+                </motion.div>
 
                 {/* COURSES GRID */}
-                <div className="grid md:grid-cols-3 gap-8">
-
-                    {/* SCIENCE */}
-                    <div className="bg-white p-8 rounded-xl shadow-md hover:shadow-xl transition duration-300 text-center">
-
-                        <div className="text-5xl mb-4">🔬</div>
-
-                        <h3 className="text-xl font-semibold text-[#7a1c1c]">
-                            Science
-                        </h3>
-
-                        <p className="text-gray-600 mt-4">
-                            Focus on Physics, Chemistry, Biology, and Mathematics with
-                            practical laboratory learning.
-                        </p>
-
-                        <Link
-                            href="/departments/science"
-                            className="inline-block mt-6 text-[#7a1c1c] font-medium hover:underline"
+                <motion.div
+                    className="grid gap-8 md:grid-cols-3"
+                    variants={containerVariants}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, amount: 0.2 }}
+                >
+                    {courses.map((course) => (
+                        <motion.div
+                            key={course.id}
+                            variants={cardVariants}
+                            whileHover={{ y: -8, scale: 1.02 }}
+                            transition={{ type: "spring", stiffness: 260, damping: 20 }}
+                            className="group relative rounded-2xl border border-gray-100 bg-white p-8 text-center shadow-[0_8px_30px_rgba(15,23,42,0.07)] transition-shadow duration-300 hover:shadow-[0_20px_50px_rgba(122,28,28,0.13)]"
                         >
-                            Learn More →
-                        </Link>
+                            {/* Top accent bar */}
+                            <div className="absolute inset-x-0 top-0 h-1 rounded-t-2xl bg-linear-to-r from-[#7a1c1c] to-[#b84040] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
-                    </div>
+                            <motion.div
+                                className="mb-5 text-5xl"
+                                whileHover={{ scale: 1.18, rotate: 6 }}
+                                transition={{ type: "spring", stiffness: 300, damping: 14 }}
+                            >
+                                {course.icon}
+                            </motion.div>
 
-                    {/* COMMERCE */}
-                    <div className="bg-white p-8 rounded-xl shadow-md hover:shadow-xl transition duration-300 text-center">
+                            <h3 className="text-xl font-bold text-[#7a1c1c]">
+                                {course.title}
+                            </h3>
 
-                        <div className="text-5xl mb-4">💼</div>
+                            <div className="mx-auto my-4 h-1 w-12 rounded-full bg-[#7a1c1c]/20 transition-all duration-300 group-hover:w-20 group-hover:bg-[#7a1c1c]" />
 
-                        <h3 className="text-xl font-semibold text-[#7a1c1c]">
-                            Commerce
-                        </h3>
+                            <p className="text-sm leading-relaxed text-gray-600 md:text-base">
+                                {course.description}
+                            </p>
 
-                        <p className="text-gray-600 mt-4">
-                            Learn accounting, economics, and business studies to build a strong
-                            foundation for business careers.
-                        </p>
-
-                        <Link
-                            href="/departments/commerce"
-                            className="inline-block mt-6 text-[#7a1c1c] font-medium hover:underline"
-                        >
-                            Learn More →
-                        </Link>
-
-                    </div>
-
-                    {/* ARTS */}
-                    <div className="bg-white p-8 rounded-xl shadow-md hover:shadow-xl transition duration-300 text-center">
-
-                        <div className="text-5xl mb-4">🎨</div>
-
-                        <h3 className="text-xl font-semibold text-[#7a1c1c]">
-                            Arts
-                        </h3>
-
-                        <p className="text-gray-600 mt-4">
-                            Explore humanities and social sciences while developing creativity,
-                            communication, and critical thinking.
-                        </p>
-
-                        <Link
-                            href="/departments/arts"
-                            className="inline-block mt-6 text-[#7a1c1c] font-medium hover:underline"
-                        >
-                            Learn More →
-                        </Link>
-
-                    </div>
-
-                </div>
+                            <Link
+                                href={course.href}
+                                className="mt-6 inline-flex items-center gap-1 text-sm font-semibold text-[#7a1c1c] transition-all duration-200 hover:gap-2 hover:underline"
+                            >
+                                <span>Learn More</span>
+                                <span className="transition-transform duration-200 group-hover:translate-x-1">{"→"}</span>
+                            </Link>
+                        </motion.div>
+                    ))}
+                </motion.div>
 
             </div>
-
         </section>
     );
 }

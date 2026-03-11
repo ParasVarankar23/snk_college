@@ -1,9 +1,39 @@
 "use client";
 
+import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { FaCheckCircle, FaEye, FaEyeSlash } from "react-icons/fa";
+
+const featurePoints = [
+    "Secure OTP verification sent directly to your registered email address.",
+    "Reset your password safely with protected verification flow.",
+    "Quick access recovery for students, teachers, and administration.",
+    "Stay connected with your academic portal without losing access.",
+];
+
+const introVariants = {
+    hidden: { opacity: 0, x: -50 },
+    visible: {
+        opacity: 1,
+        x: 0,
+        transition: {
+            duration: 0.8,
+            ease: [0.22, 1, 0.36, 1],
+            staggerChildren: 0.12,
+        },
+    },
+};
+
+const itemVariants = {
+    hidden: { opacity: 0, y: 24 },
+    visible: {
+        opacity: 1,
+        y: 0,
+        transition: { duration: 0.5, ease: "easeOut" },
+    },
+};
 
 export default function ForgotPassword() {
     const router = useRouter();
@@ -20,18 +50,18 @@ export default function ForgotPassword() {
         email: "",
         otp: "",
         newPassword: "",
-        confirmPassword: ""
+        confirmPassword: "",
     });
 
     const handleChange = (e) => {
-
         const { name, value } = e.target;
 
-        setFormData({
-            ...formData,
-            [name]: value
-        });
+        setFormData((prev) => ({
+            ...prev,
+            [name]: value,
+        }));
 
+        setError("");
     };
 
     const sendOTP = async () => {
@@ -145,186 +175,267 @@ export default function ForgotPassword() {
     };
 
     return (
-
-        <section className="flex items-center justify-center bg-gray-100 px-4 py-22">
-
-            <div className="bg-white shadow-xl border border-gray-200 rounded-2xl p-10 max-w-md w-full">
-
-                <h2 className="text-3xl font-bold text-center text-gray-900">
-                    Forgot Password
-                </h2>
-
-                <p className="text-center text-gray-500 mt-2 mb-8">
-                    Reset your account password
-                </p>
-
-                {error && (
-                    <div className="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-                        {error}
-                    </div>
-                )}
-
-                {message && (
-                    <div className="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
-                        {message}
-                    </div>
-                )}
-
-
-                {/* STEP 1 EMAIL */}
-
-                {step === 1 && (
-
-                    <div className="space-y-6">
-
-                        <div>
-
-                            <label htmlFor="email" className="block text-gray-700 font-medium mb-2">
-                                Email Address
-                            </label>
-
-                            <input
-                                id="email"
-                                type="email"
-                                name="email"
-                                placeholder="Enter your registered email"
-                                value={formData.email}
-                                onChange={handleChange}
-                                className="w-full h-12 px-4 border border-gray-300 rounded-lg
-                focus:ring-2 focus:ring-[#7a1c1c] focus:border-[#7a1c1c]"
-                            />
-
-                        </div>
-
-                        <button
-                            onClick={sendOTP}
-                            disabled={loading}
-                            className="w-full h-12 bg-[#7a1c1c] text-white rounded-lg
-              hover:bg-[#9f2a2a] font-medium transition disabled:opacity-60"
-                        >
-                            {loading ? "Sending..." : "Send OTP"}
-                        </button>
-
-                    </div>
-
-                )}
-
-
-                {/* STEP 2 OTP + NEW PASSWORD */}
-
-                {step === 2 && (
-
-                    <div className="space-y-6">
-
-                        {/* OTP */}
-
-                        <div>
-
-                            <label htmlFor="otp" className="block text-gray-700 font-medium mb-2">
-                                Enter 6-Digit OTP
-                            </label>
-
-                            <input
-                                id="otp"
-                                type="text"
-                                name="otp"
-                                placeholder="Enter the 6-digit OTP from your email"
-                                value={formData.otp}
-                                onChange={handleChange}
-                                maxLength={6}
-                                className="w-full h-12 px-4 border border-gray-300 rounded-lg
-                focus:ring-2 focus:ring-[#7a1c1c]"
-                            />
-
-                        </div>
-
-
-                        {/* NEW PASSWORD */}
-
-                        <div>
-
-                            <label htmlFor="newPassword" className="block text-gray-700 font-medium mb-2">
-                                New Password
-                            </label>
-
-                            <div className="relative">
-
-                                <input
-                                    id="newPassword"
-                                    type={showPassword ? "text" : "password"}
-                                    name="newPassword"
-                                    placeholder="Enter new password"
-                                    value={formData.newPassword}
-                                    onChange={handleChange}
-                                    className="w-full h-12 px-4 pr-12 border border-gray-300 rounded-lg
-                  focus:ring-2 focus:ring-[#7a1c1c]"
-                                />
-
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500"
-                                >
-                                    {showPassword ? <FaEyeSlash /> : <FaEye />}
-                                </button>
-
-                            </div>
-
-                        </div>
-
-
-                        {/* CONFIRM PASSWORD */}
-
-                        <div>
-
-                            <label htmlFor="confirmPassword" className="block text-gray-700 font-medium mb-2">
-                                Confirm Password
-                            </label>
-
-                            <div className="relative">
-
-                                <input
-                                    id="confirmPassword"
-                                    type={showConfirm ? "text" : "password"}
-                                    name="confirmPassword"
-                                    placeholder="Confirm password"
-                                    value={formData.confirmPassword}
-                                    onChange={handleChange}
-                                    className="w-full h-12 px-4 pr-12 border border-gray-300 rounded-lg
-                  focus:ring-2 focus:ring-[#7a1c1c]"
-                                />
-
-                                <button
-                                    type="button"
-                                    onClick={() => setShowConfirm(!showConfirm)}
-                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500"
-                                >
-                                    {showConfirm ? <FaEyeSlash /> : <FaEye />}
-                                </button>
-
-                            </div>
-
-                        </div>
-
-
-                        {/* RESET BUTTON */}
-
-                        <button
-                            onClick={resetPassword}
-                            disabled={loading}
-                            className="w-full h-12 bg-[#7a1c1c] text-white rounded-lg
-              hover:bg-[#9f2a2a] font-medium transition disabled:opacity-60"
-                        >
-                            {loading ? "Resetting..." : "Reset Password"}
-                        </button>
-
-                    </div>
-
-                )}
-
+        <section className="relative overflow-hidden bg-stone-100">
+            {/* Background Decorative Blurs */}
+            <div className="absolute inset-0 overflow-hidden">
+                <div className="absolute -left-20 top-10 h-56 w-56 rounded-full bg-[#7a1c1c]/10 blur-3xl" />
+                <div className="absolute right-0 top-1/4 h-72 w-72 rounded-full bg-[#7a1c1c]/10 blur-3xl" />
+                <div className="absolute bottom-0 left-1/3 h-64 w-64 rounded-full bg-white/80 blur-3xl" />
             </div>
 
-        </section>
+            <div className="relative mx-auto grid min-h-[calc(100svh-7rem)] max-w-7xl items-center gap-8 px-4 py-8 sm:px-6 md:py-10 lg:grid-cols-[1.1fr_0.9fr] lg:gap-14 lg:px-8">
+                {/* LEFT CONTENT */}
+                <motion.div
+                    className="order-2 text-left md:order-1"
+                    variants={introVariants}
+                    initial="hidden"
+                    animate="visible"
+                >
+                    <motion.div variants={itemVariants}>
+                        <div className="mb-4 inline-flex items-center rounded-full border border-[#7a1c1c]/15 bg-[#7a1c1c]/5 px-4 py-2 text-sm font-medium text-[#7a1c1c]">
+                            Account Recovery Portal
+                        </div>
+                    </motion.div>
 
+                    <motion.h1
+                        variants={itemVariants}
+                        className="max-w-2xl text-2xl font-bold leading-tight text-slate-950 sm:text-3xl xl:text-4xl"
+                    >
+                        Reset Access to{" "}
+                        <span className="text-[#7a1c1c]">SNK Junior College</span>
+                    </motion.h1>
+
+                    <motion.p
+                        variants={itemVariants}
+                        className="mt-5 max-w-2xl text-base leading-8 text-slate-600 md:text-lg"
+                    >
+                        Recover your college account securely through email verification.
+                        Use the OTP sent to your registered email address to create a new
+                        password and regain access to admissions, academic updates, events,
+                        and institutional services.
+                    </motion.p>
+
+                    <motion.div
+                        variants={itemVariants}
+                        className="mt-7 grid gap-4 sm:grid-cols-2"
+                    >
+                        {featurePoints.map((point) => (
+                            <motion.div
+                                key={point}
+                                whileHover={{ y: -6, scale: 1.02 }}
+                                transition={{ type: "spring", stiffness: 220, damping: 18 }}
+                                className="flex items-start gap-3 rounded-2xl border border-white/70 bg-white/85 p-4 text-slate-700 shadow-sm backdrop-blur"
+                            >
+                                <FaCheckCircle className="mt-1 shrink-0 text-[#7a1c1c]" />
+                                <p className="text-sm leading-6">{point}</p>
+                            </motion.div>
+                        ))}
+                    </motion.div>
+                </motion.div>
+
+                {/* RIGHT FORM CARD */}
+                <motion.div
+                    initial={{ opacity: 0, x: 50, y: 18 }}
+                    animate={{
+                        opacity: 1,
+                        x: 0,
+                        y: [0, -6, 0],
+                    }}
+                    transition={{
+                        opacity: { duration: 0.8, ease: [0.22, 1, 0.36, 1] },
+                        x: { duration: 0.8, ease: [0.22, 1, 0.36, 1] },
+                        y: {
+                            duration: 4,
+                            repeat: Infinity,
+                            ease: "easeInOut",
+                        },
+                    }}
+                    className="order-1 w-full md:order-2"
+                >
+                    <div className="relative mx-auto w-full max-w-md">
+                        {/* Glow */}
+                        <div className="absolute inset-0 rounded-[30px] bg-[#7a1c1c]/10 blur-2xl"></div>
+
+                        <div className="relative rounded-[28px] border border-white/70 bg-white/90 p-6 shadow-[0_22px_70px_rgba(15,23,42,0.12)] backdrop-blur md:p-8">
+                            <div className="text-center">
+                                <motion.h2
+                                    initial={{ opacity: 0, y: -12 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.2, duration: 0.5 }}
+                                    className="text-3xl font-bold text-slate-950"
+                                >
+                                    Forgot Password
+                                </motion.h2>
+
+                                <p className="mt-2 text-sm text-slate-500 md:text-base">
+                                    Reset your account password securely
+                                </p>
+                            </div>
+
+                            {error && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: -8 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="mt-5 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"
+                                >
+                                    {error}
+                                </motion.div>
+                            )}
+
+                            {message && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: -8 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="mt-5 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700"
+                                >
+                                    {message}
+                                </motion.div>
+                            )}
+
+                            {/* STEP 1 */}
+                            {step === 1 && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 14 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.25, duration: 0.4 }}
+                                    className="mt-6 space-y-5"
+                                >
+                                    <div>
+                                        <label
+                                            htmlFor="email"
+                                            className="mb-2 block font-medium text-slate-700"
+                                        >
+                                            Email Address
+                                        </label>
+
+                                        <motion.input
+                                            whileFocus={{ scale: 1.01 }}
+                                            id="email"
+                                            type="email"
+                                            name="email"
+                                            placeholder="Enter your registered email"
+                                            value={formData.email}
+                                            onChange={handleChange}
+                                            className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-slate-800 outline-none transition duration-200 placeholder:text-slate-400 focus:border-[#7a1c1c] focus:ring-4 focus:ring-[#7a1c1c]/10"
+                                        />
+                                    </div>
+
+                                    <motion.button
+                                        whileHover={{ y: -2, scale: 1.01 }}
+                                        whileTap={{ scale: 0.98 }}
+                                        onClick={sendOTP}
+                                        disabled={loading}
+                                        className="h-12 w-full rounded-xl bg-[#7a1c1c] font-semibold text-white shadow-lg shadow-[#7a1c1c]/20 transition duration-200 hover:bg-[#9f2a2a] disabled:opacity-70"
+                                    >
+                                        {loading ? "Sending..." : "Send OTP"}
+                                    </motion.button>
+                                </motion.div>
+                            )}
+
+                            {/* STEP 2 */}
+                            {step === 2 && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 14 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.2, duration: 0.4 }}
+                                    className="mt-6 space-y-5"
+                                >
+                                    <div>
+                                        <label
+                                            htmlFor="otp"
+                                            className="mb-2 block font-medium text-slate-700"
+                                        >
+                                            Enter 6-Digit OTP
+                                        </label>
+
+                                        <motion.input
+                                            whileFocus={{ scale: 1.01 }}
+                                            id="otp"
+                                            type="text"
+                                            name="otp"
+                                            placeholder="Enter the 6-digit OTP from your email"
+                                            value={formData.otp}
+                                            onChange={handleChange}
+                                            maxLength={6}
+                                            className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-slate-800 outline-none transition duration-200 placeholder:text-slate-400 focus:border-[#7a1c1c] focus:ring-4 focus:ring-[#7a1c1c]/10"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label
+                                            htmlFor="newPassword"
+                                            className="mb-2 block font-medium text-slate-700"
+                                        >
+                                            New Password
+                                        </label>
+
+                                        <div className="relative">
+                                            <motion.input
+                                                whileFocus={{ scale: 1.01 }}
+                                                id="newPassword"
+                                                type={showPassword ? "text" : "password"}
+                                                name="newPassword"
+                                                placeholder="Enter new password"
+                                                value={formData.newPassword}
+                                                onChange={handleChange}
+                                                className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 pr-12 text-slate-800 outline-none transition duration-200 placeholder:text-slate-400 focus:border-[#7a1c1c] focus:ring-4 focus:ring-[#7a1c1c]/10"
+                                            />
+
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowPassword(!showPassword)}
+                                                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 transition hover:text-[#7a1c1c]"
+                                            >
+                                                {showPassword ? <FaEyeSlash /> : <FaEye />}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label
+                                            htmlFor="confirmPassword"
+                                            className="mb-2 block font-medium text-slate-700"
+                                        >
+                                            Confirm Password
+                                        </label>
+
+                                        <div className="relative">
+                                            <motion.input
+                                                whileFocus={{ scale: 1.01 }}
+                                                id="confirmPassword"
+                                                type={showConfirm ? "text" : "password"}
+                                                name="confirmPassword"
+                                                placeholder="Confirm password"
+                                                value={formData.confirmPassword}
+                                                onChange={handleChange}
+                                                className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 pr-12 text-slate-800 outline-none transition duration-200 placeholder:text-slate-400 focus:border-[#7a1c1c] focus:ring-4 focus:ring-[#7a1c1c]/10"
+                                            />
+
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowConfirm(!showConfirm)}
+                                                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 transition hover:text-[#7a1c1c]"
+                                            >
+                                                {showConfirm ? <FaEyeSlash /> : <FaEye />}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <motion.button
+                                        whileHover={{ y: -2, scale: 1.01 }}
+                                        whileTap={{ scale: 0.98 }}
+                                        onClick={resetPassword}
+                                        disabled={loading}
+                                        className="h-12 w-full rounded-xl bg-[#7a1c1c] font-semibold text-white shadow-lg shadow-[#7a1c1c]/20 transition duration-200 hover:bg-[#9f2a2a] disabled:opacity-70"
+                                    >
+                                        {loading ? "Resetting..." : "Reset Password"}
+                                    </motion.button>
+                                </motion.div>
+                            )}
+                        </div>
+                    </div>
+                </motion.div>
+            </div>
+        </section>
     );
 }

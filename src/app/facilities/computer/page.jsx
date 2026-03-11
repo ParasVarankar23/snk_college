@@ -1,72 +1,82 @@
+"use client";
+
+import { motion } from "framer-motion";
 import Image from "next/image";
+
+const infoItems = [
+    { label: "Head of Department", value: "Patange Madam" },
+    { label: "Total Computers", value: "20 Systems" },
+];
+
+const paragraphs = [
+    "The Computer Laboratory at Shri Nanasaheb Kulkarni Kanishta Mahavidyalay provides students with modern computing facilities to enhance their digital knowledge and technical skills.",
+    "The lab is equipped with 20 computers that help students learn computer fundamentals, internet usage, and basic software applications essential for modern education.",
+    "The department is guided by Patange Madam, who serves as the Head of the Computer Section and ensures that students receive proper guidance in computer education.",
+];
 
 export default function ComputerSection() {
     return (
-        <section className="bg-gray-50 py-10">
+        <section className="relative overflow-hidden bg-gray-50 py-5 md:py-5">
+            <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 sm:px-6 md:grid-cols-2 lg:px-8">
 
-            <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-center">
-
-                {/* IMAGE */}
-                <div>
-
+                {/* IMAGE — slides in from left */}
+                <motion.div
+                    initial={{ opacity: 0, x: -60 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.75, ease: "easeOut" }}
+                    viewport={{ once: true }}
+                >
                     <Image
                         src="/college/computer-lab.jpg"
                         alt="Computer Lab"
                         width={600}
                         height={400}
-                        className="rounded-xl shadow-lg"
+                        className="rounded-2xl shadow-xl"
                     />
+                </motion.div>
 
-                </div>
+                {/* TEXT — slides in from right */}
+                <motion.div
+                    initial={{ opacity: 0, x: 60 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.75, ease: "easeOut", delay: 0.12 }}
+                    viewport={{ once: true }}
+                >
 
-                {/* TEXT */}
-                <div>
-
-                    <h2 className="text-3xl font-bold text-gray-800 mb-6">
+                    <h2 className="mt-4 mb-5 text-3xl font-bold text-gray-800 md:text-4xl">
                         Computer Laboratory
                     </h2>
 
-                    <p className="text-gray-600 leading-relaxed mb-4">
-                        The Computer Laboratory at Shri Nanasaheb Kulkarni Kanishta
-                        Mahavidyalay provides students with modern computing facilities to
-                        enhance their digital knowledge and technical skills.
-                    </p>
+                    {paragraphs.map((text, i) => (
+                        <motion.p
+                            key={text.slice(0, 24)}
+                            className="mb-4 leading-relaxed text-gray-600"
+                            initial={{ opacity: 0, y: 18 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5, delay: 0.28 + i * 0.13 }}
+                            viewport={{ once: true }}
+                        >
+                            {text}
+                        </motion.p>
+                    ))}
 
-                    <p className="text-gray-600 leading-relaxed mb-4">
-                        The lab is equipped with <strong>20 computers</strong> that help
-                        students learn computer fundamentals, internet usage, and basic
-                        software applications essential for modern education.
-                    </p>
-
-                    <p className="text-gray-600 leading-relaxed mb-4">
-                        The department is guided by <strong>Patange Madam</strong>, who
-                        serves as the Head of the Computer Section and ensures that
-                        students receive proper guidance in computer education.
-                    </p>
-
-                    {/* INFO BOX */}
-                    <div className="mt-6 bg-white p-6 rounded-lg shadow-md">
-
-                        <p className="text-gray-700">
-                            <span className="font-semibold text-[#7a1c1c]">
-                                Head of Department:
-                            </span>{" "}
-                            Patange Madam
-                        </p>
-
-                        <p className="text-gray-700 mt-2">
-                            <span className="font-semibold text-[#7a1c1c]">
-                                Total Computers:
-                            </span>{" "}
-                            20 Systems
-                        </p>
-
-                    </div>
-
-                </div>
+                    <motion.div
+                        className="mt-6 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-md divide-y divide-gray-100"
+                        initial={{ opacity: 0, y: 24 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.55, delay: 0.58 }}
+                        viewport={{ once: true }}
+                    >
+                        {infoItems.map((item) => (
+                            <div key={item.label} className="flex items-center justify-between px-6 py-4">
+                                <span className="text-sm font-semibold text-[#7a1c1c]">{item.label}</span>
+                                <span className="text-sm font-medium text-gray-700">{item.value}</span>
+                            </div>
+                        ))}
+                    </motion.div>
+                </motion.div>
 
             </div>
-
         </section>
     );
 }

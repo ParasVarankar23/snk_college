@@ -269,7 +269,6 @@ export default function Navbar() {
                     Mahavidyalay Borli Panchatan Shrivardhan Raigad 402403
                 </marquee>
             </div>
-
         </header>
 
     );

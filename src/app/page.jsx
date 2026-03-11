@@ -8,7 +8,9 @@ export default function page() {
   return (
     <div>
       <HeroSection/>
-      <AboutSection/>
+      <div className="py-2 md:py-4">
+        <AboutSection />
+      </div>
       <CoursesSection/>
       <LeadershipSection/>
       <TestimonialsSection/>
