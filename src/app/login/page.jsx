@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { FaCheckCircle, FaEye, FaEyeSlash } from "react-icons/fa";
+import { FcGoogle } from "react-icons/fc";
 
 export default function LoginPage() {
     const [showPassword, setShowPassword] = useState(false);
@@ -243,8 +244,9 @@ export default function LoginPage() {
                             type="button"
                             onClick={handleGoogleLogin}
                             disabled={loading || googleLoading}
-                            className="w-full h-12 border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition disabled:opacity-60"
+                            className="inline-flex w-full h-12 items-center justify-center gap-2 border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition disabled:opacity-60"
                         >
+                            <FcGoogle className="text-base" />
                             {googleLoading ? "Signing in with Google..." : "Continue with Google"}
                         </button>
                     </form>
