@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 
 export default function ArtsTeachersSection() {
@@ -33,13 +34,19 @@ export default function ArtsTeachersSection() {
     return (
         <section className="bg-gray-50 py-10 min-h-[60vh]">
             <div className="max-w-7xl mx-auto px-6">
-                <div className="text-center mb-14">
+                <motion.div
+                    className="text-center mb-14"
+                    initial={{ opacity: 0, y: 24 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.55, ease: "easeOut" }}
+                    viewport={{ once: true }}
+                >
                     <h2 className="text-3xl font-bold text-gray-800">Arts Department Teachers</h2>
                     <p className="text-gray-600 mt-3">
                         Dedicated teachers helping students explore humanities and social
                         sciences with strong academic guidance.
                     </p>
-                </div>
+                </motion.div>
 
                 {loading && <p className="text-center text-gray-500">Loading teachers...</p>}
                 {error && <p className="text-center text-rose-600">{error}</p>}
@@ -49,11 +56,22 @@ export default function ArtsTeachersSection() {
                 )}
 
                 {!loading && !error && teachers.length > 0 && (
-                    <div className="grid lg:grid-cols-4 md:grid-cols-2 gap-8">
+                    <motion.div
+                        className="grid gap-8 md:grid-cols-2 lg:grid-cols-4"
+                        initial={{ opacity: 0 }}
+                        whileInView={{ opacity: 1 }}
+                        transition={{ duration: 0.4 }}
+                        viewport={{ once: true, amount: 0.1 }}
+                    >
                         {teachers.map((teacher) => (
-                            <div
+                            <motion.div
                                 key={teacher.id}
-                                className="bg-white rounded-xl shadow-md p-6 text-center hover:shadow-xl transition"
+                                initial={{ opacity: 0, y: 24 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                whileHover={{ y: -6 }}
+                                transition={{ duration: 0.45, ease: "easeOut" }}
+                                viewport={{ once: true, amount: 0.2 }}
+                                className="bg-white rounded-xl shadow-md p-6 text-center transition hover:shadow-xl"
                             >
                                 <img
                                     src={teacher.imageUrl}
@@ -66,9 +84,9 @@ export default function ArtsTeachersSection() {
                                 <p className="text-gray-600 text-sm mt-2">Subject: {teacher.subject}</p>
 
                                 <p className="text-gray-500 text-sm mt-1">Education: {teacher.education}</p>
-                            </div>
+                            </motion.div>
                         ))}
-                    </div>
+                    </motion.div>
                 )}
             </div>
         </section>

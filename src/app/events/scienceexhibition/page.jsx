@@ -1,5 +1,7 @@
 "use client";
+/* eslint-disable react/prop-types */
 
+import { motion } from "framer-motion";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
@@ -20,14 +22,20 @@ export default function ScienceExhibitionPage() {
             <div className="max-w-7xl mx-auto px-6">
 
                 {/* PAGE TITLE */}
-                <div className="text-center mb-12">
+                <motion.div
+                    className="text-center mb-12"
+                    initial={{ opacity: 0, y: 24 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, ease: "easeOut" }}
+                    viewport={{ once: true }}
+                >
                     <h1 className="text-4xl font-bold text-gray-800">Science Exhibition</h1>
                     <p className="text-gray-600 mt-4">
                         A platform for students to showcase their creativity,
                         innovation, and scientific knowledge through various
                         projects and experiments.
                     </p>
-                </div>
+                </motion.div>
 
                 <EventList events={events} loading={loading} />
             </div>
@@ -53,12 +61,33 @@ function EventList({ events, loading }) {
     }
 
     return (
-        <div className="space-y-16">
+        <motion.div
+            className="grid gap-8 md:grid-cols-2"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            transition={{ duration: 0.45 }}
+            viewport={{ once: true, amount: 0.1 }}
+        >
             {events.map((ev) => (
-                <div key={ev.id} className="bg-white rounded-2xl shadow-md overflow-hidden">
+                <motion.div
+                    key={ev.id}
+                    initial={{ opacity: 0, y: 28 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    whileHover={{ y: -6 }}
+                    transition={{ duration: 0.5, ease: "easeOut" }}
+                    viewport={{ once: true, amount: 0.2 }}
+                    className="h-full overflow-hidden rounded-2xl bg-white shadow-md"
+                >
                     {ev.imageUrl && (
-                        <div className="relative w-full h-72 md:h-96">
-                            <Image src={ev.imageUrl} alt={ev.title} fill className="object-cover" />
+                        <div className="relative aspect-video w-full bg-gray-100">
+                            <Image
+                                src={ev.imageUrl}
+                                alt={ev.title}
+                                fill
+                                sizes="(max-width: 768px) 100vw, 1200px"
+                                quality={95}
+                                className="object-cover object-center"
+                            />
                         </div>
                     )}
                     <div className="p-8">
@@ -72,8 +101,8 @@ function EventList({ events, loading }) {
                         </div>
                         <p className="text-gray-600 leading-relaxed">{ev.description}</p>
                     </div>
-                </div>
+                </motion.div>
             ))}
-        </div>
+        </motion.div>
     );
 }

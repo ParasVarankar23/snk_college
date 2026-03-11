@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 
 /* eslint-disable react/prop-types */
@@ -44,12 +45,18 @@ function AchievementCategoryPage({ category, title, description, emptyMessage })
     }, [category]);
 
     return (
-        <section className="bg-gray-50 py-10 min-h-[60vh]">
+        <section className="bg-gray-50 py-5 min-h-[60vh]">
             <div className="max-w-7xl mx-auto px-6">
-                <div className="text-center mb-12">
+                <motion.div
+                    className="text-center mb-12"
+                    initial={{ opacity: 0, y: 24 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.55, ease: "easeOut" }}
+                    viewport={{ once: true }}
+                >
                     <h1 className="text-4xl font-bold text-gray-800">{title}</h1>
                     <p className="text-gray-600 mt-4">{description}</p>
-                </div>
+                </motion.div>
 
                 {loading && <p className="text-center text-gray-500">Loading achievements...</p>}
                 {error && <p className="text-center text-rose-600">{error}</p>}
@@ -58,9 +65,23 @@ function AchievementCategoryPage({ category, title, description, emptyMessage })
                 )}
 
                 {!loading && !error && achievements.length > 0 && (
-                    <div className="grid md:grid-cols-3 gap-8">
+                    <motion.div
+                        className="grid gap-8 md:grid-cols-3"
+                        initial={{ opacity: 0 }}
+                        whileInView={{ opacity: 1 }}
+                        transition={{ duration: 0.4 }}
+                        viewport={{ once: true, amount: 0.1 }}
+                    >
                         {achievements.map((achievement) => (
-                            <div key={achievement.id} className="bg-white p-6 rounded-xl shadow-md text-center">
+                            <motion.div
+                                key={achievement.id}
+                                initial={{ opacity: 0, y: 24 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                whileHover={{ y: -6 }}
+                                transition={{ duration: 0.45, ease: "easeOut" }}
+                                viewport={{ once: true, amount: 0.2 }}
+                                className="rounded-xl bg-white p-6 text-center shadow-md"
+                            >
                                 <img
                                     src={achievement.imageUrl}
                                     alt={achievement.title}
@@ -69,9 +90,9 @@ function AchievementCategoryPage({ category, title, description, emptyMessage })
 
                                 <h3 className="font-semibold text-[#7a1c1c] text-lg">{achievement.title}</h3>
                                 <p className="text-gray-600 text-sm mt-2">{achievement.description}</p>
-                            </div>
+                            </motion.div>
                         ))}
-                    </div>
+                    </motion.div>
                 )}
             </div>
         </section>
