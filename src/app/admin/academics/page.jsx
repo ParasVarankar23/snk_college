@@ -18,6 +18,7 @@ const departmentOptions = [
 ];
 
 const subjectTypeOptions = ["Theory", "Theory & Practical"];
+const PAGE_SIZE = 100;
 
 function createSubject(subject = {}) {
     return {
@@ -48,6 +49,7 @@ export default function AdminAcademicsPage() {
     const [searchTerm, setSearchTerm] = useState("");
     const [standardFilter, setStandardFilter] = useState("");
     const [departmentFilter, setDepartmentFilter] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
 
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -91,6 +93,23 @@ export default function AdminAcademicsPage() {
         });
     }, [courses, searchTerm, standardFilter, departmentFilter]);
 
+    const totalPages = Math.max(1, Math.ceil(filteredCourses.length / PAGE_SIZE));
+
+    const paginatedCourses = useMemo(() => {
+        const start = (currentPage - 1) * PAGE_SIZE;
+        return filteredCourses.slice(start, start + PAGE_SIZE);
+    }, [filteredCourses, currentPage]);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, standardFilter, departmentFilter]);
+
+    useEffect(() => {
+        if (currentPage > totalPages) {
+            setCurrentPage(totalPages);
+        }
+    }, [currentPage, totalPages]);
+
     const hasActiveFilters = Boolean(searchTerm.trim() || standardFilter || departmentFilter);
 
     let tableContent = null;
@@ -111,7 +130,7 @@ export default function AdminAcademicsPage() {
             </tr>
         );
     } else {
-        tableContent = filteredCourses.map((course) => (
+        tableContent = paginatedCourses.map((course) => (
             <tr key={course.id} className="border-t border-gray-100 hover:bg-stone-50/80 transition-colors">
                 <td className="px-4 py-4 font-semibold text-gray-900">{course.title}</td>
                 <td className="px-4 py-4 text-gray-700">{course.standard}</td>
@@ -462,6 +481,32 @@ export default function AdminAcademicsPage() {
                             <tbody>{tableContent}</tbody>
                         </table>
                     </div>
+
+                    {!loading && filteredCourses.length > 0 && (
+                        <div className="flex flex-col gap-3 border-t border-stone-200 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+                            <p className="text-sm text-slate-500">
+                                Page {currentPage} of {totalPages}
+                            </p>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                                    disabled={currentPage === 1}
+                                    className="rounded-xl border border-stone-200 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                    Previous
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                                    disabled={currentPage === totalPages}
+                                    className="rounded-xl border border-stone-200 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                    Next
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </section>
             </div>
 

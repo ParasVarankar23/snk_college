@@ -11,6 +11,7 @@ const departmentOptions = [
     { label: "Commerce", value: "commerce" },
     { label: "Arts", value: "arts" },
 ];
+const PAGE_SIZE = 100;
 
 const initialFormData = {
     name: "",
@@ -26,6 +27,7 @@ export default function DepartmentsAdminPage() {
 
     const [searchTerm, setSearchTerm] = useState("");
     const [departmentFilter, setDepartmentFilter] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -66,6 +68,23 @@ export default function DepartmentsAdminPage() {
         });
     }, [teachers, searchTerm, departmentFilter]);
 
+    const totalPages = Math.max(1, Math.ceil(filteredTeachers.length / PAGE_SIZE));
+
+    const paginatedTeachers = useMemo(() => {
+        const start = (currentPage - 1) * PAGE_SIZE;
+        return filteredTeachers.slice(start, start + PAGE_SIZE);
+    }, [filteredTeachers, currentPage]);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, departmentFilter]);
+
+    useEffect(() => {
+        if (currentPage > totalPages) {
+            setCurrentPage(totalPages);
+        }
+    }, [currentPage, totalPages]);
+
     let tableContent = null;
     if (loading) {
         tableContent = (
@@ -84,7 +103,7 @@ export default function DepartmentsAdminPage() {
             </tr>
         );
     } else {
-        tableContent = filteredTeachers.map((teacher) => (
+        tableContent = paginatedTeachers.map((teacher) => (
             <tr key={teacher.id} className="border-t border-gray-100 hover:bg-gray-50">
                 <td className="px-4 py-3">
                     <img
@@ -390,6 +409,30 @@ export default function DepartmentsAdminPage() {
                             </tbody>
                         </table>
                     </div>
+
+                    {!loading && filteredTeachers.length > 0 && (
+                        <div className="flex flex-col gap-3 border-t border-stone-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                            <p className="text-sm text-slate-500">Page {currentPage} of {totalPages}</p>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                                    disabled={currentPage === 1}
+                                    className="px-3 py-1.5 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                    Previous
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                                    disabled={currentPage === totalPages}
+                                    className="px-3 py-1.5 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                    Next
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 

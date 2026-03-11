@@ -8,10 +8,12 @@ import toast from "react-hot-toast";
 /* eslint-disable react/prop-types */
 
 const initialFormData = { name: "", rating: 5, description: "" };
+const PAGE_SIZE = 100;
 
 export default function AdminFeedbackPage() {
     const [feedbacks, setFeedbacks] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
     const [loading, setLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -30,6 +32,23 @@ export default function AdminFeedbackPage() {
             [fb.name, fb.description].join(" ").toLowerCase().includes(search)
         );
     }, [feedbacks, searchTerm]);
+
+    const totalPages = Math.max(1, Math.ceil(filteredFeedbacks.length / PAGE_SIZE));
+
+    const paginatedFeedbacks = useMemo(() => {
+        const start = (currentPage - 1) * PAGE_SIZE;
+        return filteredFeedbacks.slice(start, start + PAGE_SIZE);
+    }, [filteredFeedbacks, currentPage]);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm]);
+
+    useEffect(() => {
+        if (currentPage > totalPages) {
+            setCurrentPage(totalPages);
+        }
+    }, [currentPage, totalPages]);
 
     const avgRating = useMemo(() => {
         if (!feedbacks.length) return "0.0";
@@ -130,7 +149,7 @@ export default function AdminFeedbackPage() {
             </tr>
         );
     } else {
-        tableContent = filteredFeedbacks.map((fb) => (
+        tableContent = paginatedFeedbacks.map((fb) => (
             <tr key={fb.id} className="border-t border-gray-100 hover:bg-gray-50">
                 <td className="px-4 py-3">
                     {fb.imageUrl ? (
@@ -226,6 +245,30 @@ export default function AdminFeedbackPage() {
                             <tbody>{tableContent}</tbody>
                         </table>
                     </div>
+
+                    {!loading && filteredFeedbacks.length > 0 && (
+                        <div className="flex flex-col gap-3 border-t border-gray-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                            <p className="text-sm text-gray-500">Page {currentPage} of {totalPages}</p>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                                    disabled={currentPage === 1}
+                                    className="px-3 py-1.5 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                    Previous
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                                    disabled={currentPage === totalPages}
+                                    className="px-3 py-1.5 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                    Next
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 

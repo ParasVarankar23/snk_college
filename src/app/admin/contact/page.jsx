@@ -24,10 +24,12 @@ const initialFormData = {
     message: "",
     status: "new",
 };
+const PAGE_SIZE = 100;
 
 export default function AdminContactPage() {
     const [inquiries, setInquiries] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
     const [loading, setLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -48,6 +50,23 @@ export default function AdminContactPage() {
                 .includes(search)
         );
     }, [inquiries, searchTerm]);
+
+    const totalPages = Math.max(1, Math.ceil(filteredInquiries.length / PAGE_SIZE));
+
+    const paginatedInquiries = useMemo(() => {
+        const start = (currentPage - 1) * PAGE_SIZE;
+        return filteredInquiries.slice(start, start + PAGE_SIZE);
+    }, [filteredInquiries, currentPage]);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm]);
+
+    useEffect(() => {
+        if (currentPage > totalPages) {
+            setCurrentPage(totalPages);
+        }
+    }, [currentPage, totalPages]);
 
     const stats = useMemo(() => {
         return inquiries.reduce(
@@ -164,7 +183,7 @@ export default function AdminContactPage() {
             </tr>
         );
     } else {
-        tableContent = filteredInquiries.map((inq) => (
+        tableContent = paginatedInquiries.map((inq) => (
             <tr key={inq.id} className="border-t border-gray-100 hover:bg-gray-50">
                 <td className="px-4 py-3 font-medium text-gray-900 whitespace-nowrap">{inq.name}</td>
                 <td className="px-4 py-3 text-gray-600">{inq.email}</td>
@@ -253,6 +272,30 @@ export default function AdminContactPage() {
                             <tbody>{tableContent}</tbody>
                         </table>
                     </div>
+
+                    {!loading && filteredInquiries.length > 0 && (
+                        <div className="flex flex-col gap-3 border-t border-gray-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                            <p className="text-sm text-gray-500">Page {currentPage} of {totalPages}</p>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                                    disabled={currentPage === 1}
+                                    className="px-3 py-1.5 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                    Previous
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                                    disabled={currentPage === totalPages}
+                                    className="px-3 py-1.5 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                    Next
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 

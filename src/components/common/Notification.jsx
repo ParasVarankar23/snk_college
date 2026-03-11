@@ -4,9 +4,30 @@
 /* eslint-disable no-negated-condition */
 
 import { BellRing } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+
+const PAGE_SIZE = 100;
 
 export default function Notification({ roleLabel, notifications, unreadCount, loading, typeCounts }) {
     const hasNotifications = Array.isArray(notifications) && notifications.length > 0;
+    const [currentPage, setCurrentPage] = useState(1);
+
+    const totalPages = Math.max(1, Math.ceil((notifications?.length || 0) / PAGE_SIZE));
+
+    const paginatedNotifications = useMemo(() => {
+        const start = (currentPage - 1) * PAGE_SIZE;
+        return (notifications || []).slice(start, start + PAGE_SIZE);
+    }, [notifications, currentPage]);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [notifications]);
+
+    useEffect(() => {
+        if (currentPage > totalPages) {
+            setCurrentPage(totalPages);
+        }
+    }, [currentPage, totalPages]);
 
     let content = null;
     if (loading) {
@@ -20,7 +41,7 @@ export default function Notification({ roleLabel, notifications, unreadCount, lo
     } else {
         content = (
             <div className="space-y-3">
-                {notifications.map((item) => (
+                {paginatedNotifications.map((item) => (
                     <article key={item.id} className="rounded-2xl border border-slate-200 p-4">
                         <div className="flex items-start justify-between gap-3">
                             <div>
@@ -38,6 +59,28 @@ export default function Notification({ roleLabel, notifications, unreadCount, lo
                         </div>
                     </article>
                 ))}
+
+                <div className="flex flex-col gap-3 border-t border-slate-200 pt-3 sm:flex-row sm:items-center sm:justify-between">
+                    <p className="text-sm text-slate-500">Page {currentPage} of {totalPages}</p>
+                    <div className="flex items-center gap-2">
+                        <button
+                            type="button"
+                            onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                            disabled={currentPage === 1}
+                            className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            Previous
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                            disabled={currentPage === totalPages}
+                            className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            Next
+                        </button>
+                    </div>
+                </div>
             </div>
         );
     }

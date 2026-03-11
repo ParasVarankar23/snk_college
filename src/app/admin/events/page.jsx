@@ -13,6 +13,7 @@ const CATEGORY_OPTIONS = [
     { label: "Picnic", value: "picnic" },
     { label: "Science Exhibition", value: "scienceexhibition" },
 ];
+const PAGE_SIZE = 100;
 
 const CATEGORY_LABELS = {
     annualday: "Annual Day",
@@ -33,6 +34,7 @@ const initialFormData = { title: "", description: "", category: "annualday", dat
 export default function AdminEventsPage() {
     const [events, setEvents] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
     const [loading, setLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -56,6 +58,23 @@ export default function AdminEventsPage() {
                 .includes(search)
         );
     }, [events, searchTerm]);
+
+    const totalPages = Math.max(1, Math.ceil(filteredEvents.length / PAGE_SIZE));
+
+    const paginatedEvents = useMemo(() => {
+        const start = (currentPage - 1) * PAGE_SIZE;
+        return filteredEvents.slice(start, start + PAGE_SIZE);
+    }, [filteredEvents, currentPage]);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm]);
+
+    useEffect(() => {
+        if (currentPage > totalPages) {
+            setCurrentPage(totalPages);
+        }
+    }, [currentPage, totalPages]);
 
     const stats = useMemo(() => {
         return events.reduce(
@@ -164,7 +183,7 @@ export default function AdminEventsPage() {
     } else if (filteredEvents.length === 0) {
         tableContent = <tr><td colSpan={6} className="px-4 py-10 text-center text-gray-500">No events found</td></tr>;
     } else {
-        tableContent = filteredEvents.map((ev) => (
+        tableContent = paginatedEvents.map((ev) => (
             <tr key={ev.id} className="border-t border-gray-100 hover:bg-gray-50">
                 <td className="px-4 py-3">
                     <img src={ev.imageUrl} alt={ev.title} className="w-14 h-14 rounded-lg object-cover border border-gray-200" />
@@ -245,6 +264,30 @@ export default function AdminEventsPage() {
                             <tbody>{tableContent}</tbody>
                         </table>
                     </div>
+
+                    {!loading && filteredEvents.length > 0 && (
+                        <div className="flex flex-col gap-3 border-t border-gray-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                            <p className="text-sm text-gray-500">Page {currentPage} of {totalPages}</p>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                                    disabled={currentPage === 1}
+                                    className="px-3 py-1.5 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                    Previous
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                                    disabled={currentPage === totalPages}
+                                    className="px-3 py-1.5 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                    Next
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 

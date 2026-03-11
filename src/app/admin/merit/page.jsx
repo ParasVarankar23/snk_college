@@ -1,7 +1,9 @@
 "use client";
 
 import { FileText, Trash2, Upload } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+
+const PAGE_SIZE = 100;
 
 export default function AdminMeritPage() {
     const [records, setRecords] = useState([]);
@@ -9,6 +11,7 @@ export default function AdminMeritPage() {
     const [uploading, setUploading] = useState(false);
     const [error, setError] = useState("");
     const [message, setMessage] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
     const [form, setForm] = useState({
         title: "",
         description: "",
@@ -36,6 +39,19 @@ export default function AdminMeritPage() {
     useEffect(() => {
         loadMeritNotices();
     }, []);
+
+    const totalPages = Math.max(1, Math.ceil(records.length / PAGE_SIZE));
+
+    const paginatedRecords = useMemo(() => {
+        const start = (currentPage - 1) * PAGE_SIZE;
+        return records.slice(start, start + PAGE_SIZE);
+    }, [records, currentPage]);
+
+    useEffect(() => {
+        if (currentPage > totalPages) {
+            setCurrentPage(totalPages);
+        }
+    }, [currentPage, totalPages]);
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -130,7 +146,7 @@ export default function AdminMeritPage() {
     } else {
         recordsContent = (
             <div className="mt-4 space-y-3">
-                {records.map((item) => (
+                {paginatedRecords.map((item) => (
                     <article key={item.id} className="rounded-2xl border border-slate-200 p-4">
                         <div className="flex flex-wrap items-start justify-between gap-3">
                             <div>
@@ -159,6 +175,30 @@ export default function AdminMeritPage() {
                         </div>
                     </article>
                 ))}
+
+                {records.length > 0 && (
+                    <div className="flex flex-col gap-3 pt-3 sm:flex-row sm:items-center sm:justify-between">
+                        <p className="text-sm text-slate-500">Page {currentPage} of {totalPages}</p>
+                        <div className="flex items-center gap-2">
+                            <button
+                                type="button"
+                                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                                disabled={currentPage === 1}
+                                className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                Previous
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                                disabled={currentPage === totalPages}
+                                className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                Next
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
         );
     }

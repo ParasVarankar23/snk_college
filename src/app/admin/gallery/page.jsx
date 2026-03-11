@@ -9,11 +9,13 @@ import toast from "react-hot-toast";
 const initialFormData = {
     description: "",
 };
+const PAGE_SIZE = 100;
 
 export default function AdminGalleryPage() {
     const [items, setItems] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [timeFilter, setTimeFilter] = useState("all");
+    const [currentPage, setCurrentPage] = useState(1);
     const [loading, setLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -64,6 +66,23 @@ export default function AdminGalleryPage() {
         });
     }, [items, searchTerm, timeFilter]);
 
+    const totalPages = Math.max(1, Math.ceil(filteredItems.length / PAGE_SIZE));
+
+    const paginatedItems = useMemo(() => {
+        const start = (currentPage - 1) * PAGE_SIZE;
+        return filteredItems.slice(start, start + PAGE_SIZE);
+    }, [filteredItems, currentPage]);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, timeFilter]);
+
+    useEffect(() => {
+        if (currentPage > totalPages) {
+            setCurrentPage(totalPages);
+        }
+    }, [currentPage, totalPages]);
+
     const hasActiveFilters = Boolean(searchTerm.trim() || timeFilter !== "all");
 
     let tableContent = null;
@@ -80,7 +99,7 @@ export default function AdminGalleryPage() {
             </tr>
         );
     } else {
-        tableContent = filteredItems.map((item) => (
+        tableContent = paginatedItems.map((item) => (
             <tr key={item.id} className="border-t border-gray-100 hover:bg-stone-50">
                 <td className="px-4 py-4">
                     <img src={item.imageUrl} alt="Gallery" className="h-16 w-24 rounded-xl object-cover border border-gray-200" />
@@ -353,6 +372,30 @@ export default function AdminGalleryPage() {
                             <tbody>{tableContent}</tbody>
                         </table>
                     </div>
+
+                    {!loading && filteredItems.length > 0 && (
+                        <div className="flex flex-col gap-3 border-t border-stone-200 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+                            <p className="text-sm text-slate-500">Page {currentPage} of {totalPages}</p>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                                    disabled={currentPage === 1}
+                                    className="rounded-2xl border border-stone-200 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                    Previous
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                                    disabled={currentPage === totalPages}
+                                    className="rounded-2xl border border-stone-200 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                    Next
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </section>
             </div>
 
