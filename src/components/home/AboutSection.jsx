@@ -33,7 +33,7 @@ const descriptionLines = [
 export default function AboutSection() {
     const pathname = usePathname();
     const isAboutPage = pathname === "/about";
-    const [expanded, setExpanded] = useState(false);
+    const [expanded] = useState(false);
 
     const visibleParagraphs = useMemo(() => {
         if (isAboutPage || expanded) return descriptionLines;
@@ -41,7 +41,7 @@ export default function AboutSection() {
     }, [expanded, isAboutPage]);
 
     return (
-        <section className="relative isolate overflow-hidden py-5 md:py-10">
+        <section className="relative isolate overflow-hidden py-4 md:py-7">
 
             <div className="absolute inset-0 -z-20">
                 <Image
@@ -57,27 +57,27 @@ export default function AboutSection() {
             <div className="absolute inset-0 -z-10 bg-linear-to-t from-black/70 via-transparent to-transparent" />
 
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                <div className="slide-in-up w-full rounded-3xl border border-white/20 bg-black/25 p-6 text-white shadow-2xl backdrop-blur-sm sm:p-8 md:p-10 lg:p-12">
+                <div className="slide-in-up w-full rounded-3xl border border-white/20 bg-black/25 p-5 text-white shadow-2xl backdrop-blur-sm sm:p-7 md:p-8 lg:p-9">
                     <div className="mb-4 inline-flex items-center rounded-full border border-white/30 bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-white/85">
                         Our Story
                     </div>
 
-                    <h2 className="mb-4 text-3xl font-bold text-white md:text-4xl lg:text-5xl">
+                    <h2 className="mb-3 text-3xl font-bold text-white md:text-4xl lg:text-[2.75rem]">
                         About SNK Mahavidyalay
                     </h2>
 
-                    <div className="grid gap-8 lg:grid-cols-[1.3fr_1fr] lg:gap-10">
+                    <div className="grid gap-6 lg:grid-cols-[1.3fr_1fr] lg:gap-8">
                         <div>
                             {visibleParagraphs.map((line) => (
                                 <p
                                     key={line}
-                                    className="fade-item mb-4 leading-relaxed text-white/90 md:text-lg"
+                                    className="fade-item mb-3 leading-relaxed text-white/90 md:text-base"
                                 >
                                     {line}
                                 </p>
                             ))}
 
-                            <div className="fade-item mt-6 flex flex-wrap items-center gap-3">                                
+                            <div className="fade-item mt-5 flex flex-wrap items-center gap-3">
                                 {!isAboutPage && (
                                     <Link
                                         href="/about"
@@ -89,9 +89,9 @@ export default function AboutSection() {
                             </div>
                         </div>
 
-                        <div className="fade-item rounded-2xl border border-white/20 bg-white/10 p-5 sm:p-6">
+                        <div className="fade-item rounded-2xl border border-white/20 bg-white/10 p-4 sm:p-5">
                             <h3 className="text-xl font-bold text-white">Highlights</h3>
-                            <ul className="mt-4 space-y-3 text-sm text-white/90 sm:text-base">
+                            <ul className="mt-8 space-y-2.5 text-sm text-white/90 sm:text-base">
                                 <li className="rounded-lg border border-white/15 bg-black/15 px-3 py-2">Academic streams in Science, Commerce, and Arts</li>
                                 <li className="rounded-lg border border-white/15 bg-black/15 px-3 py-2">Focused preparation for higher studies</li>
                                 <li className="rounded-lg border border-white/15 bg-black/15 px-3 py-2">Discipline, values, and leadership development</li>
@@ -101,7 +101,7 @@ export default function AboutSection() {
                     </div>
 
                     {(isAboutPage || expanded) && (
-                        <div className="fade-item mt-10">
+                        <div className="fade-item py-8 md:py-18">
                             <h3 className="text-2xl font-bold text-[#ffd6b0] md:text-3xl">Institution History</h3>
                             <div className="mt-5 grid gap-4 md:grid-cols-2">
                                 {historyMilestones.map((milestone, idx) => (
