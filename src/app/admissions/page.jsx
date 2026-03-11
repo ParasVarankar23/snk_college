@@ -25,9 +25,9 @@ const admissionSteps = [
         hasLink: true,
     },
     {
-        title: "Step 3: Document Verification",
+        title: "Step 3: Merit List & Document Verification",
         description:
-            "After selection, students must visit the college office for document verification with all required documents.",
+            "After form submission, check the merit list, then visit the college office to view and verify all required documents.",
         hasLink: false,
     },
     {
