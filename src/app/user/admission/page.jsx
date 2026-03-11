@@ -253,24 +253,40 @@ export default function AdmissionFormPage() {
             .trim();
     }, [formData.firstName, formData.middleName, formData.lastName]);
 
-    const completionCount = useMemo(() => {
-        const completedRequiredFields = requiredFieldKeys.filter((key) => {
-            const value = formData[key];
+    const getCompletedRequiredFields = (data) => {
+        return requiredFieldKeys.filter((key) => {
+            const value = data[key];
             if (Array.isArray(value)) return value.length > 0;
             if (typeof value === "string") return value.trim().length > 0;
             return Boolean(value);
         }).length;
+    };
+
+    const completionCount = useMemo(() => {
+        const completedRequiredFields = getCompletedRequiredFields(formData);
+
+        const baselineRequiredFields = getCompletedRequiredFields(initialFormState);
+
+        const normalizedRequiredFields = Math.max(0, completedRequiredFields - baselineRequiredFields);
+
+        const totalRequiredFields = Math.max(1, requiredFieldKeys.length - baselineRequiredFields);
 
         const completedUploads = REQUIRED_UPLOAD_KEYS.filter((key) => {
             const localFile = formData[key];
             return localFile instanceof File || uploadedDocKeys.includes(key);
         }).length;
 
-        return completedRequiredFields + completedUploads + (formData.declarationAccepted ? 1 : 0);
+        const declarationCompleted = formData.declarationAccepted ? 1 : 0;
+
+        const completed = normalizedRequiredFields + completedUploads + declarationCompleted;
+        const total = totalRequiredFields + REQUIRED_UPLOAD_KEYS.length + 1;
+
+        return { completed, total };
     }, [formData, uploadedDocKeys]);
 
-    const progressPercent = Math.round(
-        (completionCount / (requiredFieldKeys.length + REQUIRED_UPLOAD_KEYS.length + 1)) * 100
+    const progressPercent = Math.max(
+        0,
+        Math.min(100, Math.round((completionCount.completed / completionCount.total) * 100))
     );
 
     const subjectOptions = useMemo(() => {

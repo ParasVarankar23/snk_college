@@ -7,11 +7,13 @@ import { useEffect, useState } from "react";
 import {
   FaAddressBook,
   FaAward,
+  FaBell,
   FaBook,
   FaCalendar,
   FaChalkboardUser,
   FaChevronDown,
   FaCircleUser,
+  FaFilePdf,
   FaGear,
   FaImages,
   FaMessage,
@@ -37,7 +39,7 @@ export default function Sidebar({ setSidebarOpen }) {
   const adminMenuItems = [
     {
       name: "View Admissions",
-      icon: FaChalkboardUser,
+      icon: FaAddressBook,
       path: "/admin/admissions",
     },
     {
@@ -71,6 +73,16 @@ export default function Sidebar({ setSidebarOpen }) {
       path: "/admin/feedback",
     },
     {
+      name: "Merit Upload",
+      icon: FaFilePdf,
+      path: "/admin/merit",
+    },
+    {
+      name: "Notifications",
+      icon: FaBell,
+      path: "/notifications",
+    },
+    {
       name: "Contact",
       icon: FaAddressBook,
       path: "/admin/contact",
@@ -93,6 +105,16 @@ export default function Sidebar({ setSidebarOpen }) {
       ],
     },
     {
+      name: "Merit List",
+      icon: FaFilePdf,
+      path: "/merit",
+    },
+    {
+      name: "Notifications",
+      icon: FaBell,
+      path: "/notifications",
+    },
+    {
       name: "Profile",
       icon: FaCircleUser,
       path: "/profile",
@@ -110,10 +132,10 @@ export default function Sidebar({ setSidebarOpen }) {
 
   return (
     <aside
-      className="w-full h-full overflow-y-auto overflow-x-hidden flex flex-col transition-all bg-white border-r border-gray-200"
+      className="flex h-full min-h-0 w-full flex-col overflow-hidden border-r border-gray-200 bg-white transition-all"
     >
       {/* HEADER */}
-      <div className="sticky top-0 p-6 border-b border-gray-200">
+      <div className="shrink-0 border-b border-gray-200 p-5 md:p-6">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold shadow-lg bg-linear-to-r from-[#7a1c1c] to-[#5a1414]">
             📚
@@ -128,7 +150,7 @@ export default function Sidebar({ setSidebarOpen }) {
       </div>
 
       {/* NAVIGATION */}
-      <nav className="flex-1 px-3 py-5 space-y-2">
+      <nav className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-3 py-4 pr-2 space-y-2 [scrollbar-width:thin] [scrollbar-color:#b0b7c3_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-track]:bg-transparent">
         {menuItems.map((item) => {
           const IconComponent = item.icon;
           const isActive = pathname.startsWith(item.path || "");
@@ -192,7 +214,7 @@ export default function Sidebar({ setSidebarOpen }) {
       </nav>
 
       {/* FOOTER */}
-      <div className="p-6 border-t border-gray-200 text-gray-600 text-xs text-center">
+      <div className="shrink-0 border-t border-gray-200 p-5 text-center text-xs text-gray-600 md:p-6">
         <p>© 2026 SNK Portal</p>
         <p className="text-gray-500 mt-1">All Rights Reserved</p>
       </div>

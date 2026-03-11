@@ -4,8 +4,38 @@ import { useAuth } from "@/hooks/useAuth";
 import { Bell, LogOut, Menu, Search } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
+
+const adminSearchRoutes = [
+  { label: "View Admissions", path: "/admin/admissions" },
+  { label: "Academics", path: "/admin/academics" },
+  { label: "Departments", path: "/admin/departments" },
+  { label: "Achievements", path: "/admin/achievements" },
+  { label: "Events", path: "/admin/events" },
+  { label: "Gallery", path: "/admin/gallery" },
+  { label: "Feedback", path: "/admin/feedback" },
+  { label: "Merit Upload", path: "/admin/merit" },
+  { label: "Notifications", path: "/notifications" },
+  { label: "Contact", path: "/admin/contact" },
+  { label: "Profile", path: "/profile" },
+  { label: "Settings", path: "/settings" },
+];
+
+const userSearchRoutes = [
+  { label: "Admission", path: "/user/admission" },
+  { label: "Student Details", path: "/user/admission?section=student" },
+  { label: "Parent Details", path: "/user/admission?section=family" },
+  { label: "10th Academics", path: "/user/admission?section=academic" },
+  { label: "Stream Selection", path: "/user/admission?section=stream" },
+  { label: "Documents", path: "/user/admission?section=documents" },
+  { label: "Extra Details", path: "/user/admission?section=extras" },
+  { label: "Declaration", path: "/user/admission?section=declaration" },
+  { label: "Merit List", path: "/merit" },
+  { label: "Notifications", path: "/notifications" },
+  { label: "Profile", path: "/profile" },
+  { label: "Settings", path: "/settings" },
+];
 
 // eslint-disable-next-line react/prop-types
 export default function Navbar({ sidebarOpen, setSidebarOpen }) {
@@ -18,10 +48,50 @@ export default function Navbar({ sidebarOpen, setSidebarOpen }) {
   const [logoutModal, setLogoutModal] = useState(false);
   const [countdown, setCountdown] = useState(5);
   const [currentTime, setCurrentTime] = useState("");
+  const [searchText, setSearchText] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [notificationCount, setNotificationCount] = useState(0);
 
   const dropdownRef = useRef(null);
+  const searchRef = useRef(null);
   const timerRef = useRef(null);
   const isLoggingOutRef = useRef(false);
+
+  const searchRoutes = useMemo(() => {
+    return normalizedRole === "admin" ? adminSearchRoutes : userSearchRoutes;
+  }, [normalizedRole]);
+
+  const searchResults = useMemo(() => {
+    const query = searchText.trim().toLowerCase();
+    if (!query) return [];
+
+    return searchRoutes
+      .filter((item) => item.label.toLowerCase().includes(query) || item.path.toLowerCase().includes(query))
+      .slice(0, 6);
+  }, [searchRoutes, searchText]);
+
+  const goToSearchResult = (route) => {
+    if (!route?.path) return;
+    router.push(route.path);
+    setSearchText("");
+    setSearchOpen(false);
+  };
+
+  const handleSearchSubmit = (event) => {
+    event.preventDefault();
+    const query = searchText.trim();
+    if (!query) return;
+
+    const exactMatch = searchRoutes.find((item) => item.label.toLowerCase() === query.toLowerCase());
+    const firstMatch = exactMatch || searchResults[0];
+
+    if (!firstMatch) {
+      toast.error("No matching page found");
+      return;
+    }
+
+    goToSearchResult(firstMatch);
+  };
 
   /* ================= REAL-TIME CLOCK ================= */
   useEffect(() => {
@@ -44,10 +114,56 @@ export default function Navbar({ sidebarOpen, setSidebarOpen }) {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setDropdownOpen(false);
       }
+
+      if (searchRef.current && !searchRef.current.contains(e.target)) {
+        setSearchOpen(false);
+      }
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
+
+  /* ================= NOTIFICATION SUMMARY ================= */
+  useEffect(() => {
+    const loadNotificationSummary = async () => {
+      try {
+        const token = globalThis.localStorage.getItem("authToken");
+        if (!token) {
+          setNotificationCount(0);
+          return;
+        }
+
+        const response = await fetch("/api/notification?summary=1", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          cache: "no-store",
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+          setNotificationCount(0);
+          return;
+        }
+
+        setNotificationCount(Number(data.unreadCount || 0));
+      } catch {
+        setNotificationCount(0);
+      }
+    };
+
+    loadNotificationSummary();
+    const handleSeen = () => {
+      loadNotificationSummary();
+    };
+
+    const timer = setInterval(loadNotificationSummary, 30000);
+    globalThis.addEventListener("notifications-seen", handleSeen);
+    return () => {
+      clearInterval(timer);
+      globalThis.removeEventListener("notifications-seen", handleSeen);
+    };
+  }, [normalizedRole]);
 
   /* ================= LOGOUT TIMER ================= */
   useEffect(() => {
@@ -96,9 +212,9 @@ export default function Navbar({ sidebarOpen, setSidebarOpen }) {
   return (
     <>
       {/* NAVBAR */}
-      <nav className="w-full h-20 px-4 md:px-8 flex items-center justify-between backdrop-blur-md border-b sticky top-0 z-30 transition bg-white/90 border-gray-200 text-gray-900">
+      <nav className="w-full h-20 px-4 md:px-6 lg:px-8 grid grid-cols-[auto_1fr_auto] items-center gap-3 md:gap-6 backdrop-blur-md border-b sticky top-0 z-30 transition bg-white/90 border-gray-200 text-gray-900">
         {/* LEFT - MENU TOGGLE & WELCOME */}
-        <div className="flex items-center gap-3 md:gap-6 flex-1">
+        <div className="flex items-center gap-3 md:gap-4 min-w-0">
           {/* MOBILE MENU TOGGLE */}
           <button
             onClick={() => setSidebarOpen?.(!sidebarOpen)}
@@ -108,37 +224,74 @@ export default function Navbar({ sidebarOpen, setSidebarOpen }) {
           </button>
 
           {/* WELCOME & USERNAME */}
-          <div className="hidden sm:flex flex-col">
-            <p className="text-xs md:text-sm font-medium text-gray-500">
+          <div className="hidden sm:flex items-center gap-2 min-w-0">
+            <h1 className="text-sm md:text-lg font-medium text-gray-500 whitespace-nowrap">
               Welcome back,
-            </p>
-            <h1 className="text-sm md:text-lg font-bold bg-linear-to-r from-[#7a1c1c] to-[#5a1414] bg-clip-text text-transparent">
+            </h1>
+            <h1 className="text-sm md:text-lg font-bold bg-linear-to-r from-[#7a1c1c] to-[#5a1414] bg-clip-text text-transparent truncate max-w-32 md:max-w-52 lg:max-w-64">
               {user?.name || "User"}
             </h1>
           </div>
         </div>
 
         {/* CENTER - SEARCH BAR (HIDDEN ON MOBILE) */}
-        <div className="hidden sm:flex relative md:w-80 lg:w-96 mx-4">
-          <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search academics, events..."
-            className="w-full pl-10 pr-4 py-2 rounded-lg outline-none text-sm border transition bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-[#7a1c1c]/30"
-          />
+        <div className="hidden sm:flex relative w-full max-w-xl justify-self-center" ref={searchRef}>
+          <form onSubmit={handleSearchSubmit} className="w-full">
+            <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              value={searchText}
+              onChange={(event) => {
+                setSearchText(event.target.value);
+                setSearchOpen(true);
+              }}
+              onFocus={() => setSearchOpen(true)}
+              placeholder={`Search pages (${roleLabel})...`}
+              className="w-full pl-10 pr-4 py-2 rounded-lg outline-none text-sm border transition bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-[#7a1c1c]/30"
+            />
+          </form>
+
+          {searchOpen && searchText.trim() && (
+            <div className="absolute top-12 left-0 right-0 z-40 rounded-xl border border-gray-200 bg-white shadow-lg overflow-hidden">
+              {searchResults.length > 0 ? (
+                <div className="max-h-72 overflow-y-auto py-1">
+                  {searchResults.map((item) => (
+                    <button
+                      key={item.path}
+                      type="button"
+                      onClick={() => goToSearchResult(item)}
+                      className="w-full px-4 py-2.5 text-left hover:bg-[#7a1c1c]/5 transition"
+                    >
+                      <p className="text-sm font-medium text-gray-800">{item.label}</p>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <p className="px-4 py-3 text-sm text-gray-500">No matching page found.</p>
+              )}
+            </div>
+          )}
         </div>
 
         {/* RIGHT - CLOCK, THEME, PROFILE */}
-        <div className="flex items-center gap-2 md:gap-4">
+        <div className="flex items-center gap-2 md:gap-4 justify-self-end">
           {/* CLOCK */}
           <div className="hidden md:flex items-center gap-2 px-4 py-2 rounded-lg font-mono text-sm bg-gray-100 text-[#7a1c1c]">
             🕐 {currentTime}
           </div>
 
           {/* NOTIFICATIONS */}
-          <button className="p-2 rounded-lg hover:bg-[#7a1c1c]/10 transition relative" title="Notifications">
+          <button
+            className="p-2 rounded-lg hover:bg-[#7a1c1c]/10 transition relative"
+            title="Notifications"
+            onClick={() => router.push("/notifications")}
+          >
             <Bell size={20} />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-rose-500 rounded-full"></span>
+            {notificationCount > 0 ? (
+              <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-rose-600 text-[10px] font-bold text-white flex items-center justify-center">
+                {notificationCount > 99 ? "99+" : notificationCount}
+              </span>
+            ) : null}
           </button>
 
           {/* PROFILE DROPDOWN */}
