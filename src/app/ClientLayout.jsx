@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 /* PUBLIC WEBSITE NAVBAR + FOOTER */
 import AdmissionEnquiryWidget from "@/components/common/AdmissionEnquiryWidget";
 import CookieBanner from "@/components/common/CookieBanner";
+import FloatingContact from "@/components/common/FloatingContact";
 import Footer from "@/components/layout/Footer";
 import Navbar from "@/components/layout/Navbar";
 
@@ -153,6 +154,7 @@ export default function ClientLayout({ children }) {
 
             {/* FIXED WIDGETS */}
             <AdmissionEnquiryWidget />
+            <FloatingContact />
             <CookieBanner />
         </div>
     );
