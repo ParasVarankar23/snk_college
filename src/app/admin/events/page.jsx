@@ -13,7 +13,7 @@ const CATEGORY_OPTIONS = [
     { label: "Picnic", value: "picnic" },
     { label: "Science Exhibition", value: "scienceexhibition" },
 ];
-const PAGE_SIZE = 100;
+const PAGE_SIZE = 10;
 
 const CATEGORY_LABELS = {
     annualday: "Annual Day",

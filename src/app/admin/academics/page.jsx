@@ -18,7 +18,7 @@ const departmentOptions = [
 ];
 
 const subjectTypeOptions = ["Theory", "Theory & Practical"];
-const PAGE_SIZE = 100;
+const PAGE_SIZE = 10;
 
 function createSubject(subject = {}) {
     return {

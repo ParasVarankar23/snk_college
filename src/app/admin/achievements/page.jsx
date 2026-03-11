@@ -11,7 +11,7 @@ const categoryOptions = [
     { label: "Awards", value: "awards" },
     { label: "Sports", value: "sports" },
 ];
-const PAGE_SIZE = 100;
+const PAGE_SIZE = 10;
 
 const initialFormData = {
     title: "",

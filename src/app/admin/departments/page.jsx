@@ -11,7 +11,7 @@ const departmentOptions = [
     { label: "Commerce", value: "commerce" },
     { label: "Arts", value: "arts" },
 ];
-const PAGE_SIZE = 100;
+const PAGE_SIZE = 10;
 
 const initialFormData = {
     name: "",

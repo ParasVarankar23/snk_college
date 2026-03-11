@@ -24,7 +24,7 @@ const initialFormData = {
     message: "",
     status: "new",
 };
-const PAGE_SIZE = 100;
+const PAGE_SIZE = 10;
 
 export default function AdminContactPage() {
     const [inquiries, setInquiries] = useState([]);

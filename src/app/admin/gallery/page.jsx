@@ -9,7 +9,7 @@ import toast from "react-hot-toast";
 const initialFormData = {
     description: "",
 };
-const PAGE_SIZE = 100;
+const PAGE_SIZE = 10;
 
 export default function AdminGalleryPage() {
     const [items, setItems] = useState([]);

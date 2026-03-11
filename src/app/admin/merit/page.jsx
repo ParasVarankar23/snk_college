@@ -3,7 +3,7 @@
 import { FileText, Trash2, Upload } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
-const PAGE_SIZE = 100;
+const PAGE_SIZE = 10;
 
 export default function AdminMeritPage() {
     const [records, setRecords] = useState([]);

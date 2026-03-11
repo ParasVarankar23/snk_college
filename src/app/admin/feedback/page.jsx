@@ -8,7 +8,7 @@ import toast from "react-hot-toast";
 /* eslint-disable react/prop-types */
 
 const initialFormData = { name: "", rating: 5, description: "" };
-const PAGE_SIZE = 100;
+const PAGE_SIZE = 10;
 
 export default function AdminFeedbackPage() {
     const [feedbacks, setFeedbacks] = useState([]);

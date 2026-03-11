@@ -6,7 +6,7 @@
 import { BellRing } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
-const PAGE_SIZE = 100;
+const PAGE_SIZE = 10;
 
 export default function Notification({ roleLabel, notifications, unreadCount, loading, typeCounts }) {
     const hasNotifications = Array.isArray(notifications) && notifications.length > 0;
