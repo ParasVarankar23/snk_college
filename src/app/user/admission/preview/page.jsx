@@ -147,7 +147,7 @@ export default function AdmissionPreviewPage() {
     return (
         <div className="print-root min-h-screen bg-[#f0eded] px-4 py-6 md:px-8 print:bg-white print:p-0">
             {/* Action Bar — hidden in print */}
-            <div className="mx-auto mb-6 flex max-w-5xl items-center justify-between print:hidden">
+            <div className="print-action-bar mx-auto mb-6 flex max-w-5xl items-center justify-between print:hidden">
                 <div>
                     <h1 className="text-2xl font-black text-slate-900">Admission Form Preview</h1>
                     <p className="mt-1 text-sm text-slate-500">
@@ -174,7 +174,7 @@ export default function AdmissionPreviewPage() {
             </div>
 
             {/* ── PAGE 1 ── */}
-            <div className="pdf-page mx-auto mb-10 max-w-5xl overflow-hidden rounded-2xl bg-white shadow-2xl print:mb-0 print:rounded-none print:shadow-none">
+            <div className="pdf-page pdf-page--first mx-auto mb-10 max-w-5xl overflow-hidden rounded-2xl bg-white shadow-2xl print:mb-0 print:rounded-none print:shadow-none">
                 {/* Header */}
                 <div className="border-b-4 border-[#7a1c1c] bg-white px-10 py-7">
                     <div className="flex items-start justify-between gap-6">
@@ -192,12 +192,12 @@ export default function AdmissionPreviewPage() {
 
                         <div className="flex items-start gap-4">
                             {/* Student Photo */}
-                            <div className="flex h-24 w-20 shrink-0 flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-[#7a1c1c]/20 bg-slate-50">
+                            <div className="student-photo-box flex h-24 w-20 shrink-0 flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-[#7a1c1c]/20 bg-slate-50">
                                 {studentPhotoUrl ? (
                                     <img
                                         src={studentPhotoUrl}
                                         alt="Student"
-                                        className="h-full w-full object-cover"
+                                        className="student-photo-image h-full w-full object-cover object-top"
                                     />
                                 ) : (
                                     <>
@@ -210,14 +210,14 @@ export default function AdmissionPreviewPage() {
                             </div>
 
                             {/* App ID box */}
-                            <div className="rounded-xl border border-[#7a1c1c]/20 bg-[#7a1c1c]/5 px-5 py-4 text-right">
-                                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#7a1c1c]">
+                            <div className="application-id-box rounded-xl border border-[#7a1c1c]/20 bg-[#7a1c1c]/5 px-5 py-4 text-right">
+                                <p className="application-id-label text-[10px] font-bold uppercase tracking-[0.2em] text-[#7a1c1c]">
                                     Application ID
                                 </p>
-                                <p className="mt-1 text-base font-black text-slate-900">
+                                <p className="application-id-value mt-1 text-base font-black text-slate-900">
                                     {applicationId || "—"}
                                 </p>
-                                <div className="mt-2 space-y-0.5">
+                                <div className="application-id-meta mt-2 space-y-0.5">
                                     <p className="text-xs text-slate-500">
                                         Year:{" "}
                                         <span className="font-semibold text-slate-700">{academicYear}</span>
@@ -292,11 +292,44 @@ export default function AdmissionPreviewPage() {
                         <DataItem label="Medium of Study" value={formData.mediumOfStudy} />
                         <DataItem label="Last School Address" value={formData.lastSchoolAddress} span={4} />
                     </div>
+
+                    {/* Extra Institutional Details */}
+                    <SectionTitle icon={BadgeCheck} title="Extra Institutional Details" />
+                    <div className="grid grid-cols-4 gap-3">
+                        <DataItem label="Reservation Category" value={formData.reservationCategory} />
+                        <DataItem label="Minority Status" value={formData.minorityStatus} />
+                        <DataItem label="Disability / Special Needs" value={formData.disabilityStatus} />
+                        <DataItem label="Emergency Contact" value={formData.emergencyContactNumber} />
+                    </div>
+
+                    {/* Payment Details */}
+                    <SectionTitle icon={IndianRupee} title="Payment Details" />
+                    <div className="grid grid-cols-4 gap-3">
+                        <DataItem
+                            label="Payment Status"
+                            value={paymentDetails?.status === "paid" ? "Paid ✓" : "Pending"}
+                            highlight={paymentDetails?.status === "paid"}
+                        />
+                        <DataItem
+                            label="Amount Paid"
+                            value={paymentDetails?.amount ? `Rs ${paymentDetails.amount}` : "Rs 200"}
+                        />
+                        <DataItem
+                            label="Payment ID"
+                            value={paymentDetails?.razorpayPaymentId}
+                            span={2}
+                        />
+                        <DataItem label="Payment Method" value="Razorpay" />
+                        <DataItem
+                            label="Payment Date"
+                            value={paymentDetails?.paidAt ? formatDate(paymentDetails.paidAt) : "N/A"}
+                        />
+                    </div>
                 </div>
             </div>
 
             {/* ── PAGE 2 ── */}
-            <div className="pdf-page mx-auto max-w-5xl overflow-hidden rounded-2xl bg-white shadow-2xl print:rounded-none print:shadow-none">
+            <div className="pdf-page pdf-page--second mx-auto max-w-5xl overflow-hidden rounded-2xl bg-white shadow-2xl print:rounded-none print:shadow-none">
                 {/* Page 2 Header */}
                 <div className="border-b-4 border-[#7a1c1c] bg-white px-10 py-5">
                     <div className="flex items-center justify-between">
@@ -336,39 +369,6 @@ export default function AdmissionPreviewPage() {
                                     : "None selected"
                             }
                             span={4}
-                        />
-                    </div>
-
-                    {/* Extra Institutional Details */}
-                    <SectionTitle icon={BadgeCheck} title="Extra Institutional Details" />
-                    <div className="grid grid-cols-4 gap-3">
-                        <DataItem label="Reservation Category" value={formData.reservationCategory} />
-                        <DataItem label="Minority Status" value={formData.minorityStatus} />
-                        <DataItem label="Disability / Special Needs" value={formData.disabilityStatus} />
-                        <DataItem label="Emergency Contact" value={formData.emergencyContactNumber} />
-                    </div>
-
-                    {/* Payment Details */}
-                    <SectionTitle icon={IndianRupee} title="Payment Details" />
-                    <div className="grid grid-cols-4 gap-3">
-                        <DataItem
-                            label="Payment Status"
-                            value={paymentDetails?.status === "paid" ? "Paid ✓" : "Pending"}
-                            highlight={paymentDetails?.status === "paid"}
-                        />
-                        <DataItem
-                            label="Amount Paid"
-                            value={paymentDetails?.amount ? `Rs ${paymentDetails.amount}` : "Rs 200"}
-                        />
-                        <DataItem
-                            label="Payment ID"
-                            value={paymentDetails?.razorpayPaymentId}
-                            span={2}
-                        />
-                        <DataItem label="Payment Method" value="Razorpay" />
-                        <DataItem
-                            label="Payment Date"
-                            value={paymentDetails?.paidAt ? formatDate(paymentDetails.paidAt) : "N/A"}
                         />
                     </div>
 
@@ -437,76 +437,202 @@ export default function AdmissionPreviewPage() {
             <style jsx global>{`
                 @page {
                     size: A4 portrait;
-                    margin: 8mm;
+                    margin: 6mm;
                 }
 
                 @media print {
-                    /* Color fidelity */
+                    /* ── Color fidelity ── */
                     * {
                         -webkit-print-color-adjust: exact !important;
                         print-color-adjust: exact !important;
                     }
 
-                    /* Hide layout chrome — navbar, sidebar, mobile overlay */
-                    header,
-                    aside,
-                    nav,
-                    [class*="print:hidden"] {
+                    /* ── Hide layout chrome ── */
+                    header, aside, nav {
                         display: none !important;
                     }
 
-                    /* Break the scroll-prison: every ancestor that clips height */
-                    html,
-                    body,
-                    #__next,
-                    #__next > div,
-                    #__next > div > div,
-                    #__next > div > div > div {
-                        height: auto !important;
-                        max-height: none !important;
-                        overflow: visible !important;
+                    /* ── Action bar ── */
+                    .print-action-bar {
+                        display: none !important;
                     }
 
-                    /* The <main> tag has overflow-y-auto + flex-1 — reset it */
-                    main {
-                        overflow: visible !important;
+                    /* ── Unlock scroll-clipped layout containers ── */
+                    html, body {
                         height: auto !important;
                         max-height: none !important;
-                        flex: none !important;
+                        overflow: visible !important;
+                        background: white !important;
+                        margin: 0 !important;
                         padding: 0 !important;
-                        background: white !important;
                     }
+                    .h-screen { height: auto !important; max-height: none !important; }
+                    .overflow-hidden, .overflow-y-auto { overflow: visible !important; height: auto !important; max-height: none !important; }
+                    .flex-1 { flex: 0 0 auto !important; height: auto !important; max-height: none !important; }
+                    main { padding: 0 !important; background: white !important; }
+                    .print-root { background: white !important; padding: 0 !important; margin: 0 !important; }
 
-                    body {
-                        background: white !important;
-                        margin: 0;
-                        padding: 0;
-                    }
-
-                    /* Each A4 page card */
+                    /* ── PDF page cards — no forced min-height so content dictates size ── */
                     .pdf-page {
-                        width: 100%;
-                        min-height: 277mm;
-                        margin: 0;
-                        padding: 0;
+                        display: block !important;
+                        width: 100% !important;
+                        min-height: unset !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
                         box-shadow: none !important;
                         border-radius: 0 !important;
                         overflow: visible !important;
+                        page-break-inside: avoid;
+                        break-inside: avoid-page;
+                    }
+                    .pdf-page--first {
                         page-break-after: always;
                         break-after: page;
                     }
-
-                    .pdf-page:last-of-type {
+                    .pdf-page--second {
                         page-break-after: auto;
                         break-after: auto;
-                        min-height: unset;
                     }
 
-                    /* Wrapper that holds both pages */
-                    .print-root {
-                        background: white !important;
-                        padding: 0 !important;
-                        margin: 0 !important;
+                    /* Keep cards/titles intact when a page break happens */
+                    .pdf-page .data-item-card,
+                    .pdf-page .section-title-row {
+                        page-break-inside: avoid;
+                        break-inside: avoid-page;
+                    }
+
+                    /* Keep each section title with its first content block */
+                    .pdf-page .section-title-row {
+                        page-break-after: avoid;
+                        break-after: avoid-page;
+                    }
+
+                    .pdf-page .section-title-row + .grid,
+                    .pdf-page .section-title-row + .rounded-2xl {
+                        page-break-before: avoid;
+                        break-before: avoid-page;
+                        page-break-inside: avoid;
+                        break-inside: avoid-page;
+                    }
+
+                    /* ── Compress page header padding ── */
+                    .pdf-page .border-b-4 {
+                        padding: 8px 20px !important;
+                    }
+
+                    /* Tighten first page header to avoid 1-row spill on next sheet */
+                    .pdf-page--first .border-b-4 {
+                        padding: 9px 20px !important;
+                    }
+
+                    /* ── Compress section content area ── */
+                    .pdf-page .space-y-7 > * + * { margin-top: 8px !important; }
+                    .pdf-page .px-10 { padding-left: 20px !important; padding-right: 20px !important; }
+                    .pdf-page .py-8 { padding-top: 10px !important; padding-bottom: 10px !important; }
+                    .pdf-page .py-7 { padding-top: 8px !important; padding-bottom: 8px !important; }
+
+                    /* ── Compress grids and cells ── */
+                    .pdf-page .gap-3 { gap: 4px !important; }
+                    .pdf-page .gap-5 { gap: 6px !important; }
+                    .pdf-page .gap-2 { gap: 4px !important; }
+                    .pdf-page .px-3 { padding-left: 5px !important; padding-right: 5px !important; }
+                    .pdf-page .p-5 { padding: 8px !important; }
+                    .pdf-page .pt-4 { padding-top: 6px !important; }
+                    .pdf-page .pb-3 { padding-bottom: 4px !important; }
+
+                    /* ── Section title icon size ── */
+                    .pdf-page .h-9 { height: 22px !important; width: 22px !important; min-width: 22px !important; }
+                    .pdf-page .w-9 { width: 22px !important; }
+
+                    /* ── Student photo + app id box ── */
+                    .pdf-page .student-photo-box {
+                        height: 72px !important;
+                        width: 58px !important;
+                    }
+                    .pdf-page .student-photo-image {
+                        object-fit: cover !important;
+                        object-position: center top !important;
+                    }
+                    .pdf-page .application-id-box {
+                        min-width: 185px;
+                    }
+
+                    .pdf-page--first .application-id-box {
+                        min-width: 176px;
+                        padding: 7px 12px !important;
+                    }
+
+                    .pdf-page--first .application-id-label {
+                        font-size: 7.5px !important;
+                        letter-spacing: 0.17em !important;
+                        line-height: 10px !important;
+                    }
+
+                    .pdf-page--first .application-id-value {
+                        margin-top: 3px !important;
+                        font-size: 14px !important;
+                        line-height: 16px !important;
+                    }
+
+                    .pdf-page--first .application-id-meta {
+                        margin-top: 3px !important;
+                    }
+
+                    .pdf-page--first .application-id-meta p,
+                    .pdf-page--first .application-id-meta span {
+                        font-size: 7.5px !important;
+                        line-height: 10px !important;
+                    }
+
+                    /* ── Signature box height ── */
+                    .pdf-page .h-16 { height: 32px !important; }
+
+                    /* ── Typography scale-down ── */
+                    .pdf-page .text-3xl { font-size: 18px !important; line-height: 24px !important; }
+                    .pdf-page .text-2xl { font-size: 15px !important; line-height: 20px !important; }
+                    .pdf-page .text-base { font-size: 11px !important; line-height: 15px !important; }
+                    .pdf-page .text-sm  { font-size: 9.5px !important; line-height: 13px !important; }
+                    .pdf-page .text-xs  { font-size: 8px !important; line-height: 11px !important; }
+
+                    /* Extra compaction only for page 1 so it does not spill to page 2 */
+                    .pdf-page--first .space-y-7 > * + * { margin-top: 7px !important; }
+                    .pdf-page--first .px-10 { padding-left: 18px !important; padding-right: 18px !important; }
+                    .pdf-page--first .py-8 { padding-top: 9px !important; padding-bottom: 9px !important; }
+                    .pdf-page--first .gap-3 { gap: 4px !important; }
+                    .pdf-page--first .text-sm { font-size: 9.25px !important; line-height: 12.5px !important; }
+
+                    /* Stronger first-page fit tuning */
+                    .pdf-page--first .section-title-row {
+                        padding-bottom: 3px !important;
+                        margin-bottom: 3px !important;
+                    }
+                    .pdf-page--first .section-title-row .h-9 {
+                        height: 20px !important;
+                        width: 20px !important;
+                        min-width: 20px !important;
+                    }
+                    .pdf-page--first .section-title-row .h-4 {
+                        height: 11px !important;
+                        width: 11px !important;
+                    }
+                    .pdf-page--first .section-title-row h3 {
+                        font-size: 10.5px !important;
+                        line-height: 13px !important;
+                    }
+
+                    .pdf-page--first .data-item-card {
+                        padding-top: 3px !important;
+                        padding-bottom: 3px !important;
+                    }
+                    .pdf-page--first .data-item-card p:first-child {
+                        font-size: 7px !important;
+                        line-height: 8.5px !important;
+                        letter-spacing: 0.12em !important;
+                    }
+                    .pdf-page--first .data-item-card p:last-child {
+                        font-size: 8.5px !important;
+                        line-height: 10.5px !important;
+                        margin-top: 2px !important;
                     }
                 }
             `}</style>
@@ -516,7 +642,7 @@ export default function AdmissionPreviewPage() {
 
 function SectionTitle({ icon: Icon, title }) {
     return (
-        <div className="flex items-center gap-3 border-b-2 border-[#7a1c1c]/10 pb-3">
+        <div className="section-title-row flex items-center gap-3 border-b-2 border-[#7a1c1c]/10 pb-3">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#7a1c1c] text-white shadow-sm">
                 <Icon className="h-4 w-4" />
             </div>
@@ -530,7 +656,7 @@ function DataItem({ label, value, span = 1, highlight = false }) {
     const colSpanClass = colSpanMap[span] || "col-span-1";
 
     return (
-        <div className={`${colSpanClass} rounded-xl border border-slate-200 bg-white px-3 py-2.5`}>
+        <div className={`${colSpanClass} data-item-card rounded-xl border border-slate-200 bg-white px-3 py-2.5`}>
             <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">{label}</p>
             <p
                 className={`mt-0.5 wrap-break-word text-sm font-semibold ${highlight ? "text-[#7a1c1c]" : "text-slate-800"
