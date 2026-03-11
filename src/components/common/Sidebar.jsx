@@ -1,5 +1,7 @@
 "use client";
 
+/* eslint-disable react/prop-types */
+
 import { useAuth } from "@/hooks/useAuth";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
@@ -177,6 +179,11 @@ export default function Sidebar({ setSidebarOpen }) {
       name: "Contact",
       icon: FaAddressBook,
       path: "/admin/contact",
+    },
+    {
+      name: "Leadership",
+      icon: FaCircleUser,
+      path: "/admin/leadership",
     },
   ];
 

@@ -49,7 +49,7 @@ const cardVariants = {
 
 export default function CoursesSection() {
     return (
-        <section className="relative overflow-hidden bg-gray-50 py-14 md:py-20">
+        <section className="relative overflow-hidden bg-gray-50 py-5">
 
             {/* Soft decorative blobs */}
             <div className="pointer-events-none absolute -top-10 -left-10 h-64 w-64 rounded-full bg-[#7a1c1c]/6 blur-3xl" />

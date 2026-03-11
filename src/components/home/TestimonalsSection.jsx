@@ -118,7 +118,7 @@ export default function TestimonialsSection() {
     const gridClass = getGridClass(currentItems.length);
 
     return (
-        <section className="relative overflow-hidden bg-gray-50 py-2 md:py-5">
+        <section className="relative overflow-hidden bg-gray-50">
 
             {/* Decorative blobs */}
             <div className="pointer-events-none absolute -top-10 left-1/4 h-64 w-64 rounded-full bg-[#7a1c1c]/6 blur-3xl" />
@@ -255,7 +255,7 @@ export default function TestimonialsSection() {
 
                 {/* CTA */}
                 <motion.div
-                    className="mt-6 text-center"
+                    className="py-6 text-center"
                     initial={{ opacity: 0, y: 16 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.2 }}

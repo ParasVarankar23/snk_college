@@ -1,10 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-const leaders = [
+const defaultLeaders = [
     {
         id: "chairman-ravindra-dada-kulkarni",
         name: "Ravindra Dada Kulkarni",
@@ -74,10 +73,42 @@ const cardVariants = {
 };
 
 export default function LeadershipSection() {
+    const [leaders, setLeaders] = useState(defaultLeaders);
+    const [apiLeaders, setApiLeaders] = useState([]);
     const [activeIndex, setActiveIndex] = useState(-1);
 
+    useEffect(() => {
+        const loadLeaders = async () => {
+            try {
+                const response = await fetch("/api/leadership", { cache: "no-store" });
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || "Failed to fetch leadership data");
+                }
+
+                setApiLeaders(data.leaders || []);
+            } catch {
+                setApiLeaders([]);
+            }
+        };
+
+        loadLeaders();
+    }, []);
+
+    const visibleLeaders = useMemo(() => {
+        if (apiLeaders.length > 0) {
+            return apiLeaders;
+        }
+        return leaders;
+    }, [apiLeaders, leaders]);
+
+    useEffect(() => {
+        setLeaders(defaultLeaders);
+    }, []);
+
     const selectCard = (cardId) => {
-        const selectedIndex = leaders.findIndex((leader) => leader.id === cardId);
+        const selectedIndex = visibleLeaders.findIndex((leader) => leader.id === cardId);
         if (selectedIndex !== -1) {
             setActiveIndex((prev) => (prev === selectedIndex ? -1 : selectedIndex));
         }
@@ -116,7 +147,7 @@ export default function LeadershipSection() {
                     whileInView="visible"
                     viewport={{ once: true, amount: 0.2 }}
                 >
-                    {leaders.map((leader, index) => (
+                    {visibleLeaders.map((leader, index) => (
                         <motion.div
                             key={leader.id}
                             variants={cardVariants}
@@ -158,11 +189,10 @@ export default function LeadershipSection() {
                                             transition={{ duration: 0.4 }}
                                             className="h-full w-full"
                                         >
-                                            <Image
-                                                src={leader.image}
+                                            <img
+                                                src={leader.imageUrl || leader.image}
                                                 alt={leader.name}
-                                                fill
-                                                className="object-cover"
+                                                className="h-full w-full object-cover"
                                             />
                                         </motion.div>
                                     </div>
