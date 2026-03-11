@@ -66,7 +66,7 @@ export default function HeroSection() {
 
             <div className="absolute inset-0 -z-10 bg-linear-to-r from-black/70 via-black/50 to-black/30" />
 
-            <div className="mx-auto flex min-h-[78vh] md:min-h-[84vh] max-w-7xl items-center px-4 py-14 sm:px-6 lg:px-8">
+            <div className="mx-auto flex min-h-[78vh] md:min-h-[84vh] max-w-7xl items-center px-4 py4- sm:px-6 lg:px-8">
                 <div
                     key={index}
                     className="w-full max-w-3xl rounded-2xl border border-white/20 bg-white/10 p-6 text-white shadow-2xl backdrop-blur-sm sm:p-8 md:p-10"
