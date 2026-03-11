@@ -11,7 +11,7 @@ function isStrongPassword(password) {
 
 /** Convert email to a safe Firebase DB key (no dots, @, etc.) */
 function emailToKey(email) {
-    return email.replace(/\./g, "_dot_").replace(/@/g, "_at_");
+    return email.replaceAll(".", "_dot_").replaceAll("@", "_at_");
 }
 
 /** Generate a 6-digit numeric OTP */

@@ -3,6 +3,37 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { get, ref } from "firebase/database";
 import jwt from "jsonwebtoken";
 
+function mapLoginError(error) {
+    if (error.code === "auth/user-not-found") {
+        return { error: "User not found", status: 401 };
+    }
+
+    if (error.code === "auth/wrong-password") {
+        return { error: "Wrong password", status: 401 };
+    }
+
+    if (
+        error.code === "auth/invalid-credential" ||
+        error.code === "auth/invalid-login-credentials"
+    ) {
+        return { error: "Invalid email or password", status: 401 };
+    }
+
+    if (error.code === "auth/invalid-email") {
+        return { error: "Invalid email address", status: 400 };
+    }
+
+    if (error.code === "auth/user-disabled") {
+        return { error: "User account is disabled", status: 403 };
+    }
+
+    return { error: error.message || "Login failed", status: 500 };
+}
+
+function normalizeRole(role) {
+    return String(role || "").trim().toLowerCase();
+}
+
 export async function POST(request) {
     try {
         const auth = getFirebaseAuth();
@@ -45,8 +76,10 @@ export async function POST(request) {
         }
 
         // App token with only user_id claim
+        const normalizedRole = normalizeRole(userData?.role) || "student";
+
         const appToken = jwt.sign(
-            { user_id: user.uid },
+            { user_id: user.uid, role: normalizedRole },
             jwtSecret,
             { expiresIn: jwtExpiration }
         );
@@ -59,46 +92,17 @@ export async function POST(request) {
                     uid: user.uid,
                     email: user.email,
                     name: userData?.name || null,
+                    role: normalizedRole,
                 },
                 authToken: appToken,
             },
             { status: 200 }
         );
     } catch (error) {
-        console.error("Login error:", error);
-
-        // Handle Firebase specific errors
-        if (error.code === "auth/user-not-found") {
-            return Response.json(
-                { error: "User not found" },
-                { status: 401 }
-            );
+        const mapped = mapLoginError(error);
+        if (mapped.status >= 500) {
+            console.error("Login error:", error);
         }
-
-        if (error.code === "auth/wrong-password") {
-            return Response.json(
-                { error: "Wrong password" },
-                { status: 401 }
-            );
-        }
-
-        if (error.code === "auth/invalid-email") {
-            return Response.json(
-                { error: "Invalid email address" },
-                { status: 400 }
-            );
-        }
-
-        if (error.code === "auth/user-disabled") {
-            return Response.json(
-                { error: "User account is disabled" },
-                { status: 403 }
-            );
-        }
-
-        return Response.json(
-            { error: error.message || "Login failed" },
-            { status: 500 }
-        );
+        return Response.json({ error: mapped.error }, { status: mapped.status });
     }
 }

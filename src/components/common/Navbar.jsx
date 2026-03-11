@@ -11,6 +11,8 @@ import toast from "react-hot-toast";
 export default function Navbar({ sidebarOpen, setSidebarOpen }) {
   const { user, logout } = useAuth();
   const router = useRouter();
+  const normalizedRole = String(user?.role || "").trim().toLowerCase();
+  const roleLabel = normalizedRole === "admin" ? "Admin" : "Student";
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [logoutModal, setLogoutModal] = useState(false);
@@ -110,7 +112,7 @@ export default function Navbar({ sidebarOpen, setSidebarOpen }) {
             <p className="text-xs md:text-sm font-medium text-gray-500">
               Welcome back,
             </p>
-            <h1 className="text-sm md:text-lg font-bold bg-gradient-to-r from-[#7a1c1c] to-[#5a1414] bg-clip-text text-transparent">
+            <h1 className="text-sm md:text-lg font-bold bg-linear-to-r from-[#7a1c1c] to-[#5a1414] bg-clip-text text-transparent">
               {user?.name || "User"}
             </h1>
           </div>
@@ -143,17 +145,15 @@ export default function Navbar({ sidebarOpen, setSidebarOpen }) {
           <div
             className="relative"
             ref={dropdownRef}
-            onMouseEnter={() => setDropdownOpen(true)}
-            onMouseLeave={() => setDropdownOpen(false)}
           >
             <button
               onClick={() => setDropdownOpen(!dropdownOpen)}
               className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-[#7a1c1c]/10 transition"
             >
-              <div className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold shadow bg-gradient-to-r from-[#7a1c1c] to-[#5a1414]">
+              <div className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold shadow bg-linear-to-r from-[#7a1c1c] to-[#5a1414]">
                 {user?.name?.charAt(0) || "U"}
               </div>
-              <span className="hidden md:inline text-sm font-medium truncate max-w-[100px]">
+              <span className="hidden md:inline text-sm font-medium truncate max-w-25">
                 {user?.name || "Profile"}
               </span>
             </button>
@@ -166,7 +166,7 @@ export default function Navbar({ sidebarOpen, setSidebarOpen }) {
                   <p className="text-sm font-bold">{user?.name}</p>
                   <p className="text-xs text-gray-500 mt-1">{user?.email}</p>
                   <p className="text-xs text-[#7a1c1c] font-medium mt-2 uppercase tracking-wide">
-                    Student/Staff
+                    {roleLabel}
                   </p>
                 </div>
 
@@ -237,7 +237,7 @@ export default function Navbar({ sidebarOpen, setSidebarOpen }) {
 
               <button
                 onClick={handleFinalLogout}
-                className="px-6 py-2 rounded-lg bg-gradient-to-r from-rose-500 to-pink-500 text-white font-medium shadow hover:shadow-lg hover:scale-105 transition"
+                className="px-6 py-2 rounded-lg bg-linear-to-r from-rose-500 to-pink-500 text-white font-medium shadow hover:shadow-lg hover:scale-105 transition"
               >
                 Logout Now
               </button>

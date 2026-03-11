@@ -17,6 +17,10 @@ function decodeJwtPayload(token) {
     }
 }
 
+function normalizeRole(role) {
+    return String(role || "").trim().toLowerCase();
+}
+
 export function useAuth() {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -24,18 +28,24 @@ export function useAuth() {
 
     useEffect(() => {
         const initAuth = async () => {
+            setLoading(true);
             const authToken = localStorage.getItem("authToken");
 
             if (!authToken) {
+                setUser(null);
+                setIsAuthenticated(false);
                 setLoading(false);
                 return;
             }
 
             const payload = decodeJwtPayload(authToken);
             const uid = payload?.user_id || payload?.uid || payload?.sub;
+            const roleFromToken = payload?.role || null;
 
             if (!uid) {
                 localStorage.removeItem("authToken");
+                setUser(null);
+                setIsAuthenticated(false);
                 setLoading(false);
                 return;
             }
@@ -52,22 +62,42 @@ export function useAuth() {
                     email: profile?.email || null,
                     phone: profile?.phone || null,
                     address: profile?.address || null,
+                    role: normalizeRole(profile?.role || roleFromToken),
                 });
             } catch {
                 // Keep auth state from token even if profile fetch fails
-                setUser({ uid, name: null, email: null, phone: null, address: null });
+                setUser({ uid, name: null, email: null, phone: null, address: null, role: normalizeRole(roleFromToken) });
             } finally {
                 setLoading(false);
             }
         };
 
         initAuth();
+
+        const handleAuthChanged = () => {
+            initAuth();
+        };
+
+        const handleStorage = (event) => {
+            if (event.key === "authToken") {
+                initAuth();
+            }
+        };
+
+        globalThis.addEventListener("auth-changed", handleAuthChanged);
+        globalThis.addEventListener("storage", handleStorage);
+
+        return () => {
+            globalThis.removeEventListener("auth-changed", handleAuthChanged);
+            globalThis.removeEventListener("storage", handleStorage);
+        };
     }, []);
 
     const logout = () => {
         localStorage.removeItem("authToken");
         setUser(null);
         setIsAuthenticated(false);
+        globalThis.dispatchEvent(new Event("auth-changed"));
     };
 
     const updateUser = (updates) => {

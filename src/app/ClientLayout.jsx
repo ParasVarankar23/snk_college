@@ -1,7 +1,8 @@
 "use client";
 
-import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 /* PUBLIC WEBSITE NAVBAR + FOOTER */
 import Footer from "@/components/layout/Footer";
@@ -14,6 +15,9 @@ import Sidebar from "@/components/common/Sidebar";
 // eslint-disable-next-line react/prop-types
 export default function ClientLayout({ children }) {
     const pathname = usePathname();
+    const router = useRouter();
+    const { user, loading, isAuthenticated } = useAuth();
+    const normalizedRole = String(user?.role || "").trim().toLowerCase();
 
     /* Sidebar toggle state (for admin mobile view) */
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -23,25 +27,50 @@ export default function ClientLayout({ children }) {
     /* If URL starts with /admin */
     const isAdminRoute = pathname.startsWith("/admin");
 
+    useEffect(() => {
+        if (!isAdminRoute || loading) return;
+
+        if (!isAuthenticated) {
+            router.push("/login");
+            return;
+        }
+
+        if (normalizedRole !== "admin") {
+            router.push("/user/admission");
+        }
+    }, [isAdminRoute, loading, isAuthenticated, normalizedRole, router]);
+
 
     /* Authenticated user routes (profile, settings, academics, etc.) */
     const isDashboardRoute =
+        pathname.startsWith("/user") ||
         pathname.startsWith("/profile") ||
         pathname.startsWith("/settings");
 
     /* ================= ADMIN DASHBOARD ================= */
     if (isAdminRoute) {
+        if (loading || !isAuthenticated || normalizedRole !== "admin") {
+            return (
+                <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                    <div className="text-center">
+                        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#7a1c1c]"></div>
+                        <p className="mt-4 text-gray-600">Checking access...</p>
+                    </div>
+                </div>
+            );
+        }
+
         return (
-            <div className="h-screen flex flex-col md:flex-row bg-gray-50 dark:bg-[#0f0f0f]">
+            <div className="h-screen flex flex-col md:flex-row bg-gray-50">
                 {/* ADMIN SIDEBAR - DESKTOP */}
-                <aside className="hidden md:block w-64 h-screen overflow-y-auto">
+                <aside className="hidden md:block w-64 h-screen overflow-hidden shrink-0">
                     <Sidebar />
                 </aside>
 
                 {/* ADMIN SIDEBAR - MOBILE OVERLAY */}
                 {sidebarOpen && (
                     <div className="md:hidden fixed inset-0 z-30 bg-black/40">
-                        <aside className="w-64 h-screen overflow-y-auto">
+                        <aside className="w-64 h-screen overflow-hidden shrink-0">
                             <Sidebar setSidebarOpen={setSidebarOpen} />
                         </aside>
                     </div>
@@ -50,7 +79,7 @@ export default function ClientLayout({ children }) {
                 {/* MAIN CONTENT AREA */}
                 <div className="flex-1 flex flex-col overflow-hidden">
                     {/* NAVBAR */}
-                    <header className="h-20 border-b border-gray-200 dark:border-white/10 shrink-0">
+                    <header className="h-20 border-b border-gray-200 shrink-0">
                         <UserNavbar
                             sidebarOpen={sidebarOpen}
                             setSidebarOpen={setSidebarOpen}
@@ -82,21 +111,21 @@ export default function ClientLayout({ children }) {
                 {/* LAYOUT WITH SIDEBAR */}
                 <div className="flex flex-1 pt-20 overflow-hidden">
                     {/* DESKTOP SIDEBAR */}
-                    <aside className="hidden md:block w-64 h-full overflow-y-auto">
+                    <aside className="hidden md:block w-64 h-full overflow-hidden shrink-0">
                         <Sidebar />
                     </aside>
 
                     {/* MOBILE SIDEBAR OVERLAY */}
                     {sidebarOpen && (
                         <div className="md:hidden fixed inset-0 z-30 bg-black/40">
-                            <div className="w-64 h-full pt-20">
+                            <div className="w-64 h-full pt-20 overflow-hidden shrink-0">
                                 <Sidebar setSidebarOpen={setSidebarOpen} />
                             </div>
                         </div>
                     )}
 
                     {/* MAIN CONTENT */}
-                    <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-gray-50 dark:bg-[#0f0f0f]">
+                    <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-gray-50">
                         {children}
                     </main>
                 </div>
@@ -106,7 +135,7 @@ export default function ClientLayout({ children }) {
 
     /* ================= PUBLIC WEBSITE ================= */
     return (
-        <div className="flex flex-col min-h-screen bg-white dark:bg-[#0f0f0f]">
+        <div className="flex flex-col min-h-screen bg-white">
             {/* PUBLIC WEBSITE NAVBAR */}
             <Navbar />
 

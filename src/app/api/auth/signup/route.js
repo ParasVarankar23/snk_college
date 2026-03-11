@@ -26,6 +26,7 @@ export async function POST(request) {
         const db = getFirebaseDb();
 
         const { name, email } = await request.json();
+        const normalizedRole = "student";
 
         // Validation
         if (!name || !email) {
@@ -58,6 +59,7 @@ export async function POST(request) {
         await set(ref(db, `users/${user.uid}`), {
             name: name.trim(),
             email: email.toLowerCase(),
+            role: normalizedRole,
             createdAt: new Date().toISOString(),
         });
 
@@ -77,6 +79,7 @@ export async function POST(request) {
                     uid: user.uid,
                     email: user.email,
                     name: name.trim(),
+                    role: normalizedRole,
                 },
                 generatedPassword: generatedPassword,
             },

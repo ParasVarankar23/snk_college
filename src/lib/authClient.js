@@ -3,11 +3,11 @@
  * Utility functions to interact with the Firebase authentication API
  */
 
-export async function signup(name, email) {
+export async function signup(name, email, role = "student") {
     const response = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email }),
+        body: JSON.stringify({ name, email, role }),
     });
 
     const data = await response.json();
@@ -19,11 +19,11 @@ export async function signup(name, email) {
     return data;
 }
 
-export async function login(email, password) {
+export async function login(email, password, role = "student") {
     const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, role }),
     });
 
     const data = await response.json();

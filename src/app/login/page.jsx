@@ -1,22 +1,30 @@
 "use client";
 
+import { getFirebaseAuth } from "@/lib/firebase";
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { FaCheckCircle, FaEye, FaEyeSlash } from "react-icons/fa";
 
 export default function LoginPage() {
-    const router = useRouter();
-
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [googleLoading, setGoogleLoading] = useState(false);
     const [error, setError] = useState("");
 
     const [formData, setFormData] = useState({
         email: "",
         password: "",
     });
+
+    const normalizeRole = (role) => String(role || "").trim().toLowerCase();
+
+    const redirectToDashboard = (role) => {
+        const normalizedRole = normalizeRole(role) || "student";
+        const targetPath = normalizedRole === "admin" ? "/admin/events" : "/user/admission";
+        globalThis.location.replace(targetPath);
+    };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -53,15 +61,60 @@ export default function LoginPage() {
             }
 
             localStorage.setItem("authToken", data.authToken);
+            globalThis.dispatchEvent(new Event("auth-changed"));
 
             toast.success("Login successful");
-            router.push("/admin/events");
+            redirectToDashboard(data?.user?.role);
         } catch (err) {
             const errorMessage = err.message || "Login error";
             setError(errorMessage);
             toast.error(errorMessage);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleGoogleLogin = async () => {
+        setGoogleLoading(true);
+        setError("");
+
+        try {
+            const provider = new GoogleAuthProvider();
+            provider.setCustomParameters({ prompt: "select_account" });
+            const auth = getFirebaseAuth();
+
+            const result = await signInWithPopup(auth, provider);
+            const idToken = await result.user.getIdToken();
+
+            const response = await fetch("/api/auth/google-login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    idToken,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                const errorMessage = data.error || "Google login failed";
+                setError(errorMessage);
+                toast.error(errorMessage);
+                return;
+            }
+
+            localStorage.setItem("authToken", data.authToken);
+            globalThis.dispatchEvent(new Event("auth-changed"));
+            toast.success("Google login successful");
+            redirectToDashboard(data?.user?.role);
+        } catch (err) {
+            const errorMessage = err.message || "Google login failed";
+            setError(errorMessage);
+            toast.error(errorMessage);
+        } finally {
+            setGoogleLoading(false);
         }
     };
 
@@ -125,6 +178,7 @@ export default function LoginPage() {
                     )}
 
                     <form onSubmit={handleSubmit} className="space-y-6">
+
                         <div>
                             <label htmlFor="email" className="block font-medium text-gray-700 mb-2">
                                 Email Address
@@ -138,7 +192,7 @@ export default function LoginPage() {
                                 value={formData.email}
                                 onChange={handleChange}
                                 required
-                                disabled={loading}
+                                disabled={loading || googleLoading}
                                 className="w-full h-12 px-4 border border-gray-300 rounded-lg focus:border-[#7a1c1c] focus:ring-2 focus:ring-[#7a1c1c] outline-none"
                             />
                         </div>
@@ -157,7 +211,7 @@ export default function LoginPage() {
                                     value={formData.password}
                                     onChange={handleChange}
                                     required
-                                    disabled={loading}
+                                    disabled={loading || googleLoading}
                                     className="w-full h-12 px-4 pr-12 border border-gray-300 rounded-lg focus:border-[#7a1c1c] focus:ring-2 focus:ring-[#7a1c1c] outline-none"
                                 />
 
@@ -179,10 +233,19 @@ export default function LoginPage() {
 
                         <button
                             type="submit"
-                            disabled={loading}
+                            disabled={loading || googleLoading}
                             className="w-full h-12 bg-[#7a1c1c] text-white font-semibold rounded-lg hover:bg-[#9f2a2a] transition"
                         >
                             {loading ? "Signing in..." : "Sign In"}
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={handleGoogleLogin}
+                            disabled={loading || googleLoading}
+                            className="w-full h-12 border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition disabled:opacity-60"
+                        >
+                            {googleLoading ? "Signing in with Google..." : "Continue with Google"}
                         </button>
                     </form>
 

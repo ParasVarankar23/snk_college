@@ -30,6 +30,7 @@ export async function GET(request) {
             email: p.email || "",
             phone: p.phone || "",
             address: p.address || "",
+            role: p.role || "student",
         },
     });
 }

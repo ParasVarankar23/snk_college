@@ -2,13 +2,17 @@
 
 import { useAuth } from "@/hooks/useAuth";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import {
   FaAddressBook,
   FaAward,
   FaBook,
   FaCalendar,
   FaChalkboardUser,
+  FaChevronDown,
+  FaCircleUser,
+  FaGear,
   FaImages,
   FaMessage,
 } from "react-icons/fa6";
@@ -16,13 +20,26 @@ import {
 // eslint-disable-next-line react/prop-types
 export default function Sidebar({ setSidebarOpen }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { user } = useAuth();
+  const [admissionOpen, setAdmissionOpen] = useState(false);
+
+  useEffect(() => {
+    if (pathname.startsWith("/user/admission")) {
+      setAdmissionOpen(true);
+    }
+  }, [pathname]);
 
   const handleLinkClick = () => {
     setSidebarOpen?.(false);
   };
 
-  const menuItems = [
+  const adminMenuItems = [
+    {
+      name: "View Admissions",
+      icon: FaChalkboardUser,
+      path: "/admin/admissions",
+    },
     {
       name: "Academics",
       icon: FaChalkboardUser,
@@ -60,9 +77,40 @@ export default function Sidebar({ setSidebarOpen }) {
     },
   ];
 
+  const userMenuItems = [
+    {
+      name: "Admission",
+      icon: FaAddressBook,
+      path: "/user/admission",
+      children: [
+        { name: "Student Details", section: "student" },
+        { name: "Parent Details", section: "family" },
+        { name: "10th Academics", section: "academic" },
+        { name: "Stream Selection", section: "stream" },
+        { name: "Documents", section: "documents" },
+        { name: "Extra Details", section: "extras" },
+        { name: "Declaration", section: "declaration" },
+      ],
+    },
+    {
+      name: "Profile",
+      icon: FaCircleUser,
+      path: "/profile",
+    },
+    {
+      name: "Settings",
+      icon: FaGear,
+      path: "/settings",
+    },
+  ];
+
+  const isAdmin = user?.role === "admin";
+  const menuItems = isAdmin ? adminMenuItems : userMenuItems;
+  const roleLabel = isAdmin ? "Admin" : "Student";
+
   return (
     <aside
-      className="w-64 h-screen overflow-y-auto flex flex-col transition-all bg-white border-r border-gray-200"
+      className="w-full h-full overflow-y-auto overflow-x-hidden flex flex-col transition-all bg-white border-r border-gray-200"
     >
       {/* HEADER */}
       <div className="sticky top-0 p-6 border-b border-gray-200">
@@ -73,30 +121,71 @@ export default function Sidebar({ setSidebarOpen }) {
           <div>
             <h2 className="font-bold text-lg">SNK Portal</h2>
             <p className="text-xs text-gray-600">
-              {user?.name || "Student/Staff"}
+              {user?.name || roleLabel}
             </p>
           </div>
         </div>
       </div>
 
       {/* NAVIGATION */}
-      <nav className="flex-1 px-4 py-6 space-y-2">
+      <nav className="flex-1 px-3 py-5 space-y-2">
         {menuItems.map((item) => {
           const IconComponent = item.icon;
           const isActive = pathname.startsWith(item.path || "");
+          const hasChildren = Array.isArray(item.children) && item.children.length > 0;
+
+          if (hasChildren) {
+            return (
+              <div key={item.name} className="space-y-2">
+                <button
+                  type="button"
+                  onClick={() => setAdmissionOpen((prev) => !prev)}
+                  className={`flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left font-medium text-[15px] transition ${isActive
+                    ? "bg-[#7a1c1c]/10 text-[#7a1c1c]"
+                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                    }`}
+                >
+                  <IconComponent size={18} className="shrink-0" />
+                  <span className="truncate flex-1">{item.name}</span>
+                  <FaChevronDown className={`shrink-0 text-xs transition-transform ${admissionOpen ? "rotate-180" : ""}`} />
+                </button>
+
+                {admissionOpen && (
+                  <div className="ml-4 space-y-1 border-l border-gray-200 pl-4">
+                    {item.children.map((child) => {
+                      const childActive = pathname.startsWith(item.path) && searchParams.get("section") === child.section;
+                      return (
+                        <Link
+                          key={child.section}
+                          href={`${item.path}?section=${child.section}`}
+                          onClick={handleLinkClick}
+                          className={`block rounded-lg px-3 py-2 text-sm font-medium transition ${childActive
+                            ? "bg-[#7a1c1c]/10 text-[#7a1c1c]"
+                            : "text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+                            }`}
+                        >
+                          {child.name}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          }
 
           return (
             <Link
               key={item.name}
               href={item.path}
               onClick={handleLinkClick}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition ${isActive
+              className={`flex items-center gap-3 px-3 py-3 rounded-lg font-medium text-[15px] transition ${isActive
                 ? "bg-[#7a1c1c]/10 text-[#7a1c1c]"
                 : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
                 }`}
             >
-              <IconComponent size={18} />
-              <span>{item.name}</span>
+              <IconComponent size={18} className="shrink-0" />
+              <span className="truncate">{item.name}</span>
             </Link>
           );
         })}
