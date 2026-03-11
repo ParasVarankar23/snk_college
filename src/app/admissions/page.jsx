@@ -11,17 +11,18 @@ import {
 
 const admissionSteps = [
     {
-        title: "Step 1: Online Registration",
+        title: "Step 1: Registration & Choose College",
         description:
-            "Students must first complete the online registration through the official Maharashtra / Mumbai University junior college admission portal.",
+            "Visit https://mahafyjcadmissions.in/, complete registration, and choose Shri Nanasaheb Kulkarni Kanishta Mahavidyalay, Borli Panchatan during the college selection process.",
         link: "https://mahafyjcadmissions.in",
         hasLink: true,
     },
     {
-        title: "Step 2: Choose the College",
+        title: "Step 2: Fill Personal Form",
         description:
-            "During the online admission process, select Shri Nanasaheb Kulkarni Kanishta Mahavidyalay, Borli Panchatan as your preferred college.",
-        hasLink: false,
+            "Click login at https://snk-college.vercel.app/login, then fill the personal admission form with correct student details.",
+        link: "https://snk-college.vercel.app/login",
+        hasLink: true,
     },
     {
         title: "Step 3: Document Verification",
