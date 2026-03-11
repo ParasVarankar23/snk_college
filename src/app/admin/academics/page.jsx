@@ -19,21 +19,26 @@ const departmentOptions = [
 
 const subjectTypeOptions = ["Theory", "Theory & Practical"];
 
-const initialSubject = {
-    name: "",
-    type: "Theory",
-    description: "",
-};
+function createSubject(subject = {}) {
+    return {
+        clientId: subject.clientId || `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+        name: subject.name || "",
+        type: subject.type || "Theory",
+        description: subject.description || "",
+    };
+}
 
-const initialFormData = {
-    standard: "11th",
-    department: "arts",
-    title: "",
-    subtitle: "",
-    overviewPrimary: "",
-    overviewSecondary: "",
-    subjects: [{ ...initialSubject }],
-};
+function getInitialFormData() {
+    return {
+        standard: "11th",
+        department: "arts",
+        title: "",
+        subtitle: "",
+        overviewPrimary: "",
+        overviewSecondary: "",
+        subjects: [createSubject()],
+    };
+}
 
 export default function AdminAcademicsPage() {
     const [courses, setCourses] = useState([]);
@@ -49,7 +54,7 @@ export default function AdminAcademicsPage() {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [selectedCourse, setSelectedCourse] = useState(null);
 
-    const [formData, setFormData] = useState(initialFormData);
+    const [formData, setFormData] = useState(getInitialFormData);
     const [syllabusFile, setSyllabusFile] = useState(null);
     const [syllabusName, setSyllabusName] = useState("");
 
@@ -173,7 +178,7 @@ export default function AdminAcademicsPage() {
     }, []);
 
     const resetForm = () => {
-        setFormData(initialFormData);
+        setFormData(getInitialFormData());
         setSyllabusFile(null);
         setSyllabusName("");
     };
@@ -199,8 +204,8 @@ export default function AdminAcademicsPage() {
             overviewPrimary: course.overviewPrimary,
             overviewSecondary: course.overviewSecondary,
             subjects: Array.isArray(course.subjects) && course.subjects.length > 0
-                ? course.subjects
-                : [{ ...initialSubject }],
+                ? course.subjects.map((subject) => createSubject(subject))
+                : [createSubject()],
         });
         setSyllabusFile(null);
         setSyllabusName(course.syllabusFileName || "");
@@ -229,7 +234,7 @@ export default function AdminAcademicsPage() {
     const addSubjectRow = () => {
         setFormData((prev) => ({
             ...prev,
-            subjects: [...prev.subjects, { ...initialSubject }],
+            subjects: [...prev.subjects, createSubject()],
         }));
     };
 
@@ -262,7 +267,12 @@ export default function AdminAcademicsPage() {
         payload.append("subtitle", formData.subtitle.trim());
         payload.append("overviewPrimary", formData.overviewPrimary.trim());
         payload.append("overviewSecondary", formData.overviewSecondary.trim());
-        payload.append("subjects", JSON.stringify(formData.subjects));
+        const subjectsPayload = formData.subjects.map((subject) => ({
+            name: subject.name,
+            type: subject.type,
+            description: subject.description,
+        }));
+        payload.append("subjects", JSON.stringify(subjectsPayload));
 
         if (syllabusFile) {
             payload.append("syllabus", syllabusFile);
@@ -640,7 +650,7 @@ function AcademicModal({
 
                             <div className="mt-5 space-y-4">
                                 {formData.subjects.map((subject, index) => (
-                                    <div key={`${subject.name}-${index}`} className="rounded-[22px] border border-stone-200 bg-stone-50/80 p-4">
+                                    <div key={subject.clientId} className="rounded-[22px] border border-stone-200 bg-stone-50/80 p-4">
                                         <div className="mb-3 flex items-center justify-between gap-3">
                                             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-stone-500">
                                                 Subject {index + 1}

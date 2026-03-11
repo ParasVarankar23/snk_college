@@ -2,7 +2,7 @@
 
 import { Trash2, UserRound } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 
 const streamLabelMap = {
