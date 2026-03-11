@@ -1,5 +1,6 @@
 "use client";
 
+import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
@@ -112,7 +113,7 @@ export default function Navbar() {
 
     return (
 
-        <header ref={navRef} className="w-full bg-white border-b shadow-sm sticky top-0 z-50">
+        <header ref={navRef} className="sticky top-0 z-50 w-full border-b border-slate-200/80 bg-white/95 shadow-[0_4px_24px_rgba(15,23,42,0.08)] backdrop-blur">
 
             <div className="max-w-7xl mx-auto flex items-center justify-between px-6 h-20">
 
@@ -140,38 +141,45 @@ export default function Navbar() {
                                 onClick={() => toggleMenu(key)}
                                 onMouseEnter={() => openDropdown(key)}
                                 onMouseLeave={closeDropdownWithDelay}
-                                className="flex items-center gap-1 navItem cursor-pointer"
+                                className="group flex items-center gap-1 navItem cursor-pointer"
                             >
                                 {key}
-                                <FaChevronDown className="text-xs" />
+                                <FaChevronDown className={`text-xs transition-transform duration-200 ${menu === key ? "rotate-180" : ""}`} />
                             </button>
 
-                            {menu === key && (
+                            <AnimatePresence>
+                                {menu === key && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                                        exit={{ opacity: 0, y: 8, scale: 0.98 }}
+                                        transition={{ duration: 0.2, ease: "easeOut" }}
+                                        className="absolute left-0 top-full z-50 mt-3 w-64 overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-[0_24px_60px_rgba(2,6,23,0.24)]"
+                                        onMouseEnter={() => openDropdown(key)}
+                                        onMouseLeave={closeDropdownWithDelay}
+                                        role="menu"
+                                        tabIndex={-1}
+                                    >
+                                        <div className="px-3 pb-2 pt-1 text-xs font-semibold uppercase tracking-[0.12em] text-slate-600">
+                                            {key}
+                                        </div>
 
-                                <div
-                                    className="absolute left-0 top-full mt-2 w-56 bg-white border rounded-lg shadow-lg py-2 z-50"
-                                    onMouseEnter={() => openDropdown(key)}
-                                    onMouseLeave={closeDropdownWithDelay}
-                                    role="menu"
-                                    tabIndex={-1}
-                                >
-
-                                    {dropdown[key].map((item) => (
-
-                                        <Link
-                                            key={item}
-                                            href={dropdownRoutes[key][item]}
-                                            className="block px-4 py-2 hover:bg-gray-100"
-                                            onClick={() => setMenu(null)}
-                                        >
-                                            {item}
-                                        </Link>
-
-                                    ))}
-
-                                </div>
-
-                            )}
+                                        {dropdown[key].map((item) => (
+                                            <Link
+                                                key={item}
+                                                href={dropdownRoutes[key][item]}
+                                                className="group/item mb-1 block rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-800 transition-all duration-200 hover:bg-[#7a1c1c]/10 hover:text-[#7a1c1c]"
+                                                onClick={() => setMenu(null)}
+                                            >
+                                                <span className="inline-flex items-center gap-2">
+                                                    <span className="h-1.5 w-1.5 rounded-full bg-slate-400 transition-colors group-hover/item:bg-[#7a1c1c]" />
+                                                    {item}
+                                                </span>
+                                            </Link>
+                                        ))}
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
 
                         </div>
 
@@ -214,11 +222,11 @@ export default function Navbar() {
                     <Link href="/about" onClick={() => setMobileMenu(false)} className="block py-1">About</Link>
 
                     {Object.keys(dropdown).map((key) => (
-                        <div key={key} className="border rounded-lg overflow-hidden">
+                        <div key={key} className="overflow-hidden rounded-xl border border-slate-200 bg-white">
                             <button
                                 type="button"
                                 onClick={() => toggleMobileDropdown(key)}
-                                className="w-full px-3 py-2 bg-gray-50 font-semibold text-[#7a1c1c] flex items-center justify-between cursor-pointer"
+                                className="flex w-full cursor-pointer items-center justify-between bg-slate-50 px-3 py-2.5 font-semibold text-[#7a1c1c]"
                             >
                                 <span>{key}</span>
                                 <FaChevronDown
@@ -226,23 +234,33 @@ export default function Navbar() {
                                 />
                             </button>
 
-                            {mobileDropdown === key && (
-                                <div className="bg-white">
-                                    {dropdown[key].map((item) => (
-                                        <Link
-                                            key={item}
-                                            href={dropdownRoutes[key][item]}
-                                            onClick={() => {
-                                                setMobileMenu(false);
-                                                setMobileDropdown(null);
-                                            }}
-                                            className="block px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer"
-                                        >
-                                            {item}
-                                        </Link>
-                                    ))}
-                                </div>
-                            )}
+                            <AnimatePresence initial={false}>
+                                {mobileDropdown === key && (
+                                    <motion.div
+                                        initial={{ height: 0, opacity: 0 }}
+                                        animate={{ height: "auto", opacity: 1 }}
+                                        exit={{ height: 0, opacity: 0 }}
+                                        transition={{ duration: 0.2, ease: "easeOut" }}
+                                        className="overflow-hidden bg-white"
+                                    >
+                                        <div className="space-y-1 px-2 py-2">
+                                            {dropdown[key].map((item) => (
+                                                <Link
+                                                    key={item}
+                                                    href={dropdownRoutes[key][item]}
+                                                    onClick={() => {
+                                                        setMobileMenu(false);
+                                                        setMobileDropdown(null);
+                                                    }}
+                                                    className="block cursor-pointer rounded-lg px-3 py-2 text-sm text-slate-700 transition hover:bg-[#7a1c1c]/8 hover:text-[#7a1c1c]"
+                                                >
+                                                    {item}
+                                                </Link>
+                                            ))}
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                         </div>
                     ))}
 

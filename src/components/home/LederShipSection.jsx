@@ -74,13 +74,13 @@ const cardVariants = {
 };
 
 export default function LeadershipSection() {
-    const [flippedCards, setFlippedCards] = useState({});
+    const [activeIndex, setActiveIndex] = useState(-1);
 
-    const toggleFlip = (cardId) => {
-        setFlippedCards((prev) => ({
-            ...prev,
-            [cardId]: !prev[cardId],
-        }));
+    const selectCard = (cardId) => {
+        const selectedIndex = leaders.findIndex((leader) => leader.id === cardId);
+        if (selectedIndex !== -1) {
+            setActiveIndex((prev) => (prev === selectedIndex ? -1 : selectedIndex));
+        }
     };
 
     return (
@@ -116,18 +116,18 @@ export default function LeadershipSection() {
                     whileInView="visible"
                     viewport={{ once: true, amount: 0.2 }}
                 >
-                    {leaders.map((leader) => (
+                    {leaders.map((leader, index) => (
                         <motion.div
                             key={leader.id}
                             variants={cardVariants}
                             className="group perspective-distant"
                         >
                             <motion.div
-                                onClick={() => toggleFlip(leader.id)}
+                                onClick={() => selectCard(leader.id)}
                                 onKeyDown={(event) => {
                                     if (event.key === "Enter" || event.key === " ") {
                                         event.preventDefault();
-                                        toggleFlip(leader.id);
+                                        selectCard(leader.id);
                                     }
                                 }}
                                 whileHover={{ y: -8, scale: 1.02 }}
@@ -137,7 +137,7 @@ export default function LeadershipSection() {
                                     transformStyle: "preserve-3d",
                                 }}
                                 animate={{
-                                    rotateY: flippedCards[leader.id] ? 180 : 0,
+                                    rotateY: activeIndex === index ? 180 : 0,
                                 }}
                                 role="button"
                                 tabIndex={0}
