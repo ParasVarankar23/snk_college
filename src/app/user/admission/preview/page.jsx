@@ -61,13 +61,12 @@ export default function AdmissionPreviewPage() {
     const [paymentDetails, setPaymentDetails] = useState(null);
     const [uploadedDocUrls, setUploadedDocUrls] = useState({});
     const [loading, setLoading] = useState(true);
+    const [admissionDate, setAdmissionDate] = useState("");
 
     const academicYear = useMemo(() => {
         const year = new Date().getFullYear();
         return `${year}-${year + 1}`;
     }, []);
-
-    const admissionDate = useMemo(() => new Date().toLocaleDateString("en-GB"), []);
 
     useEffect(() => {
         const loadAdmission = async () => {
@@ -95,6 +94,28 @@ export default function AdmissionPreviewPage() {
 
                 if (data.admission.applicationId) {
                     setApplicationId(data.admission.applicationId);
+                }
+
+                const rawDate =
+                    data.admission.submittedAt ||
+                    data.admission.createdAt ||
+                    data.admission.updatedAt ||
+                    payload?.submittedAt ||
+                    payload?.createdAt ||
+                    "";
+                if (rawDate) {
+                    try {
+                        const d = new Date(rawDate);
+                        setAdmissionDate(
+                            Number.isNaN(d.getTime())
+                                ? String(rawDate)
+                                : d.toLocaleDateString("en-GB")
+                        );
+                    } catch {
+                        setAdmissionDate(String(rawDate));
+                    }
+                } else {
+                    setAdmissionDate(new Date().toLocaleDateString("en-GB"));
                 }
 
                 if (payload?.payment) {
