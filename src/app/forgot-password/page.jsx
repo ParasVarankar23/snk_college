@@ -42,6 +42,7 @@ export default function ForgotPassword() {
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
+    const [detectedRole, setDetectedRole] = useState("");
 
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
@@ -67,6 +68,7 @@ export default function ForgotPassword() {
     const sendOTP = async () => {
         setError("");
         setMessage("");
+        setDetectedRole("");
 
         if (!formData.email.trim()) {
             const errorMessage = "Please enter your email";
@@ -96,8 +98,10 @@ export default function ForgotPassword() {
                 return;
             }
 
+            const roleLabel = data.role ? String(data.role).trim() : "";
             const successMessage = data.message || "OTP/reset code sent to your email";
             setMessage(successMessage);
+            setDetectedRole(roleLabel);
             toast.success(successMessage);
             setStep(2);
         } catch {
@@ -158,8 +162,10 @@ export default function ForgotPassword() {
                 return;
             }
 
+            const roleLabel = data.role ? String(data.role).trim() : detectedRole;
             const successMessage = data.message || "Password reset successful";
             setMessage(successMessage);
+            setDetectedRole(roleLabel);
             toast.success(successMessage);
 
             setTimeout(() => {
@@ -289,6 +295,11 @@ export default function ForgotPassword() {
                                     className="mt-5 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700"
                                 >
                                     {message}
+                                    {detectedRole && (
+                                        <p className="mt-1 font-medium capitalize">
+                                            Account role detected: {detectedRole}
+                                        </p>
+                                    )}
                                 </motion.div>
                             )}
 

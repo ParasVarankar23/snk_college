@@ -81,7 +81,6 @@ export async function POST(request) {
                     name: name.trim(),
                     role: normalizedRole,
                 },
-                generatedPassword: generatedPassword,
             },
             { status: 201 }
         );

@@ -45,7 +45,6 @@ export default function SignupPage() {
     const [googleLoading, setGoogleLoading] = useState(false);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
-    const [generatedPassword, setGeneratedPassword] = useState("");
 
     const [formData, setFormData] = useState({
         name: "",
@@ -77,7 +76,6 @@ export default function SignupPage() {
         setLoading(true);
         setError("");
         setSuccess("");
-        setGeneratedPassword("");
 
         try {
             const response = await fetch("/api/auth/signup", {
@@ -100,7 +98,6 @@ export default function SignupPage() {
             setSuccess(
                 "Account created successfully! Check your email for login credentials."
             );
-            setGeneratedPassword(data.generatedPassword);
             toast.success("Account created successfully");
             setFormData({ name: "", email: "" });
 
@@ -260,11 +257,6 @@ export default function SignupPage() {
                                     className="mt-5 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700"
                                 >
                                     <p>{success}</p>
-                                    {generatedPassword && (
-                                        <p className="mt-2 break-all font-mono font-semibold text-green-800">
-                                            Generated Password: {generatedPassword}
-                                        </p>
-                                    )}
                                 </motion.div>
                             )}
 

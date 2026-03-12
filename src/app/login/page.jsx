@@ -45,7 +45,7 @@ export default function LoginPage() {
     const [error, setError] = useState("");
 
     const [formData, setFormData] = useState({
-        email: "",
+        loginId: "",
         password: "",
     });
 
@@ -53,8 +53,12 @@ export default function LoginPage() {
 
     const redirectToDashboard = (role) => {
         const normalizedRole = normalizeRole(role) || "student";
-        const targetPath =
-            normalizedRole === "admin" ? "/admin/events" : "/user/admission";
+        let targetPath = "/user/admission";
+        if (normalizedRole === "admin") {
+            targetPath = "/admin/events";
+        } else if (normalizedRole === "teacher") {
+            targetPath = "/teacher/students";
+        }
         globalThis.location.replace(targetPath);
     };
 
@@ -260,19 +264,19 @@ export default function LoginPage() {
                                     transition={{ delay: 0.25, duration: 0.4 }}
                                 >
                                     <label
-                                        htmlFor="email"
+                                        htmlFor="loginId"
                                         className="mb-2 block font-medium text-slate-700"
                                     >
-                                        Email Address
+                                        Email / Phone / Application ID
                                     </label>
 
                                     <motion.input
                                         whileFocus={{ scale: 1.01 }}
-                                        id="email"
-                                        type="email"
-                                        name="email"
-                                        placeholder="Enter your email"
-                                        value={formData.email}
+                                        id="loginId"
+                                        type="text"
+                                        name="loginId"
+                                        placeholder="Enter email, phone number, or app ID"
+                                        value={formData.loginId}
                                         onChange={handleChange}
                                         required
                                         disabled={loading || googleLoading}

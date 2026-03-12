@@ -1,12 +1,26 @@
 import { sendForgotPasswordEmail } from "@/lib/emailService";
 import { getAdminAuth, getAdminDb } from "@/lib/firebaseAdmin";
 
+const ALLOWED_ROLES = new Set(["admin", "teacher", "student"]);
+
 function isValidEmail(email) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
 function isStrongPassword(password) {
     return typeof password === "string" && password.length >= 6;
+}
+
+function normalizeRole(role) {
+    return String(role || "").trim().toLowerCase();
+}
+
+async function getAllowedRoleByUid(db, uid) {
+    const snapshot = await db.ref(`users/${uid}`).get();
+    if (!snapshot.exists()) return "";
+
+    const role = normalizeRole(snapshot.val()?.role);
+    return ALLOWED_ROLES.has(role) ? role : "";
 }
 
 /** Convert email to a safe Firebase DB key (no dots, @, etc.) */
@@ -17,6 +31,24 @@ function emailToKey(email) {
 /** Generate a 6-digit numeric OTP */
 function generateOTP() {
     return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+function mapFirebaseError(error) {
+    const code = error?.code || error?.errorInfo?.code || "";
+
+    if (code === "auth/user-not-found") {
+        return { status: 404, error: "No account found with this email" };
+    }
+
+    if (code === "auth/invalid-email") {
+        return { status: 400, error: "Invalid email address" };
+    }
+
+    if (code === "auth/invalid-password" || code === "auth/weak-password") {
+        return { status: 400, error: "Invalid password format" };
+    }
+
+    return { status: 500, error: "Internal server error" };
 }
 
 async function handleSendOtp(body) {
@@ -30,19 +62,34 @@ async function handleSendOtp(body) {
         return Response.json({ error: "Invalid email address" }, { status: 400 });
     }
 
+    const adminAuth = getAdminAuth();
+    const db = getAdminDb();
+    let authUser;
+
     // Verify user exists in Firebase Auth
     try {
-        await getAdminAuth().getUserByEmail(email);
-    } catch {
+        authUser = await adminAuth.getUserByEmail(email);
+    } catch (error) {
+        const code = error?.code || error?.errorInfo?.code;
+        if (code !== "auth/user-not-found") {
+            throw error;
+        }
         return Response.json({ error: "No account found with this email" }, { status: 404 });
+    }
+
+    const role = await getAllowedRoleByUid(db, authUser.uid);
+    if (!role) {
+        return Response.json(
+            { error: "Only admin, teacher, or student accounts can reset password" },
+            { status: 403 }
+        );
     }
 
     const otp = generateOTP();
     const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
 
     // Store OTP in Realtime DB
-    const db = getAdminDb();
-    await db.ref(`otps/${emailToKey(email)}`).set({ otp, expiresAt, attempts: 0 });
+    await db.ref(`otps/${emailToKey(email)}`).set({ otp, expiresAt, attempts: 0, role });
 
     // Send OTP via SMTP
     await sendForgotPasswordEmail(email, otp);
@@ -51,6 +98,7 @@ async function handleSendOtp(body) {
         {
             success: true,
             message: "A 6-digit OTP has been sent to your email. It expires in 10 minutes.",
+            role,
         },
         { status: 200 }
     );
@@ -115,12 +163,29 @@ async function handleResetPassword(body) {
 
     const adminAuth = getAdminAuth();
     const user = await adminAuth.getUserByEmail(email);
+    const role = await getAllowedRoleByUid(db, user.uid);
+
+    if (!role) {
+        return Response.json(
+            { error: "Only admin, teacher, or student accounts can reset password" },
+            { status: 403 }
+        );
+    }
+
+    if (record.role && normalizeRole(record.role) !== role) {
+        return Response.json(
+            { error: "Account role mismatch. Please request a new OTP." },
+            { status: 400 }
+        );
+    }
+
     await adminAuth.updateUser(user.uid, { password: newPassword });
 
     return Response.json(
         {
             success: true,
             message: "Password reset successful. You can now login.",
+            role,
         },
         { status: 200 }
     );

@@ -19,6 +19,7 @@ import {
   FaGear,
   FaImages,
   FaMessage,
+  FaUserGraduate,
 } from "react-icons/fa6";
 
 // eslint-disable-next-line react/prop-types
@@ -112,6 +113,7 @@ export default function Sidebar({ setSidebarOpen }) {
   const pathname = usePathname();
   const { user } = useAuth();
   const [admissionOpen, setAdmissionOpen] = useState(false);
+  const normalizedRole = String(user?.role || "").trim().toLowerCase();
 
   useEffect(() => {
     if (pathname.startsWith("/user/admission")) {
@@ -144,6 +146,21 @@ export default function Sidebar({ setSidebarOpen }) {
       name: "Departments",
       icon: FaBook,
       path: "/admin/departments",
+    },
+    {
+      name: "Staff",
+      icon: FaUserGraduate,
+      path: "/admin/staff",
+    },
+    {
+      name: "Students",
+      icon: FaUserGraduate,
+      path: "/admin/student",
+    },
+    {
+      name: "Attendance",
+      icon: FaChalkboardUser,
+      path: "/admin/attendance",
     },
     {
       name: "Achievements",
@@ -189,6 +206,11 @@ export default function Sidebar({ setSidebarOpen }) {
 
   const userMenuItems = [
     {
+      name: "Student",
+      icon: FaUserGraduate,
+      path: "/user/student",
+    },
+    {
       name: "Admission",
       icon: FaAddressBook,
       path: "/user/admission",
@@ -225,9 +247,49 @@ export default function Sidebar({ setSidebarOpen }) {
     },
   ];
 
-  const isAdmin = user?.role === "admin";
-  const menuItems = isAdmin ? adminMenuItems : userMenuItems;
-  const roleLabel = isAdmin ? "Admin" : "Student";
+  const teacherMenuItems = [
+    {
+      name: "Students",
+      icon: FaUserGraduate,
+      path: "/teacher/students",
+    },
+    {
+      name: "Attendance",
+      icon: FaChalkboardUser,
+      path: "/teacher/attendance",
+    },
+    {
+      name: "Notifications",
+      icon: FaBell,
+      path: "/notifications",
+    },
+    {
+      name: "Profile",
+      icon: FaCircleUser,
+      path: "/profile",
+    },
+    {
+      name: "Settings",
+      icon: FaGear,
+      path: "/settings",
+    },
+  ];
+
+  const isAdmin = normalizedRole === "admin";
+  const isTeacher = normalizedRole === "teacher";
+  let menuItems = userMenuItems;
+  if (isAdmin) {
+    menuItems = adminMenuItems;
+  } else if (isTeacher) {
+    menuItems = teacherMenuItems;
+  }
+
+  let roleLabel = "Student";
+  if (isAdmin) {
+    roleLabel = "Admin";
+  } else if (isTeacher) {
+    roleLabel = "Teacher";
+  }
 
   return (
     <aside

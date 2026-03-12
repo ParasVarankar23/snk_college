@@ -1,6 +1,6 @@
 import { getFirebaseAuth, getFirebaseDb } from "@/lib/firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { get, ref } from "firebase/database";
+import { equalTo, get, orderByChild, query, ref } from "firebase/database";
 import jwt from "jsonwebtoken";
 
 function mapLoginError(error) {
@@ -34,25 +34,145 @@ function normalizeRole(role) {
     return String(role || "").trim().toLowerCase();
 }
 
+function normalizePhone(phone) {
+    return String(phone || "").replaceAll(/\D/g, "");
+}
+
+function resolveIdentifierType(value) {
+    const identifier = String(value || "").trim();
+    if (!identifier) return "";
+
+    if (identifier.includes("@")) return "email";
+    if (/^\d{10,15}$/.test(normalizePhone(identifier))) return "phone";
+    return "applicationId";
+}
+
+function isMissingIndexError(error) {
+    const message = String(error?.message || "").toLowerCase();
+    return message.includes("index not defined") || message.includes(".indexon");
+}
+
+async function getByChildWithFallback(db, path, childKey, value) {
+    try {
+        return await get(query(ref(db, path), orderByChild(childKey), equalTo(value)));
+    } catch (error) {
+        if (!isMissingIndexError(error)) {
+            throw error;
+        }
+
+        console.warn("Missing Firebase index, using fallback scan:", {
+            path,
+            childKey,
+        });
+        return get(ref(db, path));
+    }
+}
+
+async function findEmailByPhone(db, phoneValue) {
+    const normalizedInput = normalizePhone(phoneValue);
+    if (!normalizedInput) return null;
+
+    const usersSnapshot = await getByChildWithFallback(
+        db,
+        "users",
+        "phone",
+        normalizedInput
+    );
+    if (!usersSnapshot.exists()) {
+        return null;
+    }
+
+    const users = usersSnapshot.val() || {};
+    const matched = Object.values(users).find((user) => normalizePhone(user?.phone) === normalizedInput);
+    return matched?.email ? String(matched.email).toLowerCase() : null;
+}
+
+async function findEmailByApplicationId(db, applicationId) {
+    const normalizedApplicationId = String(applicationId || "").trim().toUpperCase();
+    if (!normalizedApplicationId) return null;
+
+    const admissionsSnapshot = await getByChildWithFallback(
+        db,
+        "admissions",
+        "applicationId",
+        normalizedApplicationId
+    );
+    if (!admissionsSnapshot.exists()) {
+        return null;
+    }
+
+    const admissions = admissionsSnapshot.val() || {};
+    const matchedAdmission = Object.values(admissions).find(
+        (admission) => String(admission?.applicationId || "").trim().toUpperCase() === normalizedApplicationId
+    );
+
+    const admissionEmail = matchedAdmission?.payload?.email;
+    if (admissionEmail) {
+        return String(admissionEmail).toLowerCase();
+    }
+
+    const studentsSnapshot = await getByChildWithFallback(
+        db,
+        "students",
+        "applicationId",
+        normalizedApplicationId
+    );
+
+    if (!studentsSnapshot.exists()) {
+        return null;
+    }
+
+    const students = studentsSnapshot.val() || {};
+    const student = Object.values(students).find(
+        (row) => String(row?.applicationId || "").trim().toUpperCase() === normalizedApplicationId
+    );
+
+    return student?.email ? String(student.email).toLowerCase() : null;
+}
+
+async function resolveEmailFromIdentifier(db, identifier) {
+    const input = String(identifier || "").trim();
+    const identifierType = resolveIdentifierType(input);
+
+    if (identifierType === "email") {
+        return input.toLowerCase();
+    }
+
+    if (identifierType === "phone") {
+        return findEmailByPhone(db, input);
+    }
+
+    return findEmailByApplicationId(db, input);
+}
+
 export async function POST(request) {
     try {
         const auth = getFirebaseAuth();
         const db = getFirebaseDb();
 
-        const { email, password } = await request.json();
+        const { loginId, password } = await request.json();
+        const normalizedLoginId = String(loginId || "").trim();
 
         // Validation
-        if (!email || !password) {
+        if (!normalizedLoginId || !password) {
             return Response.json(
-                { error: "Email and password are required" },
+                { error: "Login ID and password are required" },
                 { status: 400 }
+            );
+        }
+
+        const resolvedEmail = await resolveEmailFromIdentifier(db, normalizedLoginId);
+        if (!resolvedEmail) {
+            return Response.json(
+                { error: "No user found for the provided login ID" },
+                { status: 404 }
             );
         }
 
         // Sign in user with Firebase Authentication
         const userCredential = await signInWithEmailAndPassword(
             auth,
-            email,
+            resolvedEmail,
             password
         );
 

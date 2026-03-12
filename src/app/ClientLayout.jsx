@@ -29,6 +29,7 @@ export default function ClientLayout({ children }) {
 
     /* If URL starts with /admin */
     const isAdminRoute = pathname.startsWith("/admin");
+    const isTeacherRoute = pathname.startsWith("/teacher") || pathname.startsWith("/teachers");
 
     useEffect(() => {
         if (!isAdminRoute || loading) return;
@@ -43,10 +44,36 @@ export default function ClientLayout({ children }) {
         }
     }, [isAdminRoute, loading, isAuthenticated, normalizedRole, router]);
 
+    useEffect(() => {
+        if (!isTeacherRoute || loading) return;
+
+        if (!isAuthenticated) {
+            router.push("/login");
+            return;
+        }
+
+        if (normalizedRole !== "teacher") {
+            if (normalizedRole === "admin") {
+                router.push("/admin/events");
+                return;
+            }
+
+            router.push("/user/admission");
+        }
+    }, [
+        isTeacherRoute,
+        loading,
+        isAuthenticated,
+        normalizedRole,
+        router,
+    ]);
+
 
     /* Authenticated user routes (profile, settings, academics, etc.) */
     const isDashboardRoute =
         pathname.startsWith("/user") ||
+        pathname.startsWith("/teacher") ||
+        pathname.startsWith("/teachers") ||
         pathname.startsWith("/notifications") ||
         pathname.startsWith("/merit") ||
         pathname.startsWith("/profile") ||

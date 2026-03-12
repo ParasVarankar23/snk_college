@@ -11,6 +11,9 @@ const adminSearchRoutes = [
   { label: "View Admissions", path: "/admin/admissions" },
   { label: "Academics", path: "/admin/academics" },
   { label: "Departments", path: "/admin/departments" },
+  { label: "Staff", path: "/admin/staff" },
+  { label: "Students", path: "/admin/student" },
+  { label: "Attendance", path: "/admin/attendance" },
   { label: "Achievements", path: "/admin/achievements" },
   { label: "Events", path: "/admin/events" },
   { label: "Gallery", path: "/admin/gallery" },
@@ -23,6 +26,7 @@ const adminSearchRoutes = [
 ];
 
 const userSearchRoutes = [
+  { label: "Student", path: "/user/student" },
   { label: "Admission", path: "/user/admission" },
   { label: "Student Details", path: "/user/admission?section=student" },
   { label: "Parent Details", path: "/user/admission?section=family" },
@@ -37,12 +41,25 @@ const userSearchRoutes = [
   { label: "Settings", path: "/settings" },
 ];
 
+const teacherSearchRoutes = [
+  { label: "Students", path: "/teacher/students" },
+  { label: "Attendance", path: "/teacher/attendance" },
+  { label: "Notifications", path: "/notifications" },
+  { label: "Profile", path: "/profile" },
+  { label: "Settings", path: "/settings" },
+];
+
 // eslint-disable-next-line react/prop-types
 export default function Navbar({ sidebarOpen, setSidebarOpen }) {
   const { user, logout } = useAuth();
   const router = useRouter();
   const normalizedRole = String(user?.role || "").trim().toLowerCase();
-  const roleLabel = normalizedRole === "admin" ? "Admin" : "Student";
+  let roleLabel = "Student";
+  if (normalizedRole === "admin") {
+    roleLabel = "Admin";
+  } else if (normalizedRole === "teacher") {
+    roleLabel = "Teacher";
+  }
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [logoutModal, setLogoutModal] = useState(false);
@@ -58,7 +75,15 @@ export default function Navbar({ sidebarOpen, setSidebarOpen }) {
   const isLoggingOutRef = useRef(false);
 
   const searchRoutes = useMemo(() => {
-    return normalizedRole === "admin" ? adminSearchRoutes : userSearchRoutes;
+    if (normalizedRole === "admin") {
+      return adminSearchRoutes;
+    }
+
+    if (normalizedRole === "teacher") {
+      return teacherSearchRoutes;
+    }
+
+    return userSearchRoutes;
   }, [normalizedRole]);
 
   const searchResults = useMemo(() => {

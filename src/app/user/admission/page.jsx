@@ -376,11 +376,6 @@ function AdmissionFormInner() {
         Math.min(100, Math.round((completionCount.completed / completionCount.total) * 100))
     );
 
-    const subjectOptions = useMemo(() => {
-        const selectedStream = streamOptions.find((item) => item.value === formData.selectedStream);
-        return selectedStream?.subjects || [];
-    }, [formData.selectedStream]);
-
     const handleChange = (event) => {
         const { name, value, type, checked } = event.target;
         setSavedDraft(false);
@@ -410,24 +405,13 @@ function AdmissionFormInner() {
         }));
     };
 
-    const toggleSubject = (subject) => {
-        setFormData((prev) => {
-            const exists = prev.selectedSubjects.includes(subject);
-            return {
-                ...prev,
-                selectedSubjects: exists
-                    ? prev.selectedSubjects.filter((item) => item !== subject)
-                    : [...prev.selectedSubjects, subject],
-            };
-        });
-    };
-
     const handleStreamSelect = (streamValue) => {
         setSavedDraft(false);
+        const selectedStreamMeta = streamOptions.find((item) => item.value === streamValue);
         setFormData((prev) => ({
             ...prev,
             selectedStream: streamValue,
-            selectedSubjects: [],
+            selectedSubjects: selectedStreamMeta?.subjects || [],
         }));
     };
 
@@ -864,29 +848,18 @@ function AdmissionFormInner() {
 
                             {formData.selectedStream && (
                                 <div className="mt-8 rounded-2xl border border-[#7a1c1c]/10 bg-slate-50 p-6">
-                                    <h3 className="text-lg font-semibold text-slate-800">Optional Subjects</h3>
-                                    <p className="mt-1 text-sm text-slate-500">Choose optional subjects for your selected stream.</p>
+                                    <h3 className="text-lg font-semibold text-slate-800">Stream Subjects</h3>
+                                    <p className="mt-1 text-sm text-slate-500">Subject list is fixed based on selected stream.</p>
                                     <div className="mt-5 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-                                        {subjectOptions.map((subject) => {
-                                            const checked = formData.selectedSubjects.includes(subject);
-                                            return (
-                                                <label
-                                                    key={subject}
-                                                    className={`flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 transition ${checked
-                                                        ? "border-[#7a1c1c] bg-[#7a1c1c]/5 text-[#7a1c1c]"
-                                                        : "border-slate-200 bg-white text-slate-700 hover:border-[#7a1c1c]/30"
-                                                        }`}
-                                                >
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={checked}
-                                                        onChange={() => toggleSubject(subject)}
-                                                        className="h-4 w-4 rounded border-slate-300 text-[#7a1c1c] focus:ring-[#7a1c1c]"
-                                                    />
-                                                    <span className="text-sm font-medium">{subject}</span>
-                                                </label>
-                                            );
-                                        })}
+                                        {(formData.selectedSubjects || []).map((subject) => (
+                                            <div
+                                                key={subject}
+                                                className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700"
+                                            >
+                                                <CheckCircle2 className="h-4 w-4 text-[#7a1c1c]" />
+                                                {subject}
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
                             )}
