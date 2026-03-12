@@ -139,7 +139,7 @@ export default function TestimonialsSection() {
                     </h2>
 
                     <p className="mx-auto mt-4 max-w-xl text-base text-gray-500 md:text-lg">
-                        Hear what our students say about their experience at SNK Mahavidyalay.
+                        Hear what our students say about their experience at SNK Junior College.
                     </p>
                 </motion.div>
 

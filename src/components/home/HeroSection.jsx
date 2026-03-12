@@ -8,7 +8,7 @@ const slides = [
     {
         src: "/college/college.jpg",
         title: "Shri Nanasaheb Kulkarni",
-        subtitle: "Kanishta Mahavidyalay",
+        subtitle: "Junior College",
         location: "Borli Panchatan",
         description:
             "Empowering students through academic excellence, disciplined learning, and future-ready opportunities in Arts, Commerce, and Science.",

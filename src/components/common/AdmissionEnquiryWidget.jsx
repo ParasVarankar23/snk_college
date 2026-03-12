@@ -145,7 +145,7 @@ export default function AdmissionEnquiryWidget() {
                                             Inquiry Submitted Successfully!
                                         </h2>
                                         <p className="mt-3 max-w-sm text-slate-600">
-                                            Thank you for your interest in SNK Junior College. Our
+                                            Thank you for your interest in SNK Juinor College. Our
                                             admission team will contact you shortly.
                                         </p>
                                         <div className="mt-7 flex gap-3">

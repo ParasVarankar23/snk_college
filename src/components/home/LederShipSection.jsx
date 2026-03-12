@@ -135,7 +135,7 @@ export default function LeadershipSection() {
                     </h2>
 
                     <p className="mx-auto mt-4 max-w-2xl text-base text-gray-600 md:text-lg">
-                        Dedicated leaders guiding SNK Mahavidyalay towards excellence.
+                        Dedicated leaders guiding SNK Junior College towards excellence.
                     </p>
                 </motion.div>
 

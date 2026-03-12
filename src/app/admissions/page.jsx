@@ -13,7 +13,7 @@ const admissionSteps = [
     {
         title: "Step 1: Registration & Choose College",
         description:
-            "Visit https://mahafyjcadmissions.in/, complete registration, and choose Shri Nanasaheb Kulkarni Kanishta Mahavidyalay, Borli Panchatan during the college selection process.",
+            "Visit https://mahafyjcadmissions.in/, complete registration, and choose Shri Nanasaheb Kulkarni  Junior College, Borli Panchatan during the college selection process.",
         link: "https://mahafyjcadmissions.in",
         hasLink: true,
     },
@@ -94,7 +94,7 @@ export default function AdmissionPage() {
 
                     <p className="mx-auto mt-4 max-w-3xl text-base leading-8 text-slate-600 md:text-lg">
                         Follow the step-by-step admission process to apply for admission to
-                        Shri Nanasaheb Kulkarni Kanishta Mahavidyalay, Borli Panchatan.
+                        Shri Nanasaheb Kulkarni Junior College, Borli Panchatan.
                     </p>
                 </motion.div>
 
@@ -123,7 +123,7 @@ export default function AdmissionPage() {
                                     </h2>
                                 </div>
 
-                                <p className="text-slate-600 leading-7">{step.description}</p>
+                                <p className="text-slate-600 text-justify leading-7">{step.description}</p>
 
                                 {step.hasLink && (
                                     <Link
@@ -192,7 +192,7 @@ export default function AdmissionPage() {
                                 Need Help with Admission?
                             </h3>
 
-                            <p className="mt-4 leading-8 text-white/90">
+                            <p className="mt-4 leading-8 text-justify text-white/90">
                                 Our admission office is available to guide you through the
                                 registration process, document verification, and department
                                 selection for Science, Commerce, and Arts streams.

@@ -66,13 +66,13 @@ export default function Footer() {
                                 />
                             </div>
                             <div>
-                                <h2 className="font-bold text-base leading-tight">SNK Mahavidyalay</h2>
+                                <h2 className="font-bold text-base leading-tight">SNK Junior College</h2>
                                 <p className="text-xs text-red-300 font-medium tracking-wide">Est. Borli Panchatan</p>
                             </div>
                         </div>
 
                         <p className="text-sm text-red-100/80 leading-relaxed mb-6">
-                            Shri Nanasaheb Kulkarni Kanishta Mahavidyalay, Borli Panchatan,
+                            Shri Nanasaheb Kulkarni Junior College, Borli Panchatan,
                             Shrivardhan, Raigad. Committed to quality education and nurturing
                             students toward academic excellence.
                         </p>
@@ -190,7 +190,7 @@ export default function Footer() {
                 {/* COPYRIGHT */}
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-red-200/60">
                     <p>
-                        © {new Date().getFullYear()} Shri Nanasaheb Kulkarni Kanishta Mahavidyalay, Borli Panchatan. All Rights Reserved.
+                        © {new Date().getFullYear()} Shri Nanasaheb Kulkarni Junior College, Borli Panchatan. All Rights Reserved.
                     </p>
                     <div className="flex items-center gap-4">
                         <Link href="/privacy" className="hover:text-white transition-colors duration-200">Privacy Policy</Link>

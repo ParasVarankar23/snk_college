@@ -180,7 +180,7 @@ export default function AdmissionPreviewPage() {
                     <div className="flex items-start justify-between gap-6">
                         <div className="flex-1">
                             <p className="text-xs font-bold uppercase tracking-[0.26em] text-[#7a1c1c]">
-                                Shri Nanasaheb Kulkarni Kanishta Mahavidyalay
+                                Shri Nanasaheb Kulkarni Junior College
                             </p>
                             <h1 className="mt-1.5 text-3xl font-black tracking-tight text-slate-900">
                                 FYJC / 11th Admission Form
@@ -427,7 +427,7 @@ export default function AdmissionPreviewPage() {
                     {/* Footer */}
                     <div className="border-t border-dashed border-slate-300 pt-5 text-center">
                         <p className="text-[11px] text-slate-400">
-                            System-generated admission preview · Shri Nanasaheb Kulkarni Kanishta Mahavidyalay,
+                            System-generated admission preview · Shri Nanasaheb Kulkarni Junior College,
                             Borli Panchatan · App ID: {applicationId || "—"} · Year: {academicYear}
                         </p>
                     </div>

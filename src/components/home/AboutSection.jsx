@@ -8,7 +8,7 @@ import { useMemo, useState } from "react";
 const historyMilestones = [
     {
         title: "Foundation And Vision",
-        text: "SNK Mahavidyalay was founded with a clear mission: provide quality higher-secondary education to rural and semi-urban students and create equal opportunities for academic growth.",
+        text: "SNK Junior College was founded with a clear mission: provide quality higher-secondary education to rural and semi-urban students and create equal opportunities for academic growth.",
     },
     {
         title: "Growth In Streams",
@@ -20,12 +20,12 @@ const historyMilestones = [
     },
     {
         title: "Modern Learning Approach",
-        text: "By integrating updated teaching methods, co-curricular activities, and guidance programs, SNK Mahavidyalay continues to prepare students for higher studies and responsible citizenship.",
+        text: "By integrating updated teaching methods, co-curricular activities, and guidance programs, SNK Junior College continues to prepare students for higher studies and responsible citizenship.",
     },
 ];
 
 const descriptionLines = [
-    "Shri Nanasaheb Kulkarni Kanishta Mahavidyalay, Borli Panchatan, has built a strong academic identity by combining disciplined learning with student-friendly guidance.",
+    "Shri Nanasaheb Kulkarni Junior College, Borli Panchatan, has built a strong academic identity by combining disciplined learning with student-friendly guidance.",
     "The institution emphasizes balanced growth through classroom excellence, cultural participation, and character-building values that shape confident young learners.",
     "With dedicated faculty support and stream-wise focus in Science, Commerce, and Arts, the college creates a dependable pathway for 11th and 12th students to achieve their future goals.",
 ];
@@ -63,7 +63,7 @@ export default function AboutSection() {
                     </div>
 
                     <h2 className="mb-3 text-3xl font-bold text-white md:text-4xl lg:text-[2.75rem]">
-                        About SNK Mahavidyalay
+                        About SNK Junior College
                     </h2>
 
                     <div className="grid gap-6 lg:grid-cols-[1.3fr_1fr] lg:gap-8">
@@ -71,7 +71,7 @@ export default function AboutSection() {
                             {visibleParagraphs.map((line) => (
                                 <p
                                     key={line}
-                                    className="fade-item mb-3 leading-relaxed text-white/90 md:text-base"
+                                    className="fade-item text-justify mb-3 leading-relaxed text-white/90 md:text-base"
                                 >
                                     {line}
                                 </p>
@@ -113,7 +113,7 @@ export default function AboutSection() {
                                             Chapter {idx + 1}
                                         </p>
                                         <h4 className="mt-2 text-lg font-bold text-white">{milestone.title}</h4>
-                                        <p className="mt-2 text-sm leading-6 text-white/90 md:text-base">
+                                        <p className="mt-2 text-sm text-justify leading-6 text-white/90 md:text-base">
                                             {milestone.text}
                                         </p>
                                     </article>

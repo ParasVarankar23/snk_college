@@ -33,7 +33,7 @@ function CountUp({ to, suffix = "" }) {
 }
 
 const paragraphs = [
-    "The library at Shri Nanasaheb Kulkarni Kanishta Mahavidyalay is an important center of learning that supports students and teachers in their academic activities.",
+    "The library at Shri Nanasaheb Kulkarni Junior College is an important center of learning that supports students and teachers in their academic activities.",
     "The library provides a collection of textbooks, reference books, journals, and other educational resources that help students gain deeper knowledge in their respective subjects.",
     "A quiet and comfortable reading environment encourages students to develop reading habits and improve their academic performance. A quiet and comfortable reading environment encourages students to develop reading habits and improve their academic performance.",
 ];
@@ -61,7 +61,7 @@ export default function LibrarySection() {
                 </motion.div>
 
                 {/* TEXT — staggered fade-up */}
-                <div>
+                <div className="px-2 md:px-4">
                     <motion.h2
                         className="mt-4 mb-5 text-3xl font-bold text-gray-800 md:text-4xl"
                         initial={{ opacity: 0, y: 20 }}
@@ -75,7 +75,7 @@ export default function LibrarySection() {
                     {paragraphs.map((text, i) => (
                         <motion.p
                             key={text.slice(0, 24)}
-                            className="mb-4 leading-relaxed text-gray-600"
+                            className="mb-4 text-justify leading-relaxed text-gray-600"
                             initial={{ opacity: 0, y: 18 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.5, delay: 0.18 + i * 0.14 }}

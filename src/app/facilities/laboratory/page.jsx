@@ -97,7 +97,7 @@ export default function LaboratoryPage() {
                             </div>
                             <div className="p-6">
                                 <h2 className="text-xl font-bold text-[#7a1c1c]">{lab.title}</h2>
-                                <p className="mt-3 text-sm leading-relaxed text-gray-600">{lab.desc}</p>
+                                <p className="mt-3 text-justify text-sm leading-relaxed text-gray-600">{lab.desc}</p>
                             </div>
                         </motion.div>
                     ))}

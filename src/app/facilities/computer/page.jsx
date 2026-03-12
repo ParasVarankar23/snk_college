@@ -9,7 +9,7 @@ const infoItems = [
 ];
 
 const paragraphs = [
-    "The Computer Laboratory at Shri Nanasaheb Kulkarni Kanishta Mahavidyalay provides students with modern computing facilities to enhance their digital knowledge and technical skills.",
+    "The Computer Laboratory at Shri Nanasaheb Kulkarni Junior College provides students with modern computing facilities to enhance their digital knowledge and technical skills.",
     "The lab is equipped with 20 computers that help students learn computer fundamentals, internet usage, and basic software applications essential for modern education.",
     "The department is guided by Patange Madam, who serves as the Head of the Computer Section and ensures that students receive proper guidance in computer education.",
 ];
@@ -41,6 +41,7 @@ export default function ComputerSection() {
                     whileInView={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.75, ease: "easeOut", delay: 0.12 }}
                     viewport={{ once: true }}
+                    className="px-2 md:px-4"
                 >
 
                     <h2 className="mt-4 mb-5 text-3xl font-bold text-gray-800 md:text-4xl">
@@ -50,7 +51,7 @@ export default function ComputerSection() {
                     {paragraphs.map((text, i) => (
                         <motion.p
                             key={text.slice(0, 24)}
-                            className="mb-4 leading-relaxed text-gray-600"
+                            className="mb-4 text-justify leading-relaxed text-gray-600"
                             initial={{ opacity: 0, y: 18 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.5, delay: 0.28 + i * 0.13 }}

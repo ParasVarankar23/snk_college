@@ -70,7 +70,7 @@ export default function CoursesSection() {
                     </h2>
 
                     <p className="mx-auto mt-4 max-w-xl text-base text-gray-500 md:text-lg">
-                        Explore the streams available at SNK Mahavidyalay for your academic journey.
+                        Explore the streams available at SNK Junior College for your academic journey.
                     </p>
                 </motion.div>
 

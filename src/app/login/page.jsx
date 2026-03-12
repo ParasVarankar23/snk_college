@@ -159,7 +159,7 @@ export default function LoginPage() {
                 <div className="absolute bottom-0 left-1/3 h-64 w-64 rounded-full bg-white/80 blur-3xl" />
             </div>
 
-            <div className="relative mx-auto grid min-h-[calc(100svh-7rem)] max-w-7xl items-start gap-8 px-4 pb-8 pt-3 sm:px-6 sm:pt-4 md:pb-10 md:pt-5 lg:grid-cols-[1.15fr_0.85fr] lg:gap-14 lg:px-8">
+            <div className="relative mx-auto grid min-h-[calc(100svh-7rem)] max-w-7xl items-start gap-8 px-4 pb-8 pt-3 sm:px-6 sm:pt-4 md:pb-10 md:pt-10 lg:grid-cols-[1.15fr_0.85fr] lg:gap-14 lg:px-8">
                 {/* LEFT CONTENT */}
                 <motion.div
                     className="order-2 text-left md:order-1"
@@ -172,14 +172,14 @@ export default function LoginPage() {
                         className="max-w-2xl text-2xl font-bold leading-tight text-slate-950 sm:text-3xl xl:text-4xl"
                     >
                         Welcome to{" "}
-                        <span className="text-[#7a1c1c]">SNK Junior College</span>
+                        <span className="text-[#7a1c1c]">SNK Juinor College</span>
                     </motion.h1>
 
                     <motion.p
                         variants={itemVariants}
-                        className="mt-5 max-w-2xl text-base leading-8 text-slate-600 md:text-lg"
+                        className="mt-5 max-w-2xl text-justify text-base leading-8 text-slate-600 md:text-lg"
                     >
-                        Shri Nanasaheb Kulkarni Kanishta Mahavidyalay, Borli Panchatan is
+                        Shri Nanasaheb Kulkarni Juinor College, Borli Panchatan is
                         committed to providing quality education and building a strong
                         academic foundation for students. Our institution focuses on
                         academic excellence, discipline, and holistic development.
@@ -198,7 +198,7 @@ export default function LoginPage() {
                                 className="flex items-start gap-3 rounded-2xl border border-white/70 bg-white/85 p-4 text-slate-700 shadow-sm backdrop-blur"
                             >
                                 <FaCheckCircle className="mt-1 shrink-0 text-[#7a1c1c]" />
-                                <p className="text-sm leading-6">{point}</p>
+                                <p className="text-sm text-justify leading-6">{point}</p>
                             </motion.div>
                         ))}
                     </motion.div>

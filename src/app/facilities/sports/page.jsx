@@ -11,7 +11,7 @@ const sports = [
 ];
 
 const paragraphs = [
-    "Shri Nanasaheb Kulkarni Kanishta Mahavidyalay encourages students to participate in sports and physical activities for maintaining health, discipline, and teamwork.",
+    "Shri Nanasaheb Kulkarni Junior College encourages students to participate in sports and physical activities for maintaining health, discipline, and teamwork.",
     "The college organizes various indoor and outdoor sports activities that help students develop physical fitness and competitive spirit.",
     "Students actively participate in sports events, tournaments, and inter-college competitions which promote leadership and teamwork.",
 ];
@@ -36,7 +36,7 @@ export default function SportsSection() {
                     {paragraphs.map((text, i) => (
                         <motion.p
                             key={text.slice(0, 24)}
-                            className="mb-4 leading-relaxed text-gray-600"
+                            className="mb-4 text-justify leading-relaxed text-gray-600"
                             initial={{ opacity: 0, y: 18 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.5, delay: 0.2 + i * 0.13 }}
@@ -79,6 +79,7 @@ export default function SportsSection() {
                     whileInView={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.75, ease: "easeOut", delay: 0.12 }}
                     viewport={{ once: true }}
+                    className="px-2 md:px-4"
                 >
                     <Image
                         src="/college/sports.jpg"

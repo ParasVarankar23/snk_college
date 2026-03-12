@@ -202,12 +202,12 @@ export default function ForgotPassword() {
                         className="max-w-2xl text-2xl font-bold leading-tight text-slate-950 sm:text-3xl xl:text-4xl"
                     >
                         Reset Access to{" "}
-                        <span className="text-[#7a1c1c]">SNK Junior College</span>
+                        <span className="text-[#7a1c1c]">SNK Juinor College</span>
                     </motion.h1>
 
                     <motion.p
                         variants={itemVariants}
-                        className="mt-5 max-w-2xl text-base leading-8 text-slate-600 md:text-lg"
+                        className="mt-5 max-w-2xl text-justify text-base leading-8 text-slate-600 md:text-lg"
                     >
                         Recover your college account securely through email verification.
                         Use the OTP sent to your registered email address to create a new
@@ -227,7 +227,7 @@ export default function ForgotPassword() {
                                 className="flex items-start gap-3 rounded-2xl border border-white/70 bg-white/85 p-4 text-slate-700 shadow-sm backdrop-blur"
                             >
                                 <FaCheckCircle className="mt-1 shrink-0 text-[#7a1c1c]" />
-                                <p className="text-sm leading-6">{point}</p>
+                                <p className="text-sm text-justify leading-6">{point}</p>
                             </motion.div>
                         ))}
                     </motion.div>

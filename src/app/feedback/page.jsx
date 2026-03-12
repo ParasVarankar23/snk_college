@@ -71,7 +71,7 @@ export default function FeedbackPage() {
                         </svg>
                     </div>
                     <h2 className="text-2xl font-bold text-gray-800 mb-2">Feedback Submitted!</h2>
-                    <p className="text-gray-500 mb-6">Thank you for sharing your experience with SNK Mahavidyalay.</p>
+                    <p className="text-gray-500 mb-6">Thank you for sharing your experience with SNK Junior College.</p>
                     <button
                         onClick={() => {
                             setSubmitted(false);
@@ -95,7 +95,7 @@ export default function FeedbackPage() {
                 <div className="text-center mb-8">
                     <h1 className="text-3xl font-bold text-gray-800">Share Your Feedback</h1>
                     <p className="text-gray-500 mt-2">
-                        Let us know about your experience at SNK Mahavidyalay
+                        Let us know about your experience at SNK Junior College
                     </p>
                 </div>
 
@@ -206,7 +206,7 @@ export default function FeedbackPage() {
                             id="feedback-description"
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
-                            placeholder="Share your experience at SNK Mahavidyalay..."
+                            placeholder="Share your experience at SNK Junior College..."
                             rows={4}
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-[#7a1c1c]/30 focus:border-[#7a1c1c] transition text-sm resize-none"
                             maxLength={500}

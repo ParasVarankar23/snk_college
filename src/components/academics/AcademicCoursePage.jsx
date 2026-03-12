@@ -104,7 +104,7 @@ export default function AcademicCoursePage({ standard, department, fallbackTitle
                             <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                                 <div>
                                     <h2 className="text-3xl font-bold text-gray-900 mb-6">Course Overview</h2>
-                                    <p className="text-gray-700 text-lg leading-relaxed mb-4">
+                                    <p className="text-gray-700 text-justify text-lg leading-relaxed mb-4">
                                         {course.overviewPrimary}
                                     </p>
                                     <p className="text-gray-700 text-lg leading-relaxed">
@@ -134,13 +134,13 @@ export default function AcademicCoursePage({ standard, department, fallbackTitle
                                 <table className="w-full">
                                     <thead>
                                         <tr className="bg-gray-50 border-b-2 border-gray-200">
-                                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 uppercase tracking-wider">
+                                            <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900 uppercase tracking-wider">
                                                 Subject Name
                                             </th>
-                                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 uppercase tracking-wider">
+                                            <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900 uppercase tracking-wider">
                                                 Type
                                             </th>
-                                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 uppercase tracking-wider">
+                                            <th className="px-6 py-4 text-justify text-sm font-semibold text-gray-900 uppercase tracking-wider">
                                                 Description
                                             </th>
                                         </tr>
@@ -149,10 +149,10 @@ export default function AcademicCoursePage({ standard, department, fallbackTitle
                                         {subjects.map((subject) => (
                                             <tr key={subject.name} className="hover:bg-red-50 transition-colors duration-200">
                                                 <td className="px-6 py-5">
-                                                    <div className="text-base font-semibold text-gray-900">{subject.name}</div>
+                                                    <div className="text-base text-center font-semibold text-gray-900">{subject.name}</div>
                                                 </td>
                                                 <td className="px-6 py-5">
-                                                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${subject.type.includes("Practical")
+                                                    <span className={`inline-flex text-center px-3 py-1 rounded-full text-sm font-medium ${subject.type.includes("Practical")
                                                         ? "bg-green-100 text-green-800"
                                                         : "bg-blue-100 text-blue-800"
                                                         }`}>

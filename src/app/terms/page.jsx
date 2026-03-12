@@ -2,8 +2,8 @@ import Link from "next/link";
 import { FaBan, FaChevronRight, FaEnvelope, FaExclamationTriangle, FaFileContract, FaGavel, FaUserCheck } from "react-icons/fa";
 
 export const metadata = {
-    title: "Terms of Use | SNK Mahavidyalay",
-    description: "Terms and Conditions for using the SNK Mahavidyalay website and services.",
+    title: "Terms of Use | SNK Junior College",
+    description: "Terms and Conditions for using the SNK Junior College website and services.",
 };
 
 const sections = [
@@ -14,7 +14,7 @@ const sections = [
         content: [
             {
                 subtitle: "Agreement to Terms",
-                text: "By accessing or using the website of Shri Nanasaheb Kulkarni Kanishta Mahavidyalay ('the College', 'we', 'us', or 'our'), you agree to be legally bound by these Terms of Use. If you do not agree with any part of these terms, please discontinue use of the website immediately.",
+                text: "By accessing or using the website of Shri Nanasaheb Kulkarni Junior College ('the College', 'we', 'us', or 'our'), you agree to be legally bound by these Terms of Use. If you do not agree with any part of these terms, please discontinue use of the website immediately.",
             },
             {
                 subtitle: "Eligibility",
@@ -52,7 +52,7 @@ const sections = [
             },
             {
                 subtitle: "Intellectual Property Violations",
-                text: "You may not copy, reproduce, distribute, modify, or create derivative works from any content on this website without prior written permission from the College. All logos, photographs, text, graphics, and other materials on this site are the intellectual property of SNK Mahavidyalay or their respective owners.",
+                text: "You may not copy, reproduce, distribute, modify, or create derivative works from any content on this website without prior written permission from the College. All logos, photographs, text, graphics, and other materials on this site are the intellectual property of SNK Junior College or their respective owners.",
             },
         ],
     },
@@ -63,7 +63,7 @@ const sections = [
         content: [
             {
                 subtitle: "College Ownership",
-                text: "All content published on this website, including but not limited to text, images, logos, video, audio, data, and software, is the property of Shri Nanasaheb Kulkarni Kanishta Mahavidyalay or its content suppliers and is protected under applicable Indian intellectual property laws.",
+                text: "All content published on this website, including but not limited to text, images, logos, video, audio, data, and software, is the property of Shri Nanasaheb Kulkarni Junior College or its content suppliers and is protected under applicable Indian intellectual property laws.",
             },
             {
                 subtitle: "Limited License",
@@ -137,7 +137,7 @@ export default function TermsPage() {
                     </div>
                     <h1 className="text-4xl md:text-5xl font-bold mb-4 tracking-tight">Terms of Use</h1>
                     <p className="text-red-200/80 text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
-                        Please read these Terms of Use carefully before using the SNK Mahavidyalay
+                        Please read these Terms of Use carefully before using the SNK Junior College
                         website and online services.
                     </p>
                     <p className="mt-5 text-xs text-red-300/60 uppercase tracking-widest">Last updated: March 2026</p>
@@ -159,7 +159,7 @@ export default function TermsPage() {
                     <FaExclamationTriangle className="text-amber-500 text-xl mt-0.5 flex-shrink-0" />
                     <p className="text-sm text-amber-800 leading-relaxed">
                         <span className="font-bold">Important:</span> These Terms of Use constitute a legally binding agreement
-                        between you and Shri Nanasaheb Kulkarni Kanishta Mahavidyalay. By continuing to use this website,
+                        between you and Shri Nanasaheb Kulkarni Junior College. By continuing to use this website,
                         you acknowledge that you have read, understood, and agree to these terms.
                     </p>
                 </div>

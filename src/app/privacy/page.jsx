@@ -2,8 +2,8 @@ import Link from "next/link";
 import { FaChevronRight, FaDatabase, FaEnvelope, FaLock, FaShieldAlt, FaUserShield } from "react-icons/fa";
 
 export const metadata = {
-    title: "Privacy Policy | SNK Mahavidyalay",
-    description: "Privacy Policy for Shri Nanasaheb Kulkarni Kanishta Mahavidyalay, Borli Panchatan.",
+    title: "Privacy Policy | SNK Juinor College",
+    description: "Privacy Policy for Shri Nanasaheb Kulkarni Juinor College, Borli Panchatan.",
 };
 
 const sections = [
@@ -52,7 +52,7 @@ const sections = [
         content: [
             {
                 subtitle: "We Do Not Sell Your Data",
-                text: "SNK Mahavidyalay does not sell, trade, or rent your personal information to third parties for commercial purposes.",
+                text: "SNK Juinor College does not sell, trade, or rent your personal information to third parties for commercial purposes.",
             },
             {
                 subtitle: "Trusted Third Parties",
@@ -115,7 +115,7 @@ export default function PrivacyPage() {
                     </div>
                     <h1 className="text-4xl md:text-5xl font-bold mb-4 tracking-tight">Privacy Policy</h1>
                     <p className="text-red-200/80 text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
-                        Your privacy matters to us. This policy explains how SNK Mahavidyalay collects,
+                        Your privacy matters to us. This policy explains how SNK Juinor College collects,
                         uses, and protects your personal information.
                     </p>
                     <p className="mt-5 text-xs text-red-300/60 uppercase tracking-widest">Last updated: March 2026</p>
@@ -136,7 +136,7 @@ export default function PrivacyPage() {
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-10">
                     <p className="text-gray-600 leading-relaxed text-sm md:text-base">
                         Welcome to the official website of{" "}
-                        <span className="font-semibold text-gray-800">Shri Nanasaheb Kulkarni Kanishta Mahavidyalay</span>,
+                        <span className="font-semibold text-gray-800">Shri Nanasaheb Kulkarni Juinor College</span>,
                         Borli Panchatan, Shrivardhan, Raigad. We are committed to protecting the personal
                         information of our students, parents, staff, and website visitors. Please read this
                         Privacy Policy carefully to understand how we handle your data.
@@ -210,7 +210,7 @@ export default function PrivacyPage() {
                         </div>
                         <div className="px-6 py-5">
                             <p className="text-sm text-gray-600 leading-relaxed">
-                                Our website services are directed at students of junior college age (typically 15–18 years).
+                                Our website services are directed at students of Juinor College age (typically 15–18 years).
                                 We do not knowingly collect personal information from children under the age of 13 without
                                 verifiable parental consent. If you believe a minor&apos;s information has been collected
                                 without proper consent, please contact us immediately.

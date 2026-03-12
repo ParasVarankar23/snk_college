@@ -32,7 +32,7 @@ export default function PicnicPage() {
                     <h1 className="text-4xl font-bold text-gray-800">College Picnic</h1>
                     <p className="text-gray-600 mt-4">
                         A memorable and enjoyable outing for students organized by
-                        Shri Nanasaheb Kulkarni Kanishta Mahavidyalay, Borli Panchatan.
+                        Shri Nanasaheb Kulkarni Junior College, Borli Panchatan.
                     </p>
                 </motion.div>
 
@@ -91,14 +91,14 @@ function EventList({ events, loading }) {
                     )}
                     <div className="p-8">
                         <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
-                            <h2 className="text-2xl font-bold text-gray-800">{ev.title}</h2>
+                            <h2 className="text-2xl text-justify font-bold text-gray-800">{ev.title}</h2>
                             {ev.date && (
                                 <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
                                     {new Date(ev.date).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}
                                 </span>
                             )}
                         </div>
-                        <p className="text-gray-600 leading-relaxed">{ev.description}</p>
+                        <p className="text-gray-600 text-justify leading-relaxed">{ev.description}</p>
                     </div>
                 </motion.div>
             ))}

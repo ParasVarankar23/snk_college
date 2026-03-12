@@ -437,7 +437,7 @@ export default function ContactPage() {
 
                                 <div className="mt-5 space-y-2 text-slate-600 leading-7">
                                     <p className="font-medium text-[#7a1c1c]">
-                                        Shri Nanasaheb Kulkarni Kanishta Mahavidyalay
+                                        Shri Nanasaheb Kulkarni Junior College
                                     </p>
                                     <p>Borli Panchatan, Near Government Hospital</p>
                                     <p>Shrivardhan, Raigad</p>
