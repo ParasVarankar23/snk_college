@@ -721,7 +721,7 @@ function AdminAdmissionsInner() {
             return;
         }
         const numeric = Number(trimmed);
-        if (Number.isFinite(numeric)) {
+        if (Number.isFinite(numeric) && numeric >= 0) {
             setMeritThresholds((prev) => ({ ...prev, [key]: numeric }));
         }
     };
@@ -748,32 +748,44 @@ function AdminAdmissionsInner() {
         const deptLabel = streamLabelMap[selectedDepartmentTab] || selectedDepartmentTab;
         const dateStr = new Date().toLocaleDateString("en-IN", { day: "2-digit", month: "long", year: "numeric" });
 
-        const limitedRows = (rows, limitVal) => {
-            if (limitVal === "") return rows;
+        const applyLimit = (rows, limitVal) => {
+            if (limitVal === "") return { kept: rows, overflow: [] };
             const n = Number(limitVal);
-            return Number.isFinite(n) && n > 0 ? rows.slice(0, n) : rows;
+            if (!Number.isFinite(n) || n <= 0) return { kept: rows, overflow: [] };
+            return { kept: rows.slice(0, n), overflow: rows.slice(n) };
         };
 
         const m2Upper = meritThresholds.merit1Min === "" ? "—" : `${meritThresholds.merit1Min}%`;
         const m3Upper = meritThresholds.merit2Min === "" ? "—" : `${meritThresholds.merit2Min}%`;
+
+        // Apply limit to merit1; overflow students cascade into merit2
+        const m1Result = applyLimit(activeMeritBuckets.merit1, meritLimits.merit1Limit);
+        const merit2WithOverflow = [...m1Result.overflow, ...activeMeritBuckets.merit2];
+
+        // Apply limit to merged merit2; overflow students cascade into merit3
+        const m2Result = applyLimit(merit2WithOverflow, meritLimits.merit2Limit);
+        const merit3WithOverflow = [...m2Result.overflow, ...activeMeritBuckets.merit3];
+
+        const m3Result = applyLimit(merit3WithOverflow, meritLimits.merit3Limit);
+
         const buckets = [
             {
                 title: "Merit 1",
                 number: "1",
                 minLabel: meritThresholds.merit1Min === "" ? "No minimum criteria" : `${meritThresholds.merit1Min}% and above`,
-                rows: limitedRows(activeMeritBuckets.merit1, meritLimits.merit1Limit),
+                rows: m1Result.kept,
             },
             {
                 title: "Merit 2",
                 number: "2",
                 minLabel: meritThresholds.merit2Min === "" ? "No minimum criteria" : `${meritThresholds.merit2Min}% – ${m2Upper}`,
-                rows: limitedRows(activeMeritBuckets.merit2, meritLimits.merit2Limit),
+                rows: m2Result.kept,
             },
             {
                 title: "Merit 3",
                 number: "3",
                 minLabel: meritThresholds.merit3Min === "" ? "No minimum criteria" : `${meritThresholds.merit3Min}% – ${m3Upper}`,
-                rows: limitedRows(activeMeritBuckets.merit3, meritLimits.merit3Limit),
+                rows: m3Result.kept,
             },
         ];
 
@@ -1834,9 +1846,8 @@ function AdminAdmissionsInner() {
                                 <label className="text-xs font-semibold text-slate-600">
                                     <span>Merit 1 Minimum %</span>
                                     <input
-                                        type="number"
-                                        min="0"
-                                        max="100"
+                                        type="text"
+                                        inputMode="decimal"
                                         value={meritThresholds.merit1Min}
                                         onChange={(event) => handleThresholdChange("merit1Min", event.target.value)}
                                         className="mt-1 h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700"
@@ -1845,9 +1856,8 @@ function AdminAdmissionsInner() {
                                 <label className="text-xs font-semibold text-slate-600">
                                     <span>Merit 2 Minimum %</span>
                                     <input
-                                        type="number"
-                                        min="0"
-                                        max="100"
+                                        type="text"
+                                        inputMode="decimal"
                                         value={meritThresholds.merit2Min}
                                         onChange={(event) => handleThresholdChange("merit2Min", event.target.value)}
                                         className="mt-1 h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700"
@@ -1856,9 +1866,8 @@ function AdminAdmissionsInner() {
                                 <label className="text-xs font-semibold text-slate-600">
                                     <span>Merit 3 Minimum %</span>
                                     <input
-                                        type="number"
-                                        min="0"
-                                        max="100"
+                                        type="text"
+                                        inputMode="decimal"
                                         value={meritThresholds.merit3Min}
                                         onChange={(event) => handleThresholdChange("merit3Min", event.target.value)}
                                         className="mt-1 h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700"
@@ -1867,8 +1876,8 @@ function AdminAdmissionsInner() {
                                 <label className="text-xs font-semibold text-slate-600">
                                     <span>Merit 1 Student Limit</span>
                                     <input
-                                        type="number"
-                                        min="1"
+                                        type="text"
+                                        inputMode="numeric"
                                         value={meritLimits.merit1Limit}
                                         onChange={(event) => handleMeritLimitChange("merit1Limit", event.target.value)}
                                         className="mt-1 h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700"
@@ -1877,8 +1886,8 @@ function AdminAdmissionsInner() {
                                 <label className="text-xs font-semibold text-slate-600">
                                     <span>Merit 2 Student Limit</span>
                                     <input
-                                        type="number"
-                                        min="1"
+                                        type="text"
+                                        inputMode="numeric"
                                         value={meritLimits.merit2Limit}
                                         onChange={(event) => handleMeritLimitChange("merit2Limit", event.target.value)}
                                         className="mt-1 h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700"
@@ -1887,8 +1896,8 @@ function AdminAdmissionsInner() {
                                 <label className="text-xs font-semibold text-slate-600">
                                     <span>Merit 3 Student Limit</span>
                                     <input
-                                        type="number"
-                                        min="1"
+                                        type="text"
+                                        inputMode="numeric"
                                         value={meritLimits.merit3Limit}
                                         onChange={(event) => handleMeritLimitChange("merit3Limit", event.target.value)}
                                         className="mt-1 h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700"
