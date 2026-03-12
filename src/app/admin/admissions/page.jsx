@@ -512,9 +512,14 @@ function AdminAdmissionsInner() {
     const [selectedYear, setSelectedYear] = useState(`${currentYear}-${currentYear + 1}`);
     const [selectedDepartmentTab, setSelectedDepartmentTab] = useState("science");
     const [meritThresholds, setMeritThresholds] = useState({
-        merit1Min: 80,
-        merit2Min: 60,
-        merit3Min: 35,
+        merit1Min: "",
+        merit2Min: "",
+        merit3Min: "",
+    });
+    const [meritLimits, setMeritLimits] = useState({
+        merit1Limit: "",
+        merit2Limit: "",
+        merit3Limit: "",
     });
     const [pageByDepartment, setPageByDepartment] = useState({
         science: 1,
@@ -651,6 +656,7 @@ function AdminAdmissionsInner() {
 
                     return {
                         id: admission.id,
+                        applicationId: admission.applicationId || "-",
                         studentName,
                         percentage,
                         percentageText: payload.percentage || "-",
@@ -665,18 +671,22 @@ function AdminAdmissionsInner() {
             const merit2 = [];
             const merit3 = [];
 
+            const m1Min = meritThresholds.merit1Min === "" ? 0 : Number(meritThresholds.merit1Min);
+            const m2Min = meritThresholds.merit2Min === "" ? 0 : Number(meritThresholds.merit2Min);
+            const m3Min = meritThresholds.merit3Min === "" ? 0 : Number(meritThresholds.merit3Min);
+
             rows.forEach((item) => {
-                if (item.percentage >= meritThresholds.merit1Min) {
+                if (item.percentage >= m1Min) {
                     merit1.push(item);
                     return;
                 }
 
-                if (item.percentage >= meritThresholds.merit2Min && item.percentage < meritThresholds.merit1Min) {
+                if (item.percentage >= m2Min && item.percentage < m1Min) {
                     merit2.push(item);
                     return;
                 }
 
-                if (item.percentage >= meritThresholds.merit3Min && item.percentage < meritThresholds.merit2Min) {
+                if (item.percentage >= m3Min && item.percentage < m2Min) {
                     merit3.push(item);
                 }
             });
@@ -705,15 +715,179 @@ function AdminAdmissionsInner() {
     };
 
     const handleThresholdChange = (key, value) => {
-        const numeric = Number(value);
-        setMeritThresholds((prev) => ({
-            ...prev,
-            [key]: Number.isFinite(numeric) ? numeric : prev[key],
-        }));
+        const trimmed = String(value).trim();
+        if (trimmed === "") {
+            setMeritThresholds((prev) => ({ ...prev, [key]: "" }));
+            return;
+        }
+        const numeric = Number(trimmed);
+        if (Number.isFinite(numeric)) {
+            setMeritThresholds((prev) => ({ ...prev, [key]: numeric }));
+        }
     };
 
-    const applyDefaultThresholds = () => {
-        setMeritThresholds({ merit1Min: 80, merit2Min: 60, merit3Min: 35 });
+    const handleMeritLimitChange = (key, value) => {
+        const trimmed = String(value || "").trim();
+        if (trimmed === "") {
+            setMeritLimits((prev) => ({ ...prev, [key]: "" }));
+            return;
+        }
+        const numeric = Number.parseInt(trimmed, 10);
+        if (Number.isFinite(numeric) && numeric > 0) {
+            setMeritLimits((prev) => ({ ...prev, [key]: numeric }));
+        }
+    };
+
+    const clearMeritSettings = () => {
+        setMeritThresholds({ merit1Min: "", merit2Min: "", merit3Min: "" });
+        setMeritLimits({ merit1Limit: "", merit2Limit: "", merit3Limit: "" });
+    };
+
+    const buildMeritDocHtml = () => {
+        const collegeName = "Shri Nanasaheb Kulkarni Junior College, Borli Panchatan";
+        const deptLabel = streamLabelMap[selectedDepartmentTab] || selectedDepartmentTab;
+        const dateStr = new Date().toLocaleDateString("en-IN", { day: "2-digit", month: "long", year: "numeric" });
+
+        const limitedRows = (rows, limitVal) => {
+            if (limitVal === "") return rows;
+            const n = Number(limitVal);
+            return Number.isFinite(n) && n > 0 ? rows.slice(0, n) : rows;
+        };
+
+        const m2Upper = meritThresholds.merit1Min === "" ? "—" : `${meritThresholds.merit1Min}%`;
+        const m3Upper = meritThresholds.merit2Min === "" ? "—" : `${meritThresholds.merit2Min}%`;
+        const buckets = [
+            {
+                title: "Merit 1",
+                number: "1",
+                minLabel: meritThresholds.merit1Min === "" ? "No minimum criteria" : `${meritThresholds.merit1Min}% and above`,
+                rows: limitedRows(activeMeritBuckets.merit1, meritLimits.merit1Limit),
+            },
+            {
+                title: "Merit 2",
+                number: "2",
+                minLabel: meritThresholds.merit2Min === "" ? "No minimum criteria" : `${meritThresholds.merit2Min}% – ${m2Upper}`,
+                rows: limitedRows(activeMeritBuckets.merit2, meritLimits.merit2Limit),
+            },
+            {
+                title: "Merit 3",
+                number: "3",
+                minLabel: meritThresholds.merit3Min === "" ? "No minimum criteria" : `${meritThresholds.merit3Min}% – ${m3Upper}`,
+                rows: limitedRows(activeMeritBuckets.merit3, meritLimits.merit3Limit),
+            },
+        ];
+
+        const tableRows = (rows) =>
+            rows.length === 0
+                ? `<tr><td colspan="4" style="text-align:center;color:#888;padding:20px;font-style:italic;">No students in this merit list.</td></tr>`
+                : rows
+                    .map(
+                        (row, idx) =>
+                            `<tr style="background:${idx % 2 === 0 ? "#ffffff" : "#fdf5f5"}">
+                                <td style="padding:9px 12px;border-bottom:1px solid #e2e8f0;text-align:center;">${idx + 1}</td>
+                                <td style="padding:9px 12px;border-bottom:1px solid #e2e8f0;font-weight:600;">${row.studentName}</td>
+                                <td style="padding:9px 12px;border-bottom:1px solid #e2e8f0;color:#7a1c1c;font-family:monospace;">${row.applicationId}</td>
+                                <td style="padding:9px 12px;border-bottom:1px solid #e2e8f0;text-align:center;font-weight:600;">${row.percentageText}%</td>
+                            </tr>`,
+                    )
+                    .join("");
+
+        const pageHeader = (bucket) => `
+            <div style="text-align:center;padding-bottom:12px;border-bottom:3px double #7a1c1c;margin-bottom:18px;">
+                <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#7a1c1c;font-weight:700;margin-bottom:6px;">Shri Nanasaheb Kulkarni Junior College</div>
+                <div style="font-size:19px;font-weight:800;color:#7a1c1c;">${collegeName}</div>
+                <div style="font-size:13px;color:#444;margin-top:5px;font-weight:600;">${deptLabel}</div>
+                <div style="font-size:12px;color:#666;margin-top:2px;">Academic Year: <strong>${selectedYear}</strong></div>
+            </div>
+            <div style="text-align:center;margin:10px 0 14px 0;">
+                <div style="display:inline-block;border:2px solid #7a1c1c;padding:6px 32px;border-radius:4px;">
+                    <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#7a1c1c;">Merit List</div>
+                    <div style="font-size:22px;font-weight:800;color:#7a1c1c;line-height:1.1;">MERIT ${bucket.number}</div>
+                </div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:#666;margin-bottom:10px;padding:6px 0;border-top:1px solid #f0e0e0;border-bottom:1px solid #f0e0e0;">
+                <span>Criteria: <strong>${bucket.minLabel}</strong></span>
+                <span>Total Students: <strong>${bucket.rows.length}</strong></span>
+                <span>Date: <strong>${dateStr}</strong></span>
+            </div>`;
+
+        const sectionsHtml = buckets
+            .map(
+                (bucket, idx) => `
+                    <div style="${idx > 0 ? "page-break-before:always;padding-top:20px;" : ""}">
+                        ${pageHeader(bucket)}
+                        <table style="width:100%;border-collapse:collapse;font-size:13px;font-family:Arial,sans-serif;">
+                            <thead>
+                                <tr style="background:#7a1c1c;color:white;">
+                                    <th style="padding:10px 12px;text-align:center;width:55px;">Sr.No</th>
+                                    <th style="padding:10px 12px;text-align:left;">Student Name</th>
+                                    <th style="padding:10px 12px;text-align:left;">Application ID</th>
+                                    <th style="padding:10px 12px;text-align:center;">Percentage</th>
+                                </tr>
+                            </thead>
+                            <tbody>${tableRows(bucket.rows)}</tbody>
+                        </table>
+                        <div style="margin-top:40px;display:flex;justify-content:space-between;font-size:11px;color:#555;">
+                            <div style="text-align:center;">
+                                <div style="border-top:1px solid #999;width:160px;margin-bottom:4px;"></div>
+                                <div>Class Teacher</div>
+                            </div>
+                            <div style="text-align:center;">
+                                <div style="border-top:1px solid #999;width:160px;margin-bottom:4px;"></div>
+                                <div>Principal</div>
+                            </div>
+                        </div>
+                    </div>`,
+            )
+            .join("");
+
+        return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Merit List – ${deptLabel} – ${selectedYear}</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 0; padding: 20mm; color: #111; }
+  @media print {
+    body { padding: 0; }
+    .no-print { display: none !important; }
+    @page { size: A4; margin: 15mm; }
+  }
+</style>
+</head>
+<body>
+  <div class="no-print" style="position:sticky;top:0;background:#fff;border-bottom:1px solid #e2e8f0;padding:10px 0;z-index:100;display:flex;gap:12px;margin-bottom:24px;">
+    <button onclick="window.print()" style="background:#7a1c1c;color:white;border:none;padding:9px 22px;border-radius:7px;font-size:14px;font-weight:600;cursor:pointer;">🖨 Print / Save as PDF</button>
+    <span style="font-size:12px;color:#666;align-self:center;">Each Merit list starts on a new page when printed.</span>
+  </div>
+  ${sectionsHtml}
+</body>
+</html>`;
+    };
+
+    const openMeritPrintWindow = () => {
+        const html = buildMeritDocHtml();
+        const win = globalThis.open("", "_blank", "width=900,height=800");
+        if (!win) {
+            toast.error("Popup blocked. Please allow popups and try again.");
+            return;
+        }
+        win.document.open();
+        win.document.documentElement.innerHTML = html;
+        win.document.close();
+    };
+
+    const downloadMeritDocHtml = () => {
+        const html = buildMeritDocHtml();
+        const blob = new Blob([html], { type: "text/html" });
+        const url = URL.createObjectURL(blob);
+        const a = globalThis.document.createElement("a");
+        const deptLabel = streamLabelMap[selectedDepartmentTab] || selectedDepartmentTab;
+        a.href = url;
+        a.download = `MeritList_${deptLabel.replaceAll(" ", "_")}_${selectedYear}.html`;
+        a.click();
+        URL.revokeObjectURL(url);
     };
     const totalCount = admissions.length;
 
@@ -827,7 +1001,7 @@ function AdminAdmissionsInner() {
             }
 
             const response = await fetch(
-                `/api/auth/admission/export?year=${encodeURIComponent(selectedYear)}&mode=${encodeURIComponent(mode)}&department=${encodeURIComponent(department)}&merit1Min=${encodeURIComponent(meritThresholds.merit1Min)}&merit2Min=${encodeURIComponent(meritThresholds.merit2Min)}&merit3Min=${encodeURIComponent(meritThresholds.merit3Min)}`,
+                `/api/auth/admission/export?year=${encodeURIComponent(selectedYear)}&mode=${encodeURIComponent(mode)}&department=${encodeURIComponent(department)}&merit1Min=${encodeURIComponent(meritThresholds.merit1Min)}&merit2Min=${encodeURIComponent(meritThresholds.merit2Min)}&merit3Min=${encodeURIComponent(meritThresholds.merit3Min)}&merit1Limit=${encodeURIComponent(meritLimits.merit1Limit)}&merit2Limit=${encodeURIComponent(meritLimits.merit2Limit)}&merit3Limit=${encodeURIComponent(meritLimits.merit3Limit)}`,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -1630,15 +1804,33 @@ function AdminAdmissionsInner() {
                     <>
 
                         <section className="rounded-3xl border border-[#7a1c1c]/10 bg-white p-5 shadow-sm">
-                            <div className="flex items-center justify-between">
-                                <h2 className="text-xl font-bold text-slate-900">Merit Lists (Department Wise)</h2>
-                                <span className="rounded-full bg-[#7a1c1c]/5 px-3 py-1 text-xs font-semibold text-[#7a1c1c]">
-                                    {selectedYear} • {streamLabelMap[selectedDepartmentTab]}
-                                </span>
+                            <div className="flex flex-wrap items-start justify-between gap-3">
+                                <div>
+                                    <h2 className="text-xl font-bold text-slate-900">Merit Lists (Department Wise)</h2>
+                                    <p className="mt-1 text-sm text-slate-500">Configure and update merit ranges anytime. Changes reflect immediately in display and export.</p>
+                                </div>
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <span className="rounded-full bg-[#7a1c1c]/5 px-3 py-1 text-xs font-semibold text-[#7a1c1c]">
+                                        {selectedYear} • {streamLabelMap[selectedDepartmentTab]}
+                                    </span>
+                                    <button
+                                        type="button"
+                                        onClick={openMeritPrintWindow}
+                                        className="inline-flex items-center gap-1.5 rounded-lg border border-[#7a1c1c]/20 bg-white px-3 py-1.5 text-xs font-semibold text-[#7a1c1c] hover:bg-[#7a1c1c]/5"
+                                    >
+                                        🖨 Preview &amp; Print
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={downloadMeritDocHtml}
+                                        className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-100"
+                                    >
+                                        ⬇ Download for Google Docs
+                                    </button>
+                                </div>
                             </div>
-                            <p className="mt-1 text-sm text-slate-500">Configure and update merit ranges anytime. Changes reflect immediately in display and export.</p>
 
-                            <div className="mt-4 grid gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 md:grid-cols-4">
+                            <div className="mt-4 grid gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 md:grid-cols-2 xl:grid-cols-4">
                                 <label className="text-xs font-semibold text-slate-600">
                                     <span>Merit 1 Minimum %</span>
                                     <input
@@ -1672,49 +1864,78 @@ function AdminAdmissionsInner() {
                                         className="mt-1 h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700"
                                     />
                                 </label>
+                                <label className="text-xs font-semibold text-slate-600">
+                                    <span>Merit 1 Student Limit</span>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        value={meritLimits.merit1Limit}
+                                        onChange={(event) => handleMeritLimitChange("merit1Limit", event.target.value)}
+                                        className="mt-1 h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700"
+                                    />
+                                </label>
+                                <label className="text-xs font-semibold text-slate-600">
+                                    <span>Merit 2 Student Limit</span>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        value={meritLimits.merit2Limit}
+                                        onChange={(event) => handleMeritLimitChange("merit2Limit", event.target.value)}
+                                        className="mt-1 h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700"
+                                    />
+                                </label>
+                                <label className="text-xs font-semibold text-slate-600">
+                                    <span>Merit 3 Student Limit</span>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        value={meritLimits.merit3Limit}
+                                        onChange={(event) => handleMeritLimitChange("merit3Limit", event.target.value)}
+                                        className="mt-1 h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700"
+                                    />
+                                </label>
                                 <div className="flex items-end">
                                     <button
                                         type="button"
-                                        onClick={applyDefaultThresholds}
+                                        onClick={clearMeritSettings}
                                         className="h-10 w-full rounded-lg border border-[#7a1c1c]/20 bg-white px-3 text-sm font-semibold text-[#7a1c1c]"
                                     >
-                                        Reset Default
+                                        Clear All
                                     </button>
                                 </div>
                             </div>
 
                             <p className="mt-3 text-xs text-slate-500">
-                                Current ranges: Merit 1 = {meritThresholds.merit1Min}% to 100%, Merit 2 = {meritThresholds.merit2Min}% to {Math.max(0, meritThresholds.merit1Min - 0.01).toFixed(2)}%, Merit 3 = {meritThresholds.merit3Min}% to {Math.max(0, meritThresholds.merit2Min - 0.01).toFixed(2)}%.
+                                Ranges: Merit 1 ≥ {meritThresholds.merit1Min === "" ? "not set" : `${meritThresholds.merit1Min}%`}, Merit 2 ≥ {meritThresholds.merit2Min === "" ? "not set" : `${meritThresholds.merit2Min}%`}, Merit 3 ≥ {meritThresholds.merit3Min === "" ? "not set" : `${meritThresholds.merit3Min}%`}.
+                            </p>
+                            <p className="mt-1 text-xs text-slate-500">
+                                Limits: Merit 1 = {meritLimits.merit1Limit === "" ? "no limit" : `${meritLimits.merit1Limit} students`}, Merit 2 = {meritLimits.merit2Limit === "" ? "no limit" : `${meritLimits.merit2Limit} students`}, Merit 3 = {meritLimits.merit3Limit === "" ? "no limit" : `${meritLimits.merit3Limit} students`}.
                             </p>
 
                             <div className="mt-4 grid gap-4 lg:grid-cols-3">
-                                {[
-                                    {
-                                        title: "Merit 1",
-                                        subtitle: `${meritThresholds.merit1Min}% to 100%`,
-                                        rows: activeMeritBuckets.merit1,
-                                    },
-                                    {
-                                        title: "Merit 2",
-                                        subtitle: `${meritThresholds.merit2Min}% to ${(meritThresholds.merit1Min - 0.01).toFixed(2)}%`,
-                                        rows: activeMeritBuckets.merit2,
-                                    },
-                                    {
-                                        title: "Merit 3",
-                                        subtitle: `${meritThresholds.merit3Min}% to ${(meritThresholds.merit2Min - 0.01).toFixed(2)}%`,
-                                        rows: activeMeritBuckets.merit3,
-                                    },
-                                ].map((bucket) => (
+                                {(() => {
+                                    const m1Label = meritThresholds.merit1Min === "" ? "No minimum set" : `≥ ${meritThresholds.merit1Min}%`;
+                                    const m2Upper = meritThresholds.merit1Min === "" ? "—" : meritThresholds.merit1Min;
+                                    const m2Label = meritThresholds.merit2Min === "" ? "No minimum set" : `≥ ${meritThresholds.merit2Min}% < ${m2Upper}%`;
+                                    const m3Upper = meritThresholds.merit2Min === "" ? "—" : meritThresholds.merit2Min;
+                                    const m3Label = meritThresholds.merit3Min === "" ? "No minimum set" : `≥ ${meritThresholds.merit3Min}% < ${m3Upper}%`;
+                                    return [
+                                        { title: "Merit 1", subtitle: m1Label, rows: activeMeritBuckets.merit1, limit: meritLimits.merit1Limit },
+                                        { title: "Merit 2", subtitle: m2Label, rows: activeMeritBuckets.merit2, limit: meritLimits.merit2Limit },
+                                        { title: "Merit 3", subtitle: m3Label, rows: activeMeritBuckets.merit3, limit: meritLimits.merit3Limit },
+                                    ];
+                                })().map((bucket) => (
                                     <div key={bucket.title} className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
                                         <h3 className="text-base font-bold text-slate-900">{bucket.title}</h3>
                                         <p className="text-xs text-slate-500">{bucket.subtitle}</p>
+                                        <p className="mt-1 text-[11px] font-medium text-slate-500">Limit: {bucket.limit === "" ? "no limit" : `${bucket.limit} students`}</p>
                                         <div className="mt-3 space-y-2">
                                             {bucket.rows.length === 0 && (
                                                 <p className="rounded-lg border border-dashed border-slate-200 bg-white px-3 py-2 text-xs text-slate-500">
                                                     No students in this merit list.
                                                 </p>
                                             )}
-                                            {bucket.rows.slice(0, 10).map((row, index) => (
+                                            {(bucket.limit === "" ? bucket.rows : bucket.rows.slice(0, Number(bucket.limit))).map((row, index) => (
                                                 <div key={`${bucket.title}-${row.id}`} className="rounded-lg border border-slate-200 bg-white px-3 py-2">
                                                     <p className="text-xs font-semibold text-slate-900">{index + 1}. {row.studentName}</p>
                                                     <p className="text-xs text-[#7a1c1c]">{row.percentageText}% • {row.department || "-"}</p>

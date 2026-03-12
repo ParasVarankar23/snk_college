@@ -42,19 +42,13 @@ function normalizeDepartment(value) {
 }
 
 function parseMeritThresholds(searchParams) {
-    const defaultThresholds = { merit1Min: 80, merit2Min: 60, merit3Min: 35 };
+    const merit1Raw = Number(searchParams.get("merit1Min") ?? 0);
+    const merit2Raw = Number(searchParams.get("merit2Min") ?? 0);
+    const merit3Raw = Number(searchParams.get("merit3Min") ?? 0);
 
-    const merit1Raw = Number(searchParams.get("merit1Min"));
-    const merit2Raw = Number(searchParams.get("merit2Min"));
-    const merit3Raw = Number(searchParams.get("merit3Min"));
-
-    let merit1Min = Number.isFinite(merit1Raw) ? merit1Raw : defaultThresholds.merit1Min;
-    let merit2Min = Number.isFinite(merit2Raw) ? merit2Raw : defaultThresholds.merit2Min;
-    let merit3Min = Number.isFinite(merit3Raw) ? merit3Raw : defaultThresholds.merit3Min;
-
-    merit1Min = Math.max(0, Math.min(100, merit1Min));
-    merit2Min = Math.max(0, Math.min(100, merit2Min));
-    merit3Min = Math.max(0, Math.min(100, merit3Min));
+    let merit1Min = Number.isFinite(merit1Raw) ? Math.max(0, Math.min(100, merit1Raw)) : 0;
+    let merit2Min = Number.isFinite(merit2Raw) ? Math.max(0, Math.min(100, merit2Raw)) : 0;
+    let merit3Min = Number.isFinite(merit3Raw) ? Math.max(0, Math.min(100, merit3Raw)) : 0;
 
     if (merit2Min >= merit1Min) {
         merit2Min = Math.max(0, merit1Min - 1);
@@ -65,6 +59,23 @@ function parseMeritThresholds(searchParams) {
     }
 
     return { merit1Min, merit2Min, merit3Min };
+}
+
+function parseMeritLimits(searchParams) {
+    const merit1Raw = Number.parseInt(String(searchParams.get("merit1Limit") || ""), 10);
+    const merit2Raw = Number.parseInt(String(searchParams.get("merit2Limit") || ""), 10);
+    const merit3Raw = Number.parseInt(String(searchParams.get("merit3Limit") || ""), 10);
+
+    const normalize = (value) => {
+        if (!Number.isFinite(value) || value <= 0) return 10000;
+        return Math.min(10000, value);
+    };
+
+    return {
+        merit1Limit: normalize(merit1Raw),
+        merit2Limit: normalize(merit2Raw),
+        merit3Limit: normalize(merit3Raw),
+    };
 }
 
 function parsePercentage(value) {
@@ -122,8 +133,9 @@ function toTopRows(admissions) {
         }));
 }
 
-function toMeritBuckets(admissions, thresholds) {
+function toMeritBuckets(admissions, thresholds, limits) {
     const { merit1Min, merit2Min, merit3Min } = thresholds;
+    const { merit1Limit, merit2Limit, merit3Limit } = limits;
     const rows = admissions
         .map((item) => {
             const payload = item.payload || {};
@@ -173,9 +185,9 @@ function toMeritBuckets(admissions, thresholds) {
     });
 
     return {
-        merit1: merit1.map((row, idx) => ({ Rank: idx + 1, ...row })),
-        merit2: merit2.map((row, idx) => ({ Rank: idx + 1, ...row })),
-        merit3: merit3.map((row, idx) => ({ Rank: idx + 1, ...row })),
+        merit1: merit1.slice(0, merit1Limit).map((row, idx) => ({ Rank: idx + 1, ...row })),
+        merit2: merit2.slice(0, merit2Limit).map((row, idx) => ({ Rank: idx + 1, ...row })),
+        merit3: merit3.slice(0, merit3Limit).map((row, idx) => ({ Rank: idx + 1, ...row })),
     };
 }
 
@@ -213,8 +225,8 @@ function filterAdmissionsByDepartment(admissions, departmentFilter) {
     });
 }
 
-function appendMeritSheets(workbook, admissions, departmentFilter, meritThresholds) {
-    const meritBuckets = toMeritBuckets(admissions, meritThresholds);
+function appendMeritSheets(workbook, admissions, departmentFilter, meritThresholds, meritLimits) {
+    const meritBuckets = toMeritBuckets(admissions, meritThresholds, meritLimits);
     XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(meritBuckets.merit1), "Merit_1");
     XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(meritBuckets.merit2), "Merit_2");
     XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(meritBuckets.merit3), "Merit_3");
@@ -222,10 +234,10 @@ function appendMeritSheets(workbook, admissions, departmentFilter, meritThreshol
     if (departmentFilter !== "all") return;
 
     const departmentGroups = groupByDepartment(admissions);
-    const scienceMerits = toMeritBuckets(departmentGroups.science, meritThresholds);
-    const commerceMerits = toMeritBuckets(departmentGroups.commerce, meritThresholds);
-    const artsMerits = toMeritBuckets(departmentGroups.arts, meritThresholds);
-    const otherMerits = toMeritBuckets(departmentGroups.other, meritThresholds);
+    const scienceMerits = toMeritBuckets(departmentGroups.science, meritThresholds, meritLimits);
+    const commerceMerits = toMeritBuckets(departmentGroups.commerce, meritThresholds, meritLimits);
+    const artsMerits = toMeritBuckets(departmentGroups.arts, meritThresholds, meritLimits);
+    const otherMerits = toMeritBuckets(departmentGroups.other, meritThresholds, meritLimits);
 
     XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(scienceMerits.merit1), "Sci_Merit_1");
     XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(scienceMerits.merit2), "Sci_Merit_2");
@@ -267,6 +279,7 @@ export async function GET(request) {
     const mode = String(searchParams.get("mode") || "both").trim().toLowerCase();
     const departmentFilter = normalizeDepartment(searchParams.get("department"));
     const meritThresholds = parseMeritThresholds(searchParams);
+    const meritLimits = parseMeritLimits(searchParams);
 
     const db = getAdminDb();
     const snapshot = await db.ref("admissions").get();
@@ -295,7 +308,7 @@ export async function GET(request) {
     }
 
     if (mode === "merit" || mode === "both") {
-        appendMeritSheets(workbook, admissions, departmentFilter, meritThresholds);
+        appendMeritSheets(workbook, admissions, departmentFilter, meritThresholds, meritLimits);
     }
 
     if (workbook.SheetNames.length === 0) {
