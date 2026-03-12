@@ -26,6 +26,16 @@ function sortByTimeDesc(a, b) {
     return toUnixMs(b.createdAt) - toUnixMs(a.createdAt);
 }
 
+function normalizeDepartment(value) {
+    return String(value || "").trim().toLowerCase();
+}
+
+function formatDepartmentLabel(value) {
+    const normalized = normalizeDepartment(value);
+    if (!normalized) return "-";
+    return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+}
+
 function buildAdminNotifications({ feedbackMap, contactMap, admissionsMap }) {
     const feedback = Object.entries(feedbackMap || {}).map(([id, value]) => ({
         id: `feedback-${id}`,
@@ -78,12 +88,83 @@ function buildStudentNotifications({ meritMap }) {
         .sort(sortByTimeDesc);
 }
 
+function buildTeacherNotifications({ studentsMap, teacherDepartment }) {
+    const normalizedTeacherDepartment = normalizeDepartment(teacherDepartment);
+
+    return Object.entries(studentsMap || {})
+        .map(([id, value]) => {
+            const department = normalizeDepartment(value?.department);
+
+            if (normalizedTeacherDepartment && department !== normalizedTeacherDepartment) {
+                return null;
+            }
+
+            if (!value?.createdAt || !value?.createdBy) {
+                return null;
+            }
+
+            return {
+                id: `student-${id}`,
+                type: "student-registration",
+                title: `New student registered: ${value?.name || "Student"}`,
+                description: `${formatDepartmentLabel(department)} | App ID: ${value?.applicationId || "-"}`,
+                createdAt: value?.createdAt || value?.updatedAt || "",
+                href: "/teacher/students",
+            };
+        })
+        .filter(Boolean)
+        .sort(sortByTimeDesc);
+}
+
 function getTypeCounts(notifications) {
     return notifications.reduce((acc, item) => {
         const next = { ...acc };
         next[item.type] = (next[item.type] || 0) + 1;
         return next;
     }, {});
+}
+
+function getRoleKey(role) {
+    if (role === "admin") return "admin";
+    if (role === "teacher") return "teacher";
+    return "student";
+}
+
+async function getEffectiveRoleContext(db, auth) {
+    const usersSnapshot = await db.ref(`users/${auth.uid}`).get();
+    const userProfile = usersSnapshot.exists() ? usersSnapshot.val() || {} : {};
+    const effectiveRole = String(userProfile?.role || auth.role || "student").trim().toLowerCase();
+
+    return { userProfile, effectiveRole };
+}
+
+async function buildNotificationsForRole({ db, effectiveRole, userProfile }) {
+    if (effectiveRole === "admin") {
+        const [feedbackSnap, contactSnap, admissionsSnap] = await Promise.all([
+            db.ref("feedback_items").get(),
+            db.ref("contact_inquiries").get(),
+            db.ref("admissions").get(),
+        ]);
+
+        return buildAdminNotifications({
+            feedbackMap: feedbackSnap.exists() ? feedbackSnap.val() : {},
+            contactMap: contactSnap.exists() ? contactSnap.val() : {},
+            admissionsMap: admissionsSnap.exists() ? admissionsSnap.val() : {},
+        });
+    }
+
+    if (effectiveRole === "teacher") {
+        const studentsSnap = await db.ref("students").get();
+        return buildTeacherNotifications({
+            studentsMap: studentsSnap.exists() ? studentsSnap.val() : {},
+            teacherDepartment: userProfile?.department,
+        });
+    }
+
+    const meritSnap = await db.ref("merit_notices").get();
+    return buildStudentNotifications({
+        meritMap: meritSnap.exists() ? meritSnap.val() : {},
+    });
 }
 
 export async function GET(request) {
@@ -96,32 +177,14 @@ export async function GET(request) {
         const db = getAdminDb();
         const { searchParams } = new URL(request.url);
         const summaryOnly = searchParams.get("summary") === "1";
-        const roleKey = auth.role === "admin" ? "admin" : "student";
+        const { userProfile, effectiveRole } = await getEffectiveRoleContext(db, auth);
+        const roleKey = getRoleKey(effectiveRole);
 
         const seenSnapshot = await db.ref(`notification_seen/${auth.uid}/${roleKey}`).get();
         const seenAt = seenSnapshot.exists() ? String(seenSnapshot.val() || "") : "";
         const seenAtMs = toUnixMs(seenAt);
 
-        let notifications = [];
-
-        if (auth.role === "admin") {
-            const [feedbackSnap, contactSnap, admissionsSnap] = await Promise.all([
-                db.ref("feedback_items").get(),
-                db.ref("contact_inquiries").get(),
-                db.ref("admissions").get(),
-            ]);
-
-            notifications = buildAdminNotifications({
-                feedbackMap: feedbackSnap.exists() ? feedbackSnap.val() : {},
-                contactMap: contactSnap.exists() ? contactSnap.val() : {},
-                admissionsMap: admissionsSnap.exists() ? admissionsSnap.val() : {},
-            });
-        } else {
-            const meritSnap = await db.ref("merit_notices").get();
-            notifications = buildStudentNotifications({
-                meritMap: meritSnap.exists() ? meritSnap.val() : {},
-            });
-        }
+        const notifications = await buildNotificationsForRole({ db, effectiveRole, userProfile });
 
         const unreadCount = notifications.filter((item) => toUnixMs(item.createdAt) > seenAtMs).length;
         const typeCounts = getTypeCounts(notifications);
@@ -165,9 +228,10 @@ export async function POST(request) {
             return Response.json({ error: "Invalid action" }, { status: 400 });
         }
 
-        const roleKey = auth.role === "admin" ? "admin" : "student";
-        const seenAt = new Date().toISOString();
         const db = getAdminDb();
+        const { effectiveRole } = await getEffectiveRoleContext(db, auth);
+        const roleKey = getRoleKey(effectiveRole);
+        const seenAt = new Date().toISOString();
         await db.ref(`notification_seen/${auth.uid}/${roleKey}`).set(seenAt);
 
         return Response.json({ success: true, seenAt, unreadCount: 0 }, { status: 200 });

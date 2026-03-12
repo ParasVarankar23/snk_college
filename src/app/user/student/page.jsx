@@ -35,6 +35,12 @@ function formatSubjectLabel(value) {
         .join(" ");
 }
 
+function calculateAttendancePercentage({ present = 0, absent = 0 }) {
+    const considered = Number(present || 0) + Number(absent || 0);
+    if (!considered) return 0;
+    return Math.round((Number(present || 0) / considered) * 100);
+}
+
 function getDateRangeStart(filterKey) {
     const now = new Date();
     const start = new Date(now);
@@ -132,9 +138,7 @@ export default function UserStudentPage() {
     }, []);
 
     const attendancePercent = useMemo(() => {
-        const total = Number(totals.present || 0) + Number(totals.absent || 0) + Number(totals.leave || 0);
-        if (!total) return 0;
-        return Math.round((Number(totals.present || 0) / total) * 100);
+        return calculateAttendancePercentage(totals);
     }, [totals]);
 
     const availableSubjects = useMemo(() => {
@@ -200,9 +204,7 @@ export default function UserStudentPage() {
     }, [filteredAttendance]);
 
     const filteredAttendancePercent = useMemo(() => {
-        const total = Number(filteredTotals.present) + Number(filteredTotals.absent) + Number(filteredTotals.leave);
-        if (!total) return 0;
-        return Math.round((Number(filteredTotals.present) / total) * 100);
+        return calculateAttendancePercentage(filteredTotals);
     }, [filteredTotals]);
 
     const subjectWiseSummary = useMemo(() => {
@@ -255,12 +257,37 @@ export default function UserStudentPage() {
     if (loading) {
         studentProfileSection = <p className="mt-3 text-sm text-slate-500">Loading profile...</p>;
     } else if (student) {
+        const initials = String(student.name || "S")
+            .trim()
+            .split(/\s+/)
+            .slice(0, 2)
+            .map((part) => part.charAt(0).toUpperCase())
+            .join("") || "S";
+
         studentProfileSection = (
-            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                <Info label="Name" value={student.name} />
-                <Info label="Email" value={student.email} />
-                <Info label="Department" value={student.department} capitalize />
-                <Info label="Application ID" value={student.applicationId || "-"} />
+            <div className="mt-5 overflow-hidden rounded-2xl border border-stone-200 bg-linear-to-br from-[#fff7ef] via-[#fffdf8] to-[#eef6ff]">
+                <div className="flex flex-col gap-4 border-b border-stone-200/80 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+                    <div className="flex items-center gap-3">
+                        <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-[#d6c1a8] bg-[#7a1c1c] text-lg font-bold text-white shadow-sm">
+                            {initials}
+                        </div>
+                        <div>
+                            <p className="text-lg font-semibold text-slate-900">{student.name || "Student"}</p>
+                            <p className="text-sm text-slate-600">{student.email || "-"}</p>
+                        </div>
+                    </div>
+
+                    <span className="inline-flex w-fit rounded-full border border-[#d9bea4] bg-[#fff2e5] px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[#7a1c1c]">
+                        {student.department || "Department Pending"}
+                    </span>
+                </div>
+
+                <div className="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-4 sm:p-5">
+                    <ProfileInfo label="Name" value={student.name} />
+                    <ProfileInfo label="Email" value={student.email} />
+                    <ProfileInfo label="Department" value={student.department} capitalize />
+                    <ProfileInfo label="Application ID" value={student.applicationId || "-"} />
+                </div>
             </div>
         );
     } else {
@@ -301,20 +328,21 @@ export default function UserStudentPage() {
         <div className="min-h-screen space-y-6 bg-[#f6f3f1] p-4 md:p-6">
             <div className="rounded-3xl border border-stone-200 bg-white p-6 shadow-sm">
                 <h1 className="text-2xl font-bold text-slate-900">My Student Profile</h1>
+                <p className="mt-1 text-sm text-slate-500">Your core profile details as saved by admin.</p>
                 {studentProfileSection}
             </div>
 
             <div className="rounded-3xl border border-stone-200 bg-white p-6 shadow-sm">
                 <h2 className="text-lg font-semibold text-slate-900">Attendance Summary</h2>
-                <div className="mt-4 grid gap-3 sm:grid-cols-4">
-                    <Info label="Present" value={String(filteredTotals.present || 0)} />
-                    <Info label="Absent" value={String(filteredTotals.absent || 0)} />
-                    <Info label="Leave" value={String(filteredTotals.leave || 0)} />
-                    <Info label="Attendance %" value={`${filteredAttendancePercent}%`} />
+                <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    <SummaryInfo label="Present" value={String(filteredTotals.present || 0)} tone="present" />
+                    <SummaryInfo label="Absent" value={String(filteredTotals.absent || 0)} tone="absent" />
+                    <SummaryInfo label="Leave" value={String(filteredTotals.leave || 0)} tone="leave" />
+                    <SummaryInfo label="Attendance %" value={`${filteredAttendancePercent}%`} tone="overall" />
                 </div>
 
                 <p className="mt-3 text-xs text-slate-500">
-                    Overall all-time percentage: {attendancePercent}%
+                    Overall all-time percentage: {attendancePercent}% (leave days are excluded from percentage)
                 </p>
             </div>
 
@@ -421,11 +449,29 @@ export default function UserStudentPage() {
     );
 }
 
-function Info({ label, value, capitalize = false }) {
+function SummaryInfo({ label, value, tone = "overall" }) {
+    let toneClass = "border-stone-200 bg-stone-50";
+    if (tone === "present") {
+        toneClass = "border-emerald-200 bg-emerald-50";
+    } else if (tone === "absent") {
+        toneClass = "border-rose-200 bg-rose-50";
+    } else if (tone === "leave") {
+        toneClass = "border-amber-200 bg-amber-50";
+    }
+
     return (
-        <div className="rounded-xl border border-stone-200 bg-stone-50 p-3">
+        <div className={`rounded-xl border p-3 ${toneClass}`}>
             <p className="text-xs uppercase tracking-wide text-slate-500">{label}</p>
-            <p className={`mt-1 text-base font-semibold text-slate-900 ${capitalize ? "capitalize" : ""}`}>
+            <p className="mt-1 text-base font-semibold text-slate-900">{value || "-"}</p>
+        </div>
+    );
+}
+
+function ProfileInfo({ label, value, capitalize = false }) {
+    return (
+        <div className="rounded-xl border border-stone-200 bg-white/75 p-3 backdrop-blur-sm">
+            <p className="text-[11px] uppercase tracking-[0.12em] text-slate-500">{label}</p>
+            <p className={`mt-1 text-base font-semibold text-slate-900 wrap-break-word ${capitalize ? "capitalize" : ""}`}>
                 {value || "-"}
             </p>
         </div>

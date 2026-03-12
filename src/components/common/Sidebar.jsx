@@ -10,16 +10,22 @@ import {
   FaAddressBook,
   FaAward,
   FaBell,
-  FaBook,
-  FaCalendar,
+  FaBookOpen,
+  FaBuilding,
+  FaCalendarDays,
   FaChalkboardUser,
   FaChevronDown,
   FaCircleUser,
+  FaClipboardCheck,
+  FaCommentDots,
+  FaFileArrowUp,
   FaFilePdf,
   FaGear,
   FaImages,
-  FaMessage,
+  FaMoneyBillWave,
   FaUserGraduate,
+  FaUserTie,
+  FaUsers
 } from "react-icons/fa6";
 
 // eslint-disable-next-line react/prop-types
@@ -128,33 +134,33 @@ export default function Sidebar({ setSidebarOpen }) {
   const adminMenuItems = [
     {
       name: "View Admissions",
-      icon: FaChalkboardUser,
+      icon: FaClipboardCheck,
       path: "/admin/admissions",
     },
     {
       name: "Payment History",
-      icon: FaFilePdf,
+      icon: FaMoneyBillWave,
       path: "/admin/admissions",
       query: { key: "view", value: "payments" },
     },
     {
       name: "Academics",
-      icon: FaChalkboardUser,
+      icon: FaBookOpen,
       path: "/admin/academics",
     },
     {
       name: "Departments",
-      icon: FaBook,
+      icon: FaBuilding,
       path: "/admin/departments",
     },
     {
       name: "Staff",
-      icon: FaUserGraduate,
+      icon: FaUserTie,
       path: "/admin/staff",
     },
     {
       name: "Students",
-      icon: FaUserGraduate,
+      icon: FaUsers,
       path: "/admin/student",
     },
     {
@@ -169,7 +175,7 @@ export default function Sidebar({ setSidebarOpen }) {
     },
     {
       name: "Events",
-      icon: FaCalendar,
+      icon: FaCalendarDays,
       path: "/admin/events",
     },
     {
@@ -179,12 +185,12 @@ export default function Sidebar({ setSidebarOpen }) {
     },
     {
       name: "Feedback",
-      icon: FaMessage,
+      icon: FaCommentDots,
       path: "/admin/feedback",
     },
     {
       name: "Merit Upload",
-      icon: FaFilePdf,
+      icon: FaFileArrowUp,
       path: "/admin/merit",
     },
     {

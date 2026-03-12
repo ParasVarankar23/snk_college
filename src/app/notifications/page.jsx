@@ -7,7 +7,12 @@ import { useEffect, useMemo, useState } from "react";
 export default function NotificationPage() {
     const { user } = useAuth();
     const normalizedRole = String(user?.role || "student").trim().toLowerCase();
-    const roleLabel = normalizedRole === "admin" ? "Admin" : "Student";
+    let roleLabel = "Student";
+    if (normalizedRole === "admin") {
+        roleLabel = "Admin";
+    } else if (normalizedRole === "teacher") {
+        roleLabel = "Teacher";
+    }
 
     const [notifications, setNotifications] = useState([]);
     const [typeCounts, setTypeCounts] = useState({});
@@ -15,7 +20,7 @@ export default function NotificationPage() {
     const [loading, setLoading] = useState(true);
 
     const authHeader = useMemo(() => {
-        if (typeof window === "undefined") return null;
+        if (globalThis.window === undefined) return null;
         const token = localStorage.getItem("authToken");
         return token ? { Authorization: `Bearer ${token}` } : null;
     }, []);

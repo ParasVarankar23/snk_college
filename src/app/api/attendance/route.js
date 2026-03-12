@@ -191,6 +191,94 @@ function isUserNotFoundError(error) {
     return error?.code === "auth/user-not-found" || error?.errorInfo?.code === "auth/user-not-found";
 }
 
+function isEmailAlreadyExistsError(error) {
+    return (
+        error?.code === "auth/email-already-exists" ||
+        error?.errorInfo?.code === "auth/email-already-exists"
+    );
+}
+
+async function ensureAuthUserForStudent({ adminAuth, existingUid, email, name }) {
+    const normalizedEmail = normalizeEmail(email);
+
+    if (existingUid) {
+        try {
+            const updated = await adminAuth.updateUser(existingUid, {
+                email: normalizedEmail,
+                displayName: name,
+            });
+            return { user: updated, created: false };
+        } catch (error) {
+            if (isEmailAlreadyExistsError(error)) {
+                throw new Error("Email is already used by another account");
+            }
+
+            if (!isUserNotFoundError(error)) {
+                throw new Error("Failed to update auth user");
+            }
+        }
+    }
+
+    try {
+        const existing = await adminAuth.getUserByEmail(normalizedEmail);
+        return { user: existing, created: false };
+    } catch (error) {
+        if (!isUserNotFoundError(error)) {
+            throw new Error("Failed to lookup auth user");
+        }
+    }
+
+    const temporaryPassword = generateStudentPassword(name);
+    try {
+        const created = await adminAuth.createUser({
+            email: normalizedEmail,
+            password: temporaryPassword,
+            displayName: name,
+        });
+        return { user: created, created: true };
+    } catch {
+        throw new Error("Failed to create auth user");
+    }
+}
+
+async function removeStudentAttendanceRecords(db, studentId) {
+    const attendanceSnapshot = await db.ref("attendance").get();
+    if (!attendanceSnapshot.exists()) {
+        return;
+    }
+
+    const attendanceMap = attendanceSnapshot.val() || {};
+    const removals = [];
+
+    for (const [date, entriesByStudent] of Object.entries(attendanceMap)) {
+        if (!entriesByStudent || typeof entriesByStudent !== "object") {
+            continue;
+        }
+
+        if (Object.hasOwn(entriesByStudent, studentId)) {
+            removals.push(db.ref(`attendance/${date}/${studentId}`).remove());
+        }
+
+        for (const [levelKey, value] of Object.entries(entriesByStudent)) {
+            if (!value || typeof value !== "object") {
+                continue;
+            }
+
+            if (Object.hasOwn(value, "status")) {
+                continue;
+            }
+
+            if (Object.hasOwn(value, studentId)) {
+                removals.push(db.ref(`attendance/${date}/${levelKey}/${studentId}`).remove());
+            }
+        }
+    }
+
+    if (removals.length > 0) {
+        await Promise.all(removals);
+    }
+}
+
 async function registerStudentsInBulk({ db, adminAuth, students, createdByUid }) {
     const studentsSnapshot = await db.ref("students").get();
     const existingStudentsMap = studentsSnapshot.exists() ? studentsSnapshot.val() : {};
@@ -525,6 +613,240 @@ export async function POST(request) {
                 },
                 { status: 200 }
             );
+        }
+
+        if (type === "create-student") {
+            if (role !== "admin") {
+                return Response.json({ error: "Forbidden" }, { status: 403 });
+            }
+
+            const name = String(body?.name || "").trim();
+            const email = normalizeEmail(body?.email);
+            const department = normalizeDepartment(body?.department);
+            const providedApplicationId = String(body?.applicationId || "").trim().toUpperCase();
+
+            if (!name || !email || !department) {
+                return Response.json({ error: "Name, email and department are required" }, { status: 400 });
+            }
+
+            if (!isValidEmail(email)) {
+                return Response.json({ error: "Invalid email format" }, { status: 400 });
+            }
+
+            if (!ALLOWED_DEPARTMENTS.has(department)) {
+                return Response.json({ error: "Invalid department" }, { status: 400 });
+            }
+
+            const studentsSnapshot = await db.ref("students").get();
+            const students = studentsSnapshot.exists() ? mapStudents(studentsSnapshot.val()) : [];
+            const emailExists = students.some((row) => normalizeEmail(row.email) === email);
+            if (emailExists) {
+                return Response.json({ error: "Student email already exists" }, { status: 409 });
+            }
+
+            if (providedApplicationId) {
+                const appExists = students.some(
+                    (row) => String(row.applicationId || "").trim().toUpperCase() === providedApplicationId
+                );
+                if (appExists) {
+                    return Response.json({ error: "Application ID already exists" }, { status: 409 });
+                }
+            }
+
+            const adminAuth = getAdminAuth();
+            const authResult = await ensureAuthUserForStudent({
+                adminAuth,
+                existingUid: "",
+                email,
+                name,
+            });
+            const uid = authResult.user.uid;
+            const applicationId = providedApplicationId || (await getNextStudentApplicationId(db));
+            const nowIso = new Date().toISOString();
+            const studentId = db.ref("students").push().key;
+
+            await db.ref(`students/${studentId}`).set({
+                name,
+                email,
+                department,
+                uid,
+                applicationId,
+                createdAt: nowIso,
+                updatedAt: nowIso,
+                createdBy: auth.uid,
+            });
+
+            await db.ref(`users/${uid}`).update({
+                name,
+                email,
+                role: "student",
+                department,
+                applicationId,
+                studentId,
+                updatedAt: nowIso,
+                createdAt: nowIso,
+            });
+
+            return Response.json(
+                {
+                    success: true,
+                    message: "Student created successfully",
+                    student: {
+                        id: studentId,
+                        name,
+                        email,
+                        department,
+                        applicationId,
+                        uid,
+                    },
+                },
+                { status: 200 }
+            );
+        }
+
+        if (type === "update-student") {
+            if (role !== "admin") {
+                return Response.json({ error: "Forbidden" }, { status: 403 });
+            }
+
+            const studentId = String(body?.studentId || "").trim();
+            const name = String(body?.name || "").trim();
+            const email = normalizeEmail(body?.email);
+            const department = normalizeDepartment(body?.department);
+            const providedApplicationId = String(body?.applicationId || "").trim().toUpperCase();
+
+            if (!studentId) {
+                return Response.json({ error: "studentId is required" }, { status: 400 });
+            }
+
+            if (!name || !email || !department) {
+                return Response.json({ error: "Name, email and department are required" }, { status: 400 });
+            }
+
+            if (!isValidEmail(email)) {
+                return Response.json({ error: "Invalid email format" }, { status: 400 });
+            }
+
+            if (!ALLOWED_DEPARTMENTS.has(department)) {
+                return Response.json({ error: "Invalid department" }, { status: 400 });
+            }
+
+            const studentSnapshot = await db.ref(`students/${studentId}`).get();
+            if (!studentSnapshot.exists()) {
+                return Response.json({ error: "Student not found" }, { status: 404 });
+            }
+
+            const current = studentSnapshot.val() || {};
+            const studentsSnapshot = await db.ref("students").get();
+            const students = studentsSnapshot.exists() ? mapStudents(studentsSnapshot.val()) : [];
+
+            const emailExists = students.some(
+                (row) => row.id !== studentId && normalizeEmail(row.email) === email
+            );
+            if (emailExists) {
+                return Response.json({ error: "Student email already exists" }, { status: 409 });
+            }
+
+            if (providedApplicationId) {
+                const appExists = students.some(
+                    (row) =>
+                        row.id !== studentId &&
+                        String(row.applicationId || "").trim().toUpperCase() === providedApplicationId
+                );
+                if (appExists) {
+                    return Response.json({ error: "Application ID already exists" }, { status: 409 });
+                }
+            }
+
+            const adminAuth = getAdminAuth();
+            const authResult = await ensureAuthUserForStudent({
+                adminAuth,
+                existingUid: String(current?.uid || "").trim(),
+                email,
+                name,
+            });
+
+            const uid = authResult.user.uid;
+            const nowIso = new Date().toISOString();
+            const applicationId =
+                providedApplicationId ||
+                String(current?.applicationId || "").trim().toUpperCase() ||
+                (await getNextStudentApplicationId(db));
+
+            await db.ref(`students/${studentId}`).update({
+                name,
+                email,
+                department,
+                uid,
+                applicationId,
+                updatedAt: nowIso,
+            });
+
+            await db.ref(`users/${uid}`).update({
+                name,
+                email,
+                role: "student",
+                department,
+                applicationId,
+                studentId,
+                updatedAt: nowIso,
+            });
+
+            return Response.json(
+                {
+                    success: true,
+                    message: "Student updated successfully",
+                    student: {
+                        id: studentId,
+                        name,
+                        email,
+                        department,
+                        applicationId,
+                        uid,
+                    },
+                },
+                { status: 200 }
+            );
+        }
+
+        if (type === "delete-student") {
+            if (role !== "admin") {
+                return Response.json({ error: "Forbidden" }, { status: 403 });
+            }
+
+            const studentId = String(body?.studentId || "").trim();
+            if (!studentId) {
+                return Response.json({ error: "studentId is required" }, { status: 400 });
+            }
+
+            const studentSnapshot = await db.ref(`students/${studentId}`).get();
+            if (!studentSnapshot.exists()) {
+                return Response.json({ error: "Student not found" }, { status: 404 });
+            }
+
+            const current = studentSnapshot.val() || {};
+            const uid = String(current?.uid || "").trim();
+
+            await db.ref(`students/${studentId}`).remove();
+            await removeStudentAttendanceRecords(db, studentId);
+
+            if (uid) {
+                const userRef = db.ref(`users/${uid}`);
+                const userSnapshot = await userRef.get();
+                if (userSnapshot.exists()) {
+                    const user = userSnapshot.val() || {};
+                    if (normalizeRole(user?.role) === "student") {
+                        await userRef.remove();
+                    } else {
+                        await userRef.update({
+                            studentId: null,
+                            updatedAt: new Date().toISOString(),
+                        });
+                    }
+                }
+            }
+
+            return Response.json({ success: true, message: "Student deleted successfully" }, { status: 200 });
         }
 
         if (type === "mark-attendance") {
