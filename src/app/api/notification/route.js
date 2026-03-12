@@ -75,8 +75,8 @@ function buildAdminNotifications({ feedbackMap, contactMap, admissionsMap }) {
     return [...feedback, ...contacts, ...admissions].sort(sortByTimeDesc);
 }
 
-function buildStudentNotifications({ meritMap }) {
-    return Object.entries(meritMap || {})
+function buildStudentNotifications({ meritMap, studentsMap, authUid }) {
+    const meritNotifications = Object.entries(meritMap || {})
         .map(([id, value]) => ({
             id: `merit-${id}`,
             type: "merit",
@@ -86,6 +86,26 @@ function buildStudentNotifications({ meritMap }) {
             href: "/merit",
         }))
         .sort(sortByTimeDesc);
+
+    const onboardingNotifications = Object.entries(studentsMap || {})
+        .map(([id, value]) => {
+            if (String(value?.uid || "").trim() !== String(authUid || "").trim()) {
+                return null;
+            }
+
+            return {
+                id: `student-onboard-${id}`,
+                type: "student-account",
+                title: "Your student account is activated",
+                description: `Application ID: ${value?.applicationId || "-"}`,
+                createdAt: value?.createdAt || value?.updatedAt || "",
+                href: "/profile",
+            };
+        })
+        .filter(Boolean)
+        .sort(sortByTimeDesc);
+
+    return [...onboardingNotifications, ...meritNotifications].sort(sortByTimeDesc);
 }
 
 function buildTeacherNotifications({ studentsMap, teacherDepartment }) {
@@ -138,7 +158,7 @@ async function getEffectiveRoleContext(db, auth) {
     return { userProfile, effectiveRole };
 }
 
-async function buildNotificationsForRole({ db, effectiveRole, userProfile }) {
+async function buildNotificationsForRole({ db, effectiveRole, userProfile, authUid }) {
     if (effectiveRole === "admin") {
         const [feedbackSnap, contactSnap, admissionsSnap] = await Promise.all([
             db.ref("feedback_items").get(),
@@ -161,9 +181,15 @@ async function buildNotificationsForRole({ db, effectiveRole, userProfile }) {
         });
     }
 
-    const meritSnap = await db.ref("merit_notices").get();
+    const [meritSnap, studentsSnap] = await Promise.all([
+        db.ref("merit_notices").get(),
+        db.ref("students").get(),
+    ]);
+
     return buildStudentNotifications({
         meritMap: meritSnap.exists() ? meritSnap.val() : {},
+        studentsMap: studentsSnap.exists() ? studentsSnap.val() : {},
+        authUid,
     });
 }
 
@@ -184,7 +210,12 @@ export async function GET(request) {
         const seenAt = seenSnapshot.exists() ? String(seenSnapshot.val() || "") : "";
         const seenAtMs = toUnixMs(seenAt);
 
-        const notifications = await buildNotificationsForRole({ db, effectiveRole, userProfile });
+        const notifications = await buildNotificationsForRole({
+            db,
+            effectiveRole,
+            userProfile,
+            authUid: auth.uid,
+        });
 
         const unreadCount = notifications.filter((item) => toUnixMs(item.createdAt) > seenAtMs).length;
         const typeCounts = getTypeCounts(notifications);

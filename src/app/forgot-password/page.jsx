@@ -192,7 +192,7 @@ export default function ForgotPassword() {
             <div className="relative mx-auto grid min-h-[calc(100svh-7rem)] max-w-7xl items-center gap-8 px-4 py-8 sm:px-6 md:py-10 lg:grid-cols-[1.1fr_0.9fr] lg:gap-14 lg:px-8">
                 {/* LEFT CONTENT */}
                 <motion.div
-                    className="order-2 text-left md:order-1"
+                    className="hidden text-left lg:order-1 lg:block"
                     variants={introVariants}
                     initial="hidden"
                     animate="visible"

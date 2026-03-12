@@ -62,7 +62,7 @@ export async function sendSignupEmail(email, name, generatedPassword) {
                         <strong>Important:</strong> Please save this password in a secure location. You'll need it to login to your account. Consider changing it after your first login.
                     </div>
                     
-                    <p>You can now login at: <strong>https://yourcollegeportal.com/login</strong></p>
+                    <p>You can now login at: <strong>https://snk-college.vercel.app/login</strong></p>
                     
                     <p>If you have any questions or need assistance, please contact our support team.</p>
                     

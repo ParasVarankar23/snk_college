@@ -1,3 +1,4 @@
+import { sendSignupEmail } from "@/lib/emailService";
 import { getAdminAuth, getAdminDb } from "@/lib/firebaseAdmin";
 import jwt from "jsonwebtoken";
 
@@ -207,7 +208,7 @@ async function ensureAuthUserForStudent({ adminAuth, existingUid, email, name })
                 email: normalizedEmail,
                 displayName: name,
             });
-            return { user: updated, created: false };
+            return { user: updated, created: false, temporaryPassword: "" };
         } catch (error) {
             if (isEmailAlreadyExistsError(error)) {
                 throw new Error("Email is already used by another account");
@@ -221,7 +222,7 @@ async function ensureAuthUserForStudent({ adminAuth, existingUid, email, name })
 
     try {
         const existing = await adminAuth.getUserByEmail(normalizedEmail);
-        return { user: existing, created: false };
+        return { user: existing, created: false, temporaryPassword: "" };
     } catch (error) {
         if (!isUserNotFoundError(error)) {
             throw new Error("Failed to lookup auth user");
@@ -235,9 +236,25 @@ async function ensureAuthUserForStudent({ adminAuth, existingUid, email, name })
             password: temporaryPassword,
             displayName: name,
         });
-        return { user: created, created: true };
+        return { user: created, created: true, temporaryPassword };
     } catch {
         throw new Error("Failed to create auth user");
+    }
+}
+
+async function trySendStudentCredentialsEmail({ email, name, password }) {
+    if (!email || !password) {
+        return { sent: false, reason: "missing-email-or-password" };
+    }
+
+    try {
+        await sendSignupEmail(email, name || "Student", password);
+        return { sent: true };
+    } catch (error) {
+        return {
+            sent: false,
+            reason: error?.message || "email-send-failed",
+        };
     }
 }
 
@@ -283,6 +300,44 @@ async function registerStudentsInBulk({ db, adminAuth, students, createdByUid })
     const studentsSnapshot = await db.ref("students").get();
     const existingStudentsMap = studentsSnapshot.exists() ? studentsSnapshot.val() : {};
     const existingStudents = mapStudents(existingStudentsMap);
+    const admissionsSnapshot = await db.ref("admissions").get();
+    const admissionsMap = admissionsSnapshot.exists() ? admissionsSnapshot.val() : {};
+    const usersSnapshot = await db.ref("users").get();
+    const usersMap = usersSnapshot.exists() ? usersSnapshot.val() : {};
+    const admissionByApplicationId = new Map(
+        Object.values(admissionsMap || {})
+            .map((row) => {
+                const payload = row?.payload || {};
+                const admissionName =
+                    String(payload?.declarationStudentName || "").trim() ||
+                    [payload?.firstName, payload?.middleName, payload?.lastName]
+                        .filter(Boolean)
+                        .join(" ")
+                        .trim();
+                const admissionEmail = normalizeEmail(payload?.email);
+                const applicationId = String(row?.applicationId || "").trim().toUpperCase();
+
+                return {
+                    applicationId,
+                    name: admissionName,
+                    email: admissionEmail,
+                };
+            })
+            .filter((row) => row.applicationId)
+            .map((row) => [row.applicationId, row])
+    );
+    const userByApplicationId = new Map(
+        Object.entries(usersMap || {})
+            .map(([uid, value]) => ({
+                uid,
+                applicationId: String(value?.applicationId || "").trim().toUpperCase(),
+                name: String(value?.name || value?.displayName || "").trim(),
+                email: normalizeEmail(value?.email),
+            }))
+            .filter((row) => row.applicationId)
+            .map((row) => [row.applicationId, row])
+    );
+
     const byEmail = new Map(existingStudents.map((row) => [normalizeEmail(row.email), row]));
     const byApplicationId = new Map(
         existingStudents
@@ -294,18 +349,46 @@ async function registerStudentsInBulk({ db, adminAuth, students, createdByUid })
     const results = {
         createdCount: 0,
         updatedCount: 0,
+        emailedCount: 0,
+        credentials: [],
+        emailFailed: [],
         failed: [],
     };
 
     for (let index = 0; index < students.length; index += 1) {
         const row = students[index] || {};
-        const name = String(row.name || "").trim();
-        const email = normalizeEmail(row.email);
+        const providedName = String(row.name || "").trim();
+        const providedEmail = normalizeEmail(row.email);
         const department = normalizeDepartment(row.department);
         const providedApplicationId = String(row.applicationId || "").trim().toUpperCase();
+        const matchedAdmission = providedApplicationId
+            ? admissionByApplicationId.get(providedApplicationId)
+            : null;
+        const matchedUser = providedApplicationId
+            ? userByApplicationId.get(providedApplicationId)
+            : null;
+        const existingByApplication = providedApplicationId
+            ? byApplicationId.get(providedApplicationId)
+            : null;
 
-        if (!name || !email || !department) {
-            results.failed.push({ row: index + 1, error: "Name, email, and department are required" });
+        const name =
+            providedName ||
+            String(matchedAdmission?.name || "").trim() ||
+            String(matchedUser?.name || "").trim() ||
+            String(existingByApplication?.name || "").trim();
+        const email =
+            providedEmail ||
+            normalizeEmail(matchedAdmission?.email) ||
+            normalizeEmail(matchedUser?.email) ||
+            normalizeEmail(existingByApplication?.email);
+
+        if (!name || !department) {
+            results.failed.push({ row: index + 1, error: "Name and department are required" });
+            continue;
+        }
+
+        if (!email) {
+            results.failed.push({ row: index + 1, error: "Email missing. Provide email or a valid Application ID" });
             continue;
         }
 
@@ -344,15 +427,7 @@ async function registerStudentsInBulk({ db, adminAuth, students, createdByUid })
             }
         }
 
-        const existingStudent = byEmail.get(email);
-        const existingByApplication = providedApplicationId
-            ? byApplicationId.get(providedApplicationId)
-            : null;
-
-        if (!existingStudent && existingByApplication) {
-            results.failed.push({ row: index + 1, error: "Application ID already exists" });
-            continue;
-        }
+        const existingStudent = byEmail.get(email) || existingByApplication || null;
 
         if (!existingStudent && providedApplicationId && seenNewApplicationIds.has(providedApplicationId)) {
             results.failed.push({ row: index + 1, error: "Duplicate application ID in upload" });
@@ -396,6 +471,32 @@ async function registerStudentsInBulk({ db, adminAuth, students, createdByUid })
             results.createdCount += 1;
             seenNewApplicationIds.add(applicationId.toUpperCase());
             byApplicationId.set(applicationId.toUpperCase(), { id: studentId, applicationId });
+        }
+
+        if (temporaryPassword) {
+            results.credentials.push({
+                row: index + 1,
+                name,
+                email,
+                applicationId,
+                password: temporaryPassword,
+            });
+
+            const emailResult = await trySendStudentCredentialsEmail({
+                email,
+                name,
+                password: temporaryPassword,
+            });
+
+            if (emailResult.sent) {
+                results.emailedCount += 1;
+            } else {
+                results.emailFailed.push({
+                    row: index + 1,
+                    email,
+                    reason: emailResult.reason,
+                });
+            }
         }
     }
 
@@ -687,10 +788,20 @@ export async function POST(request) {
                 createdAt: nowIso,
             });
 
+            let credentialEmail = { sent: false, reason: "existing-account" };
+            if (authResult.created && authResult.temporaryPassword) {
+                credentialEmail = await trySendStudentCredentialsEmail({
+                    email,
+                    name,
+                    password: authResult.temporaryPassword,
+                });
+            }
+
             return Response.json(
                 {
                     success: true,
                     message: "Student created successfully",
+                    credentialEmail,
                     student: {
                         id: studentId,
                         name,

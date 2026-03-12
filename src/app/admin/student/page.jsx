@@ -85,6 +85,18 @@ function parseBulkRows(input) {
         }
 
         if (chunks.length >= 3) {
+            const [first = "", second = "", third = ""] = chunks;
+            const firstLooksLikeAppId = /\d{4}.*[a-z]{2,}/i.test(first) || /^std\d+/i.test(first);
+
+            if (firstLooksLikeAppId) {
+                return {
+                    applicationId: String(first || "").trim().toUpperCase(),
+                    name: String(second || "").trim(),
+                    email: "",
+                    department: String(third || "").trim().toLowerCase(),
+                };
+            }
+
             const [name = "", email = "", department = ""] = chunks;
             return {
                 name,
@@ -222,7 +234,7 @@ export default function AdminStudentPage() {
     const previewRows = useMemo(() => {
         const parsed = parseBulkRows(bulkText);
         return parsed
-            .filter((row) => row.name && row.email && row.department)
+            .filter((row) => row.name && row.department && (row.email || row.applicationId))
             .slice(0, 50);
     }, [bulkText]);
 
@@ -584,9 +596,42 @@ export default function AdminStudentPage() {
                         <p>Created: {result.createdCount || 0}</p>
                         <p>Updated: {result.updatedCount || 0}</p>
                         <p>Failed: {(result.failed || []).length}</p>
-                        <p className="mt-1 text-xs text-slate-500">
-                            For security reasons, passwords are never shown on screen.
-                        </p>
+                        <p>Credentials Email Sent: {result.emailedCount || 0}</p>
+                        {(result.emailFailed || []).length > 0 && (
+                            <p className="mt-1 text-xs text-amber-700">
+                                Email failed for {(result.emailFailed || []).length} students. Please verify SMTP settings.
+                            </p>
+                        )}
+                        {(result.credentials || []).length > 0 && (
+                            <div className="mt-3 rounded-lg border border-emerald-200 bg-white p-3">
+                                <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">Generated Login Credentials</p>
+                                <p className="mt-1 text-xs text-slate-600">
+                                    Passwords are generated for newly created accounts. Students also receive these on email directly.
+                                </p>
+                                <div className="mt-2 overflow-x-auto">
+                                    <table className="min-w-full text-xs">
+                                        <thead className="bg-emerald-50 text-emerald-800">
+                                            <tr>
+                                                <th className="px-2 py-1 text-left">Name</th>
+                                                <th className="px-2 py-1 text-left">Email</th>
+                                                <th className="px-2 py-1 text-left">Application ID</th>
+                                                <th className="px-2 py-1 text-left">Password</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {result.credentials.map((item) => (
+                                                <tr key={`${item.email}_${item.row}`} className="border-t border-emerald-100">
+                                                    <td className="px-2 py-1">{item.name}</td>
+                                                    <td className="px-2 py-1">{item.email}</td>
+                                                    <td className="px-2 py-1">{item.applicationId || "-"}</td>
+                                                    <td className="px-2 py-1 font-semibold text-slate-900">{item.password}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
@@ -689,7 +734,7 @@ export default function AdminStudentPage() {
                     <div className="space-y-4">
                         <div className="rounded-xl border border-stone-200 bg-stone-50 p-3">
                             <p className="text-xs font-medium text-slate-700">
-                                Upload Excel (.xlsx/.xls) with columns: Application ID, Name, Email, Department
+                                Upload Excel (.xlsx/.xls) with columns: Application ID, Name, Department, Email (optional if Application ID maps to admission record)
                             </p>
                             <label className="mt-2 inline-flex cursor-pointer items-center rounded-lg border border-stone-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-stone-100">
                                 {uploadingSheet ? "Reading Excel..." : "Upload Excel Sheet"}
@@ -708,7 +753,7 @@ export default function AdminStudentPage() {
                                 value={bulkText}
                                 onChange={(event) => setBulkText(event.target.value)}
                                 className="min-h-44 w-full rounded-xl border border-stone-300 p-4 text-sm outline-none focus:border-[#7a1c1c]/60"
-                                placeholder="applicationId,name,email,department"
+                                placeholder="applicationId,name,email(optional),department"
                             />
 
                             <div>
