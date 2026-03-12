@@ -33,12 +33,25 @@ export async function uploadAssetToCloudinary({
     mimeType,
     resourceType = "auto",
 }) {
+    const lowerMimeType = String(mimeType || "").toLowerCase();
+    let resolvedResourceType = resourceType;
+
+    if (resourceType === "auto") {
+        if (lowerMimeType.startsWith("image/")) {
+            resolvedResourceType = "image";
+        } else if (lowerMimeType.startsWith("video/")) {
+            resolvedResourceType = "video";
+        } else {
+            resolvedResourceType = "raw";
+        }
+    }
+
     const base64 = buffer.toString("base64");
     const dataUri = `data:${mimeType};base64,${base64}`;
 
     return cloudinary.uploader.upload(dataUri, {
         folder,
-        resource_type: resourceType,
+        resource_type: resolvedResourceType,
     });
 }
 

@@ -443,6 +443,29 @@ function formatPaymentDetailValue(paymentValue) {
     return Number.isInteger(amount) ? String(amount) : String(amount.toFixed(2));
 }
 
+function resolveDocumentUrl(doc) {
+    const baseUrl = String(doc?.url || "").trim();
+    if (!baseUrl) return "#";
+
+    const mimeType = String(doc?.mimeType || "").toLowerCase();
+    if (mimeType !== "application/pdf") return baseUrl;
+
+    const resourceType = String(doc?.resourceType || "").toLowerCase();
+
+    if (resourceType === "raw") {
+        let url = baseUrl;
+        if (url.includes("/image/upload/")) {
+            url = url.replace("/image/upload/", "/raw/upload/");
+        }
+        if (!url.includes("/upload/fl_attachment/")) {
+            url = url.replace("/upload/", "/upload/fl_attachment/");
+        }
+        return url;
+    }
+
+    return baseUrl;
+}
+
 function parsePercentage(value) {
     const numeric = Number.parseFloat(String(value || "").replaceAll(/[^\d.]/g, ""));
     return Number.isFinite(numeric) ? numeric : -1;
@@ -1825,7 +1848,7 @@ function AdminAdmissionsInner() {
                                                             {Object.entries(admission.documents || {}).map(([key, doc]) => (
                                                                 <a
                                                                     key={key}
-                                                                    href={doc?.url || "#"}
+                                                                    href={resolveDocumentUrl(doc)}
                                                                     target="_blank"
                                                                     rel="noreferrer"
                                                                     className="rounded-xl border border-[#7a1c1c]/10 bg-white px-3 py-2 text-sm font-medium text-[#7a1c1c] hover:bg-[#7a1c1c]/5"
