@@ -138,6 +138,12 @@ export default function Sidebar({ setSidebarOpen }) {
       path: "/admin/admissions",
     },
     {
+      name: "Offline Registration",
+      icon: FaFilePdf,
+      path: "/admin/admissions",
+      query: { key: "source", value: "offline" },
+    },
+    {
       name: "Payment History",
       icon: FaMoneyBillWave,
       path: "/admin/admissions",

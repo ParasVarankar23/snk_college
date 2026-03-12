@@ -14,6 +14,408 @@ const streamLabelMap = {
 
 const PAGE_SIZE = 10;
 
+const OFFLINE_DOCUMENT_FIELDS = [
+    { key: "studentPhoto", label: "Student Photo" },
+    { key: "studentSignature", label: "Student Signature" },
+    { key: "parentSignature", label: "Parent Signature" },
+    { key: "tenthMarksheet", label: "10th Marksheet" },
+    { key: "leavingCertificate", label: "Leaving Certificate" },
+    { key: "documentAadhaarCard", label: "Aadhaar Card" },
+    { key: "documentBirthCertificate", label: "Birth Certificate" },
+    { key: "documentCasteCertificate", label: "Caste Certificate" },
+    { key: "documentIncomeCertificate", label: "Income Certificate" },
+    { key: "documentDomicileCertificate", label: "Domicile Certificate" },
+    { key: "documentParentAadhaarCard", label: "Parent Aadhaar Card" },
+];
+
+const DOCUMENT_TEXT_MATCHERS = {
+    studentPhoto: ["student photo", "passport size photo", "passport photo"],
+    studentSignature: ["student signature"],
+    parentSignature: ["parent signature", "parent / guardian signature", "guardian signature"],
+    tenthMarksheet: ["10th marksheet", "tenth marksheet", "ssc marksheet"],
+    leavingCertificate: ["leaving certificate", "transfer certificate"],
+    documentAadhaarCard: ["aadhaar card", "aadhar card"],
+    documentBirthCertificate: ["birth certificate"],
+    documentCasteCertificate: ["caste certificate"],
+    documentIncomeCertificate: ["income certificate"],
+    documentDomicileCertificate: ["domicile certificate"],
+    documentParentAadhaarCard: ["parent aadhaar card", "parent aadhar card"],
+};
+
+const initialOfflineFormState = {
+    studentName: "",
+    email: "",
+    mobileNumber: "",
+    selectedStream: "science",
+    percentage: "",
+    status: "verified-offline",
+    paymentStatus: "paid",
+    paymentAmount: "200",
+    notes: "",
+};
+
+const initialEditFormState = {
+    id: "",
+    studentName: "",
+    email: "",
+    mobileNumber: "",
+    selectedStream: "science",
+    percentage: "",
+    status: "submitted",
+    paymentStatus: "pending",
+    paymentAmount: "",
+    notes: "",
+};
+
+const PDFJS_CDN_URL = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.8.69/pdf.min.mjs";
+const PDFJS_WORKER_CDN_URL = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.8.69/pdf.worker.min.mjs";
+let pdfJsModulePromise = null;
+
+const PDF_EXTRACT_FIELDS = {
+    fullName: ["full name", "student name", "name of student", "candidate name"],
+    gender: ["gender"],
+    dob: ["date of birth", "dob"],
+    bloodGroup: ["blood group"],
+    aadhaar: ["aadhaar number", "aadhar number"],
+    mobileNumber: ["mobile number", "student mobile", "contact number"],
+    alternateMobile: ["alternate mobile", "alternate mobile number"],
+    email: ["email id", "email"],
+    nationality: ["nationality"],
+    religion: ["religion"],
+    casteCategory: ["caste category"],
+    subCategory: ["sub category"],
+    addressLine1: ["address line 1"],
+    addressLine2: ["address line 2"],
+    cityTaluka: ["city / taluka", "city taluka"],
+    district: ["district"],
+    state: ["state"],
+    pinCode: ["pin code", "pincode"],
+    fatherName: ["father's full name", "father full name", "father name"],
+    motherName: ["mother's full name", "mother full name", "mother name"],
+    annualFamilyIncome: ["annual family income", "family income"],
+    boardName: ["board name"],
+    schoolName: ["school name"],
+    seatNumber: ["seat / roll number", "seat number", "roll number"],
+    passingYear: ["passing year"],
+    totalMarks: ["total marks obtained", "total marks"],
+    outOfMarks: ["out of marks"],
+    percentage: ["percentage", "10th percentage"],
+    grade: ["grade"],
+    resultStatus: ["result status"],
+    mediumOfStudy: ["medium of study"],
+    lastSchoolAddress: ["last school address"],
+    selectedStream: ["selected stream", "stream"],
+    paymentMode: ["payment mode"],
+    paymentStatus: ["payment status"],
+    paymentAmount: ["amount paid", "payment amount", "fee amount", "form fee"],
+};
+
+const EXTRACTED_DETAIL_LABELS = {
+    fullName: "Full Name",
+    gender: "Gender",
+    dob: "Date of Birth",
+    bloodGroup: "Blood Group",
+    aadhaar: "Aadhaar Number",
+    mobileNumber: "Mobile Number",
+    alternateMobile: "Alternate Mobile",
+    email: "Email",
+    nationality: "Nationality",
+    religion: "Religion",
+    casteCategory: "Caste Category",
+    subCategory: "Sub Category",
+    addressLine1: "Address Line 1",
+    addressLine2: "Address Line 2",
+    cityTaluka: "City/Taluka",
+    district: "District",
+    state: "State",
+    pinCode: "Pin Code",
+    fatherName: "Father Name",
+    motherName: "Mother Name",
+    annualFamilyIncome: "Annual Family Income",
+    boardName: "Board Name",
+    schoolName: "School Name",
+    seatNumber: "Seat/Roll Number",
+    passingYear: "Passing Year",
+    totalMarks: "Total Marks",
+    outOfMarks: "Out Of Marks",
+    percentage: "Percentage",
+    grade: "Grade",
+    resultStatus: "Result Status",
+    mediumOfStudy: "Medium Of Study",
+    lastSchoolAddress: "Last School Address",
+    selectedStream: "Selected Stream",
+    paymentMode: "Payment Mode",
+    paymentStatus: "Payment Status",
+    paymentAmount: "Payment Amount",
+};
+
+const EXTRACTION_STOP_MARKERS = [
+    "FATHER'S OCCUPATION",
+    "FATHER'S MOBILE",
+    "FATHER'S AADHAAR",
+    "MOTHER'S OCCUPATION",
+    "MOTHER'S MOBILE",
+    "MOTHER'S AADHAAR",
+    "GUARDIAN NAME",
+    "GUARDIAN RELATION",
+    "GUARDIAN CONTACT",
+    "10TH ACADEMIC DETAILS",
+    "STUDENT PERSONAL DETAILS",
+    "PARENT / FAMILY DETAILS",
+    "STREAM SELECTION DETAILS",
+    "EXTRA INSTITUTIONAL DETAILS",
+    "PAYMENT DETAILS",
+    "BOARD NAME",
+    "SCHOOL NAME",
+    "SCHOOL UDISE NO.",
+    "SCHOOL UDISE NO",
+    "SCHOOL UDISE NUMBER",
+    "UDISE NO.",
+    "UDISE NUMBER",
+    "RESULT STATUS",
+    "MEDIUM OF STUDY",
+    "LAST SCHOOL ADDRESS",
+    "PAYMENT MODE",
+    "PAYMENT STATUS",
+    "AMOUNT PAID",
+    "RECEIPT NUMBER",
+];
+
+async function loadPdfJsModule() {
+    if (pdfJsModulePromise) {
+        return pdfJsModulePromise;
+    }
+
+    pdfJsModulePromise = import(/* webpackIgnore: true */ PDFJS_CDN_URL)
+        .then((module) => {
+            const lib = module?.default || module;
+            if (!lib?.getDocument || !lib?.GlobalWorkerOptions) {
+                throw new Error("Unable to initialize PDF parser");
+            }
+
+            lib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_CDN_URL;
+            return lib;
+        });
+
+    return pdfJsModulePromise;
+}
+
+async function extractTextFromPdfFile(file) {
+    const pdfjs = await loadPdfJsModule();
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
+    const pages = [];
+
+    for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
+        const page = await pdf.getPage(pageNumber);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items.map((item) => String(item.str || "")).join(" ");
+        pages.push(pageText);
+    }
+
+    return pages.join("\n");
+}
+
+function detectStreamFromText(text) {
+    const normalized = String(text || "").toLowerCase();
+    if (normalized.includes("commerce")) return "commerce";
+    if (normalized.includes("arts")) return "arts";
+    if (normalized.includes("science")) return "science";
+    return "";
+}
+
+function extractFieldByPattern(text, patterns = []) {
+    for (const pattern of patterns) {
+        const match = pattern.exec(text);
+        const value = String(match?.[1] || "").trim();
+        if (value) return value;
+    }
+    return "";
+}
+
+function escapeRegex(value) {
+    return String(value || "").replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
+}
+
+function buildAllLabelPattern() {
+    const labels = Object.values(PDF_EXTRACT_FIELDS)
+        .flat()
+        .map((label) => escapeRegex(label))
+        .sort((a, b) => b.length - a.length);
+
+    return labels.join("|");
+}
+
+function extractLabeledField(text, variants, allLabelPattern) {
+    for (const variant of variants) {
+        const labelPattern = escapeRegex(variant);
+        const regex = new RegExp(
+            String.raw`${labelPattern}\s*[:-]?\s*([^:]{1,140}?)(?=\s+(?:${allLabelPattern})\b|$)`,
+            "i"
+        );
+        const match = regex.exec(text);
+        const value = String(match?.[1] || "")
+            .replaceAll(/\s+/g, " ")
+            .trim();
+
+        if (value) {
+            return value;
+        }
+    }
+
+    return "";
+}
+
+function sanitizeExtractedStudentName(rawValue) {
+    const text = String(rawValue || "").trim();
+    if (!text) return "";
+
+    const withoutTailLabels = text
+        .split(/\b(parent|father|mother|signature|mobile|contact|email|address|stream|department|payment|status|student)\b/i)[0]
+        .trim();
+
+    const lettersOnly = withoutTailLabels
+        .replaceAll(/[^A-Za-z.\s]/g, " ")
+        .replaceAll(/\s+/g, " ")
+        .trim();
+
+    const words = lettersOnly
+        .split(" ")
+        .map((word) => word.trim())
+        .filter(Boolean)
+        .slice(0, 4);
+
+    return words.join(" ");
+}
+
+function sanitizeExtractedValue(rawValue) {
+    const text = String(rawValue || "")
+        .replaceAll(/\s+/g, " ")
+        .trim();
+
+    if (!text) return "";
+
+    const upper = text.toUpperCase();
+    let cutIndex = upper.length;
+
+    for (const marker of EXTRACTION_STOP_MARKERS) {
+        const idx = upper.indexOf(marker);
+        if (idx > 0 && idx < cutIndex) {
+            cutIndex = idx;
+        }
+    }
+
+    return text.slice(0, cutIndex).replaceAll(/\s+/g, " ").trim();
+}
+
+function parseOfflinePdfDetails(text) {
+    const compactText = String(text || "").replaceAll(/\s+/g, " ");
+    const allLabelPattern = buildAllLabelPattern();
+    const normalizedUpper = compactText.toUpperCase();
+
+    const extracted = {};
+    Object.entries(PDF_EXTRACT_FIELDS).forEach(([key, variants]) => {
+        extracted[key] = sanitizeExtractedValue(extractLabeledField(compactText, variants, allLabelPattern));
+    });
+
+    const email = extracted.email || extractFieldByPattern(compactText, [
+        /([A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,})/i,
+    ]);
+
+    const mobileRaw = extracted.mobileNumber || extractFieldByPattern(compactText, [
+        /(?:mobile|phone|contact)\s*(?:number|no\.?)*\s*[:-]?\s*((?:\+91[-\s]?)?[6-9]\d{9})/i,
+        /((?:\+91[-\s]?)?[6-9]\d{9})/i,
+    ]);
+    const mobileNumber = mobileRaw.replaceAll(/[^\d]/g, "").slice(-10);
+
+    const studentNameRaw = extracted.fullName || extractFieldByPattern(compactText, [
+        /(?:student\s*name|name\s*of\s*student|candidate\s*name)\s*[:-]?\s*([a-z][a-z .]{2,80})/i,
+    ]);
+    const studentName = sanitizeExtractedStudentName(studentNameRaw);
+
+    const percentage = extracted.percentage || extractFieldByPattern(compactText, [
+        /(?:percentage|percent|%\s*marks)\s*[:-]?\s*(\d{1,2}(?:\.\d{1,2})?)/i,
+        /(\d{1,2}(?:\.\d{1,2})?)\s*%/i,
+    ]);
+
+    const paymentAmount = extracted.paymentAmount || extractFieldByPattern(compactText, [
+        /(?:amount|fee)\s*[:-]?\s*(\d{2,6}(?:\.\d{1,2})?)/i,
+        /(?:inr|rs\.?)[\s:]+(\d{2,6}(?:\.\d{1,2})?)/i,
+    ]);
+
+    const normalized = compactText.toLowerCase();
+    let paymentStatus = String(extracted.paymentStatus || "").toLowerCase();
+    if (!paymentStatus) {
+        paymentStatus = "pending";
+    }
+    if (/payment\s*status\s*[:-]?\s*paid|status\s*[:-]?\s*paid|\bpaid\b/i.test(normalized)) {
+        paymentStatus = "paid";
+    }
+    if (/unpaid|pending|not\s+paid|due/i.test(normalized)) {
+        paymentStatus = "pending";
+    }
+
+    const selectedStream = detectStreamFromText(extracted.selectedStream || compactText);
+
+    const extractedDetails = {
+        fullName: studentName,
+        gender: extracted.gender,
+        dob: extracted.dob,
+        bloodGroup: extracted.bloodGroup,
+        aadhaar: extracted.aadhaar,
+        mobileNumber,
+        alternateMobile: extracted.alternateMobile,
+        email,
+        nationality: extracted.nationality,
+        religion: extracted.religion,
+        casteCategory: extracted.casteCategory,
+        subCategory: extracted.subCategory,
+        addressLine1: extracted.addressLine1,
+        addressLine2: extracted.addressLine2,
+        cityTaluka: extracted.cityTaluka,
+        district: extracted.district,
+        state: extracted.state,
+        pinCode: extracted.pinCode,
+        fatherName: extracted.fatherName,
+        motherName: extracted.motherName,
+        annualFamilyIncome: extracted.annualFamilyIncome,
+        boardName: extracted.boardName,
+        schoolName: extracted.schoolName,
+        seatNumber: extracted.seatNumber,
+        passingYear: extracted.passingYear,
+        totalMarks: extracted.totalMarks,
+        outOfMarks: extracted.outOfMarks,
+        percentage,
+        grade: extracted.grade,
+        resultStatus: extracted.resultStatus,
+        mediumOfStudy: extracted.mediumOfStudy,
+        lastSchoolAddress: extracted.lastSchoolAddress,
+        selectedStream,
+        paymentMode: extracted.paymentMode || "offline",
+        paymentStatus,
+        paymentAmount,
+    };
+
+    const detectedDocumentKeys = OFFLINE_DOCUMENT_FIELDS
+        .filter((item) => {
+            const patterns = DOCUMENT_TEXT_MATCHERS[item.key] || [];
+            return patterns.some((pattern) => normalizedUpper.includes(String(pattern).toUpperCase()));
+        })
+        .map((item) => item.key);
+
+    return {
+        studentName,
+        email,
+        mobileNumber,
+        percentage,
+        selectedStream,
+        paymentStatus,
+        paymentAmount,
+        extractedDetails,
+        detectedDocumentKeys,
+    };
+}
+
 function resolveStream(admission) {
     return String(admission?.selectedStream || admission?.payload?.selectedStream || "")
         .trim()
@@ -24,7 +426,21 @@ function prettyValue(value) {
     if (value === null || value === undefined || value === "") return "-";
     if (Array.isArray(value)) return value.join(", ") || "-";
     if (typeof value === "boolean") return value ? "Yes" : "No";
+    if (typeof value === "object") {
+        const pairs = Object.entries(value)
+            .filter(([, item]) => item !== null && item !== undefined && item !== "")
+            .map(([key, item]) => `${key}: ${String(item)}`);
+        return pairs.length ? pairs.join(" | ") : "-";
+    }
     return String(value);
+}
+
+function formatPaymentDetailValue(paymentValue) {
+    if (!paymentValue || typeof paymentValue !== "object") return "-";
+
+    const amount = parseAmount(paymentValue.amount || 0);
+    if (amount <= 0) return "-";
+    return Number.isInteger(amount) ? String(amount) : String(amount.toFixed(2));
 }
 
 function parsePercentage(value) {
@@ -84,8 +500,18 @@ function AdminAdmissionsInner() {
         other: 1,
     });
     const [selectedPaymentDepartmentTab, setSelectedPaymentDepartmentTab] = useState("all");
+    const [offlineSubmitting, setOfflineSubmitting] = useState(false);
+    const [extractingPdf, setExtractingPdf] = useState(false);
+    const [offlineForm, setOfflineForm] = useState(initialOfflineFormState);
+    const [offlineFiles, setOfflineFiles] = useState({ offlineFormPdf: null });
+    const [extractedDetails, setExtractedDetails] = useState({});
+    const [detectedDocumentKeys, setDetectedDocumentKeys] = useState([]);
+    const [editingAdmissionId, setEditingAdmissionId] = useState("");
+    const [editSubmitting, setEditSubmitting] = useState(false);
+    const [editForm, setEditForm] = useState(initialEditFormState);
 
     const selectedView = searchParams.get("view") === "payments" ? "payments" : "admissions";
+    const offlineSourceMode = searchParams.get("source") === "offline";
 
     const departmentTabs = [
         { id: "science", label: "Science" },
@@ -136,6 +562,9 @@ function AdminAdmissionsInner() {
                 const amount = isPaid
                     ? parseAmount(payment?.amount || payload.formPrice || 0)
                     : parseAmount(payload.formPrice || 0);
+                const paymentMode = String(payment?.mode || (admission?.source === "offline" ? "offline" : "online"))
+                    .trim()
+                    .toLowerCase();
 
                 return {
                     id: admission.id,
@@ -146,6 +575,7 @@ function AdminAdmissionsInner() {
                     department: stream,
                     amount,
                     isPaid,
+                    paymentMode,
                     paymentId: payment?.razorpayPaymentId || "-",
                     paidAt: payment?.paidAt || admission.updatedAt || "",
                 };
@@ -167,10 +597,18 @@ function AdminAdmissionsInner() {
         });
 
         const totalRevenue = paidRows.reduce((sum, row) => sum + row.amount, 0);
+        const offlineRevenue = paidRows
+            .filter((row) => row.paymentMode === "offline")
+            .reduce((sum, row) => sum + row.amount, 0);
+        const onlineRevenue = paidRows
+            .filter((row) => row.paymentMode !== "offline")
+            .reduce((sum, row) => sum + row.amount, 0);
 
         return {
             rows,
             totalRevenue,
+            onlineRevenue,
+            offlineRevenue,
             paidCount: paidRows.length,
             pendingCount: Math.max(0, rows.length - paidRows.length),
             revenueByDepartment,
@@ -433,9 +871,461 @@ function AdminAdmissionsInner() {
         }
     };
 
+    const openEditModal = (admission) => {
+        const payment = resolvePayment(admission);
+        const payload = admission?.payload || {};
+        const studentName =
+            payload.declarationStudentName ||
+            [payload.firstName, payload.middleName, payload.lastName].filter(Boolean).join(" ") ||
+            "";
+
+        setEditForm({
+            id: admission?.id || "",
+            studentName,
+            email: payload.email || "",
+            mobileNumber: payload.mobileNumber || "",
+            selectedStream: resolveStream(admission) || "science",
+            percentage: String(payload.percentage || ""),
+            status: admission?.status || "submitted",
+            paymentStatus: String(payment?.status || "pending"),
+            paymentAmount: String(payment?.amount || payload.formPrice || ""),
+            notes: String(payload.notes || ""),
+        });
+        setEditingAdmissionId(admission?.id || "");
+    };
+
+    const closeEditModal = () => {
+        if (editSubmitting) return;
+        setEditingAdmissionId("");
+        setEditForm(initialEditFormState);
+    };
+
+    const handleEditFieldChange = (key, value) => {
+        setEditForm((prev) => ({ ...prev, [key]: value }));
+    };
+
+    const handleEditSubmit = async (event) => {
+        event.preventDefault();
+        if (!editingAdmissionId) return;
+
+        if (!editForm.studentName.trim()) {
+            toast.error("Student name is required");
+            return;
+        }
+
+        try {
+            setEditSubmitting(true);
+            const token = globalThis.localStorage.getItem("authToken");
+            if (!token) {
+                throw new Error("Please login again as admin.");
+            }
+
+            const payload = {
+                declarationStudentName: editForm.studentName.trim(),
+                email: editForm.email.trim(),
+                mobileNumber: editForm.mobileNumber.trim(),
+                selectedStream: editForm.selectedStream,
+                percentage: editForm.percentage.trim(),
+                status: editForm.status,
+                notes: editForm.notes.trim(),
+                payment: {
+                    status: editForm.paymentStatus,
+                    mode: "offline",
+                    amount: editForm.paymentAmount,
+                    paidAt: editForm.paymentStatus === "paid" ? new Date().toISOString() : "",
+                    note: "Payment updated by admin",
+                },
+            };
+
+            const formData = new FormData();
+            formData.append("payload", JSON.stringify(payload));
+
+            const response = await fetch(`/api/auth/admission/${editingAdmissionId}`, {
+                method: "PUT",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+                body: formData,
+            });
+
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || "Failed to update admission");
+            }
+
+            setAdmissions((prev) => prev.map((item) => (item.id === editingAdmissionId ? data.admission : item)));
+            toast.success("Admission updated successfully");
+            setEditingAdmissionId("");
+            setEditForm(initialEditFormState);
+        } catch (err) {
+            const errorMessage = err.message || "Failed to update admission";
+            setError(errorMessage);
+            toast.error(errorMessage);
+        } finally {
+            setEditSubmitting(false);
+        }
+    };
+
+    const handleOfflineFieldChange = (key, value) => {
+        setOfflineForm((prev) => ({ ...prev, [key]: value }));
+    };
+
+    const handleOfflineFileChange = async (key, file) => {
+        setOfflineFiles((prev) => ({ ...prev, [key]: file || null }));
+
+        if (key !== "offlineFormPdf" || !file) {
+            return;
+        }
+
+        try {
+            setExtractingPdf(true);
+            const text = await extractTextFromPdfFile(file);
+            const parsed = parseOfflinePdfDetails(text);
+            setExtractedDetails(parsed.extractedDetails || {});
+            setDetectedDocumentKeys(Array.isArray(parsed.detectedDocumentKeys) ? parsed.detectedDocumentKeys : []);
+
+            setOfflineForm((prev) => ({
+                ...prev,
+                studentName: parsed.studentName || prev.studentName,
+                email: parsed.email || prev.email,
+                mobileNumber: parsed.mobileNumber || prev.mobileNumber,
+                percentage: parsed.percentage || prev.percentage,
+                selectedStream: parsed.selectedStream || prev.selectedStream,
+                paymentStatus: parsed.paymentStatus || prev.paymentStatus,
+                paymentAmount: parsed.paymentAmount || prev.paymentAmount,
+            }));
+
+            toast.success("PDF scanned and fields auto-filled where detected");
+        } catch (error) {
+            toast.error(error.message || "Could not auto-read PDF. Please fill manually.");
+        } finally {
+            setExtractingPdf(false);
+        }
+    };
+
+    const resetOfflineForm = () => {
+        setOfflineForm(initialOfflineFormState);
+        setOfflineFiles({ offlineFormPdf: null });
+        setExtractedDetails({});
+        setDetectedDocumentKeys([]);
+    };
+
+    const uploadedDocCount = useMemo(() => {
+        return Object.values(offlineFiles).filter(Boolean).length;
+    }, [offlineFiles]);
+
+    const handleOfflineSubmit = async (event) => {
+        event.preventDefault();
+
+        if (!offlineFiles.offlineFormPdf) {
+            toast.error("Offline admission PDF is required");
+            return;
+        }
+
+        if (!offlineForm.studentName.trim()) {
+            toast.error("Student name is required");
+            return;
+        }
+
+        try {
+            setOfflineSubmitting(true);
+            const token = globalThis.localStorage.getItem("authToken");
+            if (!token) {
+                throw new Error("Please login again as admin.");
+            }
+
+            const payload = {
+                declarationStudentName: offlineForm.studentName.trim(),
+                email: offlineForm.email.trim(),
+                mobileNumber: offlineForm.mobileNumber.trim(),
+                selectedStream: offlineForm.selectedStream,
+                percentage: offlineForm.percentage.trim(),
+                status: offlineForm.status,
+                notes: offlineForm.notes.trim(),
+                admissionMode: "offline",
+                academicYear: selectedYear,
+                payment: {
+                    status: offlineForm.paymentStatus,
+                    mode: "offline",
+                    amount: offlineForm.paymentAmount,
+                    paidAt: offlineForm.paymentStatus === "paid" ? new Date().toISOString() : "",
+                    note: "Offline payment entry by admin",
+                },
+            };
+
+            const formData = new FormData();
+            formData.append("action", "offline-create");
+            formData.append("payload", JSON.stringify(payload));
+
+            Object.entries(offlineFiles).forEach(([key, file]) => {
+                if (file) {
+                    formData.append(key, file);
+                }
+            });
+
+            const response = await fetch("/api/auth/admission", {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+                body: formData,
+            });
+
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || "Failed to upload offline admission");
+            }
+
+            toast.success(`Offline admission saved. Application ID: ${data?.admission?.applicationId || "Generated"}`);
+            resetOfflineForm();
+            await loadAdmissions();
+        } catch (err) {
+            const errorMessage = err.message || "Failed to upload offline admission";
+            setError(errorMessage);
+            toast.error(errorMessage);
+        } finally {
+            setOfflineSubmitting(false);
+        }
+    };
+
+    let offlineSubmitLabel = "Save Offline Admission";
+    if (offlineSubmitting) {
+        offlineSubmitLabel = "Saving...";
+    } else if (extractingPdf) {
+        offlineSubmitLabel = "Reading PDF...";
+    }
+
     return (
         <div className="min-h-screen bg-[linear-gradient(180deg,#fdf5f5_0%,#f8f6f6_42%,#f4f2f2_100%)] px-4 py-6 md:px-6">
             <div className="mx-auto max-w-7xl space-y-6">
+                {offlineSourceMode && selectedView !== "payments" && (
+                    <section className="rounded-3xl border border-[#7a1c1c]/15 bg-white p-5 shadow-sm md:p-6">
+                        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                            <div>
+                                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#7a1c1c]">Offline Registration</p>
+                                <h2 className="mt-1 text-xl font-black text-slate-900">Upload Offline Admission Packet</h2>
+                                <p className="mt-1 text-sm text-slate-500">
+                                    Upload scanned PDF, add payment status, and attach student documents. Application ID will generate automatically.
+                                </p>
+                            </div>
+                            <div className="inline-flex items-center gap-2 rounded-full bg-[#7a1c1c]/5 px-4 py-2 text-sm font-semibold text-[#7a1c1c]">
+                                Docs Uploaded: {uploadedDocCount}
+                            </div>
+                        </div>
+
+                        <form onSubmit={handleOfflineSubmit} className="space-y-5">
+                            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                                <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                    <span>Student Name</span>
+                                    <input
+                                        type="text"
+                                        value={offlineForm.studentName}
+                                        onChange={(event) => handleOfflineFieldChange("studentName", event.target.value)}
+                                        className="mt-1 h-11 w-full rounded-xl border border-slate-200 px-3 text-sm normal-case text-slate-800"
+                                        required
+                                    />
+                                </label>
+                                <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                    <span>Email</span>
+                                    <input
+                                        type="email"
+                                        value={offlineForm.email}
+                                        onChange={(event) => handleOfflineFieldChange("email", event.target.value)}
+                                        className="mt-1 h-11 w-full rounded-xl border border-slate-200 px-3 text-sm normal-case text-slate-800"
+                                    />
+                                </label>
+                                <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                    <span>Mobile Number</span>
+                                    <input
+                                        type="text"
+                                        value={offlineForm.mobileNumber}
+                                        onChange={(event) => handleOfflineFieldChange("mobileNumber", event.target.value)}
+                                        className="mt-1 h-11 w-full rounded-xl border border-slate-200 px-3 text-sm normal-case text-slate-800"
+                                    />
+                                </label>
+                                <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                    <span>Department</span>
+                                    <select
+                                        value={offlineForm.selectedStream}
+                                        onChange={(event) => handleOfflineFieldChange("selectedStream", event.target.value)}
+                                        className="mt-1 h-11 w-full rounded-xl border border-slate-200 px-3 text-sm normal-case text-slate-800"
+                                    >
+                                        <option value="science">Science</option>
+                                        <option value="commerce">Commerce</option>
+                                        <option value="arts">Arts</option>
+                                    </select>
+                                </label>
+                            </div>
+
+                            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                                <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                    <span>10th Percentage</span>
+                                    <input
+                                        type="text"
+                                        value={offlineForm.percentage}
+                                        onChange={(event) => handleOfflineFieldChange("percentage", event.target.value)}
+                                        className="mt-1 h-11 w-full rounded-xl border border-slate-200 px-3 text-sm normal-case text-slate-800"
+                                    />
+                                </label>
+                                <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                    <span>Admission Status</span>
+                                    <select
+                                        value={offlineForm.status}
+                                        onChange={(event) => handleOfflineFieldChange("status", event.target.value)}
+                                        className="mt-1 h-11 w-full rounded-xl border border-slate-200 px-3 text-sm normal-case text-slate-800"
+                                    >
+                                        <option value="submitted-offline">Submitted Offline</option>
+                                        <option value="verified-offline">Verified Offline</option>
+                                        <option value="approved">Approved</option>
+                                    </select>
+                                </label>
+                                <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                    <span>Payment Status</span>
+                                    <select
+                                        value={offlineForm.paymentStatus}
+                                        onChange={(event) => handleOfflineFieldChange("paymentStatus", event.target.value)}
+                                        className="mt-1 h-11 w-full rounded-xl border border-slate-200 px-3 text-sm normal-case text-slate-800"
+                                    >
+                                        <option value="paid">Paid (Offline)</option>
+                                        <option value="pending">Pending</option>
+                                    </select>
+                                </label>
+                                <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                    <span>Payment Amount</span>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        value={offlineForm.paymentAmount}
+                                        onChange={(event) => handleOfflineFieldChange("paymentAmount", event.target.value)}
+                                        className="mt-1 h-11 w-full rounded-xl border border-slate-200 px-3 text-sm normal-case text-slate-800"
+                                    />
+                                </label>
+                            </div>
+
+                            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                                <p className="text-sm font-semibold text-slate-800">Upload Offline Template PDF (Required)</p>
+                                <input
+                                    type="file"
+                                    accept="application/pdf"
+                                    onChange={(event) => handleOfflineFileChange("offlineFormPdf", event.target.files?.[0] || null)}
+                                    className="mt-2 block w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700"
+                                    required
+                                />
+                                <p className="mt-2 text-xs text-slate-500">
+                                    {extractingPdf
+                                        ? "Reading PDF and auto-filling details..."
+                                        : "After selecting PDF, system auto-detects name, email, mobile, percentage, stream, and payment details."}
+                                </p>
+                            </div>
+
+                            {Object.entries(extractedDetails || {}).some(([, value]) => String(value || "").trim()) && (
+                                <div className="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4">
+                                    <p className="text-sm font-semibold text-emerald-800">Extracted PDF Details (Preview)</p>
+                                    <p className="mt-1 text-xs text-emerald-700">All detected values from your uploaded template are shown below.</p>
+                                    <div className="mt-3 grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+                                        {Object.entries(extractedDetails)
+                                            .filter(([, value]) => String(value || "").trim())
+                                            .map(([key, value]) => (
+                                                <div key={key} className="rounded-xl border border-emerald-200 bg-white px-3 py-2">
+                                                    <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
+                                                        {EXTRACTED_DETAIL_LABELS[key] || key}
+                                                    </p>
+                                                    <p className="mt-1 text-sm font-medium text-slate-800">{String(value || "-")}</p>
+                                                </div>
+                                            ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {detectedDocumentKeys.length > 0 && (
+                                <div className="rounded-2xl border border-sky-200 bg-sky-50/60 p-4">
+                                    <p className="text-sm font-semibold text-sky-800">Detected Documents From PDF Checklist</p>
+                                    <div className="mt-3 grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+                                        {OFFLINE_DOCUMENT_FIELDS.map((doc) => {
+                                            const detected = detectedDocumentKeys.includes(doc.key);
+                                            return (
+                                                <div
+                                                    key={`detected-${doc.key}`}
+                                                    className={`rounded-lg border px-3 py-2 text-sm font-medium ${detected
+                                                        ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                                                        : "border-slate-200 bg-white text-slate-500"
+                                                        }`}
+                                                >
+                                                    {doc.label} {detected ? "(Detected)" : "(Not detected)"}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+
+                            <div>
+                                <p className="mb-2 text-sm font-semibold text-slate-800">Upload Supporting Documents (Admin)</p>
+                                <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                                    {OFFLINE_DOCUMENT_FIELDS.map((doc) => {
+                                        const isDetected = detectedDocumentKeys.includes(doc.key);
+                                        const isUploaded = Boolean(offlineFiles[doc.key]);
+                                        let statusText = "Not uploaded";
+                                        if (isUploaded) {
+                                            statusText = "Uploaded";
+                                        } else if (isDetected) {
+                                            statusText = "Detected in PDF - upload file now";
+                                        }
+
+                                        return (
+                                            <label
+                                                key={doc.key}
+                                                className={`rounded-xl border p-3 text-xs font-semibold uppercase tracking-wide ${isDetected
+                                                    ? "border-[#7a1c1c]/25 bg-[#7a1c1c]/5 text-[#7a1c1c]"
+                                                    : "border-slate-200 bg-white text-slate-500"
+                                                    }`}
+                                            >
+                                                <span>{doc.label}</span>
+                                                <input
+                                                    type="file"
+                                                    accept="image/*,.pdf"
+                                                    onChange={(event) => handleOfflineFileChange(doc.key, event.target.files?.[0] || null)}
+                                                    className="mt-2 block w-full rounded-lg border border-slate-200 bg-slate-50 px-2 py-2 text-xs font-medium normal-case text-slate-700"
+                                                />
+                                                <span className="mt-1 block text-[11px] font-medium normal-case text-slate-600">
+                                                    {statusText}
+                                                </span>
+                                            </label>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                <span>Verification Notes</span>
+                                <textarea
+                                    value={offlineForm.notes}
+                                    onChange={(event) => handleOfflineFieldChange("notes", event.target.value)}
+                                    className="mt-1 min-h-24 w-full rounded-xl border border-slate-200 px-3 py-3 text-sm normal-case text-slate-800"
+                                />
+                            </label>
+
+                            <div className="flex flex-wrap items-center gap-2">
+                                <button
+                                    type="submit"
+                                    disabled={offlineSubmitting || extractingPdf}
+                                    className="h-11 rounded-xl bg-linear-to-r from-[#9f2a2a] via-[#7a1c1c] to-[#5a1414] px-5 text-sm font-semibold text-white shadow-sm disabled:opacity-60"
+                                >
+                                    {offlineSubmitLabel}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={resetOfflineForm}
+                                    disabled={offlineSubmitting || extractingPdf}
+                                    className="h-11 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 disabled:opacity-60"
+                                >
+                                    Reset
+                                </button>
+                            </div>
+                        </form>
+                    </section>
+                )}
+
                 <section className="rounded-3xl border border-[#7a1c1c]/10 bg-white p-5 shadow-sm md:p-6">
                     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(420px,auto)] lg:items-end">
                         <div className="max-w-xl">
@@ -493,6 +1383,12 @@ function AdminAdmissionsInner() {
                         </div>
                         <div className="flex h-12 items-center rounded-xl border border-emerald-200 bg-emerald-50 px-4 text-sm font-semibold text-emerald-700">
                             Total Revenue: {formatINR(paymentMetrics.totalRevenue)}
+                        </div>
+                        <div className="flex h-12 items-center rounded-xl border border-sky-200 bg-sky-50 px-4 text-sm font-semibold text-sky-700">
+                            Online Revenue: {formatINR(paymentMetrics.onlineRevenue)}
+                        </div>
+                        <div className="flex h-12 items-center rounded-xl border border-indigo-200 bg-indigo-50 px-4 text-sm font-semibold text-indigo-700">
+                            Offline Revenue: {formatINR(paymentMetrics.offlineRevenue)}
                         </div>
 
                         <button
@@ -632,6 +1528,7 @@ function AdminAdmissionsInner() {
                                                     <th className="px-3 py-2 text-left font-semibold">Student</th>
                                                     <th className="px-3 py-2 text-left font-semibold">Application ID</th>
                                                     <th className="px-3 py-2 text-left font-semibold">Department</th>
+                                                    <th className="px-3 py-2 text-left font-semibold">Mode</th>
                                                     <th className="px-3 py-2 text-left font-semibold">Amount</th>
                                                     <th className="px-3 py-2 text-left font-semibold">Status</th>
                                                     <th className="px-3 py-2 text-left font-semibold">Payment ID</th>
@@ -647,6 +1544,7 @@ function AdminAdmissionsInner() {
                                                         </td>
                                                         <td className="px-3 py-2 text-slate-700">{row.applicationId}</td>
                                                         <td className="px-3 py-2 uppercase text-slate-700">{row.department || "-"}</td>
+                                                        <td className="px-3 py-2 uppercase text-slate-700">{row.paymentMode || "online"}</td>
                                                         <td className="px-3 py-2 font-semibold text-slate-900">{formatINR(row.amount)}</td>
                                                         <td className="px-3 py-2">
                                                             <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${row.isPaid ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
@@ -868,10 +1766,25 @@ function AdminAdmissionsInner() {
                                                                 {admission?.payload?.email || "-"} | {admission?.payload?.mobileNumber || "-"}
                                                             </p>
                                                             <p className="text-xs text-slate-500">Application ID: {admission.applicationId || "-"}</p>
+                                                            <div className="mt-1 flex flex-wrap items-center gap-2">
+                                                                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-slate-700">
+                                                                    {admission?.source || "online"}
+                                                                </span>
+                                                                <span className="rounded-full bg-[#7a1c1c]/10 px-2 py-0.5 text-[10px] font-semibold uppercase text-[#7a1c1c]">
+                                                                    {admission?.status || "submitted"}
+                                                                </span>
+                                                            </div>
                                                         </div>
                                                     </div>
 
                                                     <div className="flex flex-wrap items-center gap-2">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => openEditModal(admission)}
+                                                            className="rounded-lg border border-[#7a1c1c]/20 bg-[#7a1c1c]/5 px-3 py-2 text-xs font-semibold text-[#7a1c1c]"
+                                                        >
+                                                            Edit
+                                                        </button>
                                                         <button
                                                             type="button"
                                                             onClick={() => setExpandedId(isExpanded ? "" : admission.id)}
@@ -897,7 +1810,9 @@ function AdminAdmissionsInner() {
                                                             {Object.entries(admission.payload || {}).map(([key, value]) => (
                                                                 <div key={key} className="rounded-xl border border-slate-200 bg-white px-3 py-2">
                                                                     <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">{key}</p>
-                                                                    <p className="mt-1 wrap-break-word text-sm font-medium text-slate-700">{prettyValue(value)}</p>
+                                                                    <p className="mt-1 wrap-break-word text-sm font-medium text-slate-700">
+                                                                        {key === "payment" ? formatPaymentDetailValue(value) : prettyValue(value)}
+                                                                    </p>
                                                                 </div>
                                                             ))}
                                                         </div>
@@ -967,6 +1882,143 @@ function AdminAdmissionsInner() {
                             )}
                         </section>
                     </>
+                )}
+
+                {editingAdmissionId && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 px-4 py-6">
+                        <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white p-5 shadow-xl md:p-6">
+                            <div className="mb-4 flex items-center justify-between">
+                                <div>
+                                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#7a1c1c]">Edit Admission</p>
+                                    <h3 className="mt-1 text-xl font-black text-slate-900">Update Student Admission Details</h3>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={closeEditModal}
+                                    disabled={editSubmitting}
+                                    className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 disabled:opacity-60"
+                                >
+                                    Close
+                                </button>
+                            </div>
+
+                            <form onSubmit={handleEditSubmit} className="space-y-4">
+                                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                                    <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                        <span>Student Name</span>
+                                        <input
+                                            type="text"
+                                            value={editForm.studentName}
+                                            onChange={(event) => handleEditFieldChange("studentName", event.target.value)}
+                                            className="mt-1 h-11 w-full rounded-xl border border-slate-200 px-3 text-sm normal-case text-slate-800"
+                                            required
+                                        />
+                                    </label>
+                                    <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                        <span>Email</span>
+                                        <input
+                                            type="email"
+                                            value={editForm.email}
+                                            onChange={(event) => handleEditFieldChange("email", event.target.value)}
+                                            className="mt-1 h-11 w-full rounded-xl border border-slate-200 px-3 text-sm normal-case text-slate-800"
+                                        />
+                                    </label>
+                                    <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                        <span>Mobile Number</span>
+                                        <input
+                                            type="text"
+                                            value={editForm.mobileNumber}
+                                            onChange={(event) => handleEditFieldChange("mobileNumber", event.target.value)}
+                                            className="mt-1 h-11 w-full rounded-xl border border-slate-200 px-3 text-sm normal-case text-slate-800"
+                                        />
+                                    </label>
+                                    <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                        <span>Department</span>
+                                        <select
+                                            value={editForm.selectedStream}
+                                            onChange={(event) => handleEditFieldChange("selectedStream", event.target.value)}
+                                            className="mt-1 h-11 w-full rounded-xl border border-slate-200 px-3 text-sm normal-case text-slate-800"
+                                        >
+                                            <option value="science">Science</option>
+                                            <option value="commerce">Commerce</option>
+                                            <option value="arts">Arts</option>
+                                        </select>
+                                    </label>
+                                    <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                        <span>10th Percentage</span>
+                                        <input
+                                            type="text"
+                                            value={editForm.percentage}
+                                            onChange={(event) => handleEditFieldChange("percentage", event.target.value)}
+                                            className="mt-1 h-11 w-full rounded-xl border border-slate-200 px-3 text-sm normal-case text-slate-800"
+                                        />
+                                    </label>
+                                    <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                        <span>Admission Status</span>
+                                        <select
+                                            value={editForm.status}
+                                            onChange={(event) => handleEditFieldChange("status", event.target.value)}
+                                            className="mt-1 h-11 w-full rounded-xl border border-slate-200 px-3 text-sm normal-case text-slate-800"
+                                        >
+                                            <option value="submitted">Submitted</option>
+                                            <option value="submitted-offline">Submitted Offline</option>
+                                            <option value="verified-offline">Verified Offline</option>
+                                            <option value="approved">Approved</option>
+                                            <option value="rejected">Rejected</option>
+                                        </select>
+                                    </label>
+                                    <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                        <span>Payment Status</span>
+                                        <select
+                                            value={editForm.paymentStatus}
+                                            onChange={(event) => handleEditFieldChange("paymentStatus", event.target.value)}
+                                            className="mt-1 h-11 w-full rounded-xl border border-slate-200 px-3 text-sm normal-case text-slate-800"
+                                        >
+                                            <option value="paid">Paid</option>
+                                            <option value="pending">Pending</option>
+                                        </select>
+                                    </label>
+                                    <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                        <span>Payment Amount</span>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            value={editForm.paymentAmount}
+                                            onChange={(event) => handleEditFieldChange("paymentAmount", event.target.value)}
+                                            className="mt-1 h-11 w-full rounded-xl border border-slate-200 px-3 text-sm normal-case text-slate-800"
+                                        />
+                                    </label>
+                                </div>
+
+                                <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                    <span>Notes</span>
+                                    <textarea
+                                        value={editForm.notes}
+                                        onChange={(event) => handleEditFieldChange("notes", event.target.value)}
+                                        className="mt-1 min-h-24 w-full rounded-xl border border-slate-200 px-3 py-3 text-sm normal-case text-slate-800"
+                                    />
+                                </label>
+
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <button
+                                        type="submit"
+                                        disabled={editSubmitting}
+                                        className="h-11 rounded-xl bg-linear-to-r from-[#9f2a2a] via-[#7a1c1c] to-[#5a1414] px-5 text-sm font-semibold text-white shadow-sm disabled:opacity-60"
+                                    >
+                                        {editSubmitting ? "Saving..." : "Save Changes"}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={closeEditModal}
+                                        disabled={editSubmitting}
+                                        className="h-11 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 disabled:opacity-60"
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
                 )}
             </div>
         </div>

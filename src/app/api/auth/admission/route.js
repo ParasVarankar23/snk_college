@@ -99,6 +99,14 @@ function parseYearFilter(value) {
     return year ? formatAcademicYear(year) : null;
 }
 
+function normalizeStream(value) {
+    const stream = String(value || "").trim().toLowerCase();
+    if (stream === "science" || stream === "commerce" || stream === "arts") {
+        return stream;
+    }
+    return "";
+}
+
 async function getNextApplicationId(db, startYear) {
     const counterRef = db.ref(`admissionCounters/${startYear}`);
     const transactionResult = await counterRef.transaction((current) => {
@@ -169,13 +177,120 @@ export async function POST(request) {
         return Response.json({ error: "Forbidden" }, { status: 403 });
     }
 
+    const db = getAdminDb();
     const formData = await request.formData();
+    const action = String(formData.get("action") || "").trim().toLowerCase();
+
+    if (auth.role === "admin") {
+        if (action === "offline-create") {
+            const { payload, error: payloadError } = parsePayloadFromFormData(formData);
+            if (payloadError) {
+                return Response.json({ error: payloadError }, { status: 400 });
+            }
+
+            const offlinePdf = formData.get("offlineFormPdf");
+            if (!offlinePdf || typeof offlinePdf === "string" || !offlinePdf.name || offlinePdf.size === 0) {
+                return Response.json({ error: "Offline admission PDF is required" }, { status: 400 });
+            }
+
+            const studentName = String(
+                payload?.declarationStudentName ||
+                [payload?.firstName, payload?.middleName, payload?.lastName].filter(Boolean).join(" ")
+            ).trim();
+            const studentEmail = String(payload?.email || "").trim();
+            const selectedStream = normalizeStream(payload?.selectedStream);
+
+            if (!studentName) {
+                return Response.json({ error: "Student name is required" }, { status: 400 });
+            }
+
+            if (!selectedStream) {
+                return Response.json({ error: "Valid stream is required" }, { status: 400 });
+            }
+
+            const academicYearStart = resolveAcademicYearStart({ payload, existingAdmission: null });
+            const academicYear = formatAcademicYear(academicYearStart);
+            const applicationId = await getNextApplicationId(db, academicYearStart);
+            const nowIso = new Date().toISOString();
+            const admissionId = db.ref("admissions").push().key;
+            const pdfDocument = await uploadIncomingFile(offlinePdf, admissionId, "offlineFormPdf");
+
+            const supportingDocuments = {};
+            for (const key of FILE_KEYS) {
+                const file = formData.get(key);
+                if (!file || typeof file === "string" || !file.name || file.size === 0) {
+                    continue;
+                }
+
+                supportingDocuments[key] = await uploadIncomingFile(file, admissionId, key);
+            }
+
+            const paymentPayload = payload?.payment && typeof payload.payment === "object"
+                ? payload.payment
+                : {};
+            const paymentStatus = String(paymentPayload.status || "pending").trim().toLowerCase() === "paid"
+                ? "paid"
+                : "pending";
+            const paymentAmount = Number.parseFloat(String(paymentPayload.amount || payload?.formPrice || 200));
+            const safeAmount = Number.isFinite(paymentAmount) ? paymentAmount : 200;
+            const paymentMode = String(paymentPayload.mode || "offline").trim().toLowerCase() || "offline";
+            const payment = {
+                status: paymentStatus,
+                mode: paymentMode,
+                amount: safeAmount,
+                paidAt: paymentStatus === "paid" ? (paymentPayload.paidAt || nowIso) : "",
+                note: String(paymentPayload.note || "").trim(),
+            };
+
+            const status = String(payload?.status || "submitted-offline").trim() || "submitted-offline";
+
+            const admissionData = {
+                uid: admissionId,
+                applicationId,
+                academicYear,
+                source: "offline",
+                status,
+                selectedStream,
+                payload: {
+                    ...payload,
+                    declarationStudentName: studentName,
+                    email: studentEmail,
+                    selectedStream,
+                    academicYear,
+                    payment,
+                },
+                documents: {
+                    offlineFormPdf: pdfDocument,
+                    ...supportingDocuments,
+                },
+                createdBy: auth.uid,
+                createdAt: nowIso,
+                updatedAt: nowIso,
+            };
+
+            await db.ref(`admissions/${admissionId}`).set(admissionData);
+
+            return Response.json(
+                {
+                    success: true,
+                    message: "Offline admission uploaded successfully",
+                    admission: {
+                        id: admissionId,
+                        ...admissionData,
+                    },
+                },
+                { status: 200 }
+            );
+        }
+
+        return Response.json({ error: "Invalid admin submission action" }, { status: 400 });
+    }
+
     const { payload, error: payloadError } = parsePayloadFromFormData(formData);
     if (payloadError) {
         return Response.json({ error: payloadError }, { status: 400 });
     }
 
-    const db = getAdminDb();
     const existingSnapshot = await db.ref(`admissions/${auth.uid}`).get();
     const existingAdmission = existingSnapshot.exists() ? existingSnapshot.val() : null;
     const academicYearStart = resolveAcademicYearStart({ payload, existingAdmission });
