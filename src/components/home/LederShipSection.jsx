@@ -5,8 +5,8 @@ import { useEffect, useMemo, useState } from "react";
 
 const defaultLeaders = [
     {
-        id: "chairman-ravindra-dada-kulkarni",
-        name: "Ravindra Dada Kulkarni",
+        id: "shridhar-patil-dada-kulkarni",
+        name: "Shridhar Dada Patil",
         role: "Chairman",
         image: "/college/supervisor.jpg",
         frontDesc:
@@ -16,7 +16,7 @@ const defaultLeaders = [
     },
     {
         id: "principal-babasaheb-yalmate",
-        name: "Babasaheb Yalmate",
+        name: "Suresh Dhumal",
         role: "Principal",
         image: "/college/supervisor.jpg",
         frontDesc:
@@ -26,7 +26,7 @@ const defaultLeaders = [
     },
     {
         id: "vice-principal",
-        name: "Vice Principal Name",
+        name: "Siddhant Kamble",
         role: "Vice Principal",
         image: "/college/supervisor.jpg",
         frontDesc:
@@ -36,7 +36,7 @@ const defaultLeaders = [
     },
     {
         id: "supervisor",
-        name: "Supervisor Name",
+        name: "Prathamesh Chavan",
         role: "Supervisor",
         image: "/college/supervisor.jpg",
         frontDesc:
