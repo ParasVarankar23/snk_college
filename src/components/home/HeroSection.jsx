@@ -6,15 +6,15 @@ import { useEffect, useState } from "react";
 
 const slides = [
     {
-        src: "/college/college.jpg",
-        title: "Shri Nanasaheb Kulkarni",
+        src: "/college/spatil.jpg",
+        title: "S. Patil",
         subtitle: "Junior College",
         location: "Borli Panchatan",
         description:
             "Empowering students through academic excellence, disciplined learning, and future-ready opportunities in Arts, Commerce, and Science.",
     },
     {
-        src: "/college/college.jpg",
+        src: "/college/spatil.jpg",
         title: "Inspiring Young Minds",
         subtitle: "A Culture Of Values",
         location: "Excellence In Every Classroom",
@@ -22,7 +22,7 @@ const slides = [
             "From strong fundamentals to modern teaching practices, our campus supports growth, confidence, and meaningful student achievement.",
     },
     {
-        src: "/college/college.jpg",
+        src: "/college/spatil.jpg",
         title: "Admissions Open",
         subtitle: "Build Your Next Chapter",
         location: "Join A Trusted Institution",

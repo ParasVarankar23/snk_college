@@ -70,7 +70,7 @@ export default function GalleryPage() {
                     </span>
                     <h1 className="mt-4 text-3xl font-bold text-slate-900 md:text-4xl">Campus Moments</h1>
                     <p className="mx-auto mt-3 max-w-2xl text-slate-600">
-                        Explore student life, celebrations, and memorable events from SNK Junior College.
+                        Explore student life, celebrations, and memorable events from S. Patil Junior College.
                     </p>
                 </motion.div>
 

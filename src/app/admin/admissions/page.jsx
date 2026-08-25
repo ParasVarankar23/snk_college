@@ -744,7 +744,7 @@ function AdminAdmissionsInner() {
     };
 
     const buildMeritDocHtml = () => {
-        const collegeName = "Shri Nanasaheb Kulkarni Junior College, Borli Panchatan";
+        const collegeName = "S. Patil Junior College, Borli Panchatan";
         const deptLabel = streamLabelMap[selectedDepartmentTab] || selectedDepartmentTab;
         const dateStr = new Date().toLocaleDateString("en-IN", { day: "2-digit", month: "long", year: "numeric" });
 
@@ -806,7 +806,7 @@ function AdminAdmissionsInner() {
 
         const pageHeader = (bucket) => `
             <div style="text-align:center;padding-bottom:12px;border-bottom:3px double #7a1c1c;margin-bottom:18px;">
-                <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#7a1c1c;font-weight:700;margin-bottom:6px;">Shri Nanasaheb Kulkarni Junior College</div>
+                <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#7a1c1c;font-weight:700;margin-bottom:6px;">S. Patil Junior College</div>
                 <div style="font-size:19px;font-weight:800;color:#7a1c1c;">${collegeName}</div>
                 <div style="font-size:13px;color:#444;margin-top:5px;font-weight:600;">${deptLabel}</div>
                 <div style="font-size:12px;color:#666;margin-top:2px;">Academic Year: <strong>${selectedYear}</strong></div>

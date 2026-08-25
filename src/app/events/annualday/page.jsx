@@ -26,7 +26,7 @@ export default function AnnualDayPage() {
                     <h1 className="text-4xl font-bold text-gray-800">Annual Day Celebration</h1>
                     <p className="text-gray-600 mt-4">
                         A joyful celebration of achievements, culture, and talent at
-                        Shri Nanasaheb Kulkarni Junior College, Borli Panchatan.
+                        S. Patil Junior College, Borli Panchatan.
                     </p>
                 </div>
 

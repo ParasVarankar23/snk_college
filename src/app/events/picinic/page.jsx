@@ -32,7 +32,7 @@ export default function PicnicPage() {
                     <h1 className="text-4xl font-bold text-gray-800">College Picnic</h1>
                     <p className="text-gray-600 mt-4">
                         A memorable and enjoyable outing for students organized by
-                        Shri Nanasaheb Kulkarni Junior College, Borli Panchatan.
+                        S. Patil Junior College, Borli Panchatan.
                     </p>
                 </motion.div>
 

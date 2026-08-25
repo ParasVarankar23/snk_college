@@ -2,8 +2,8 @@ import Link from "next/link";
 import { FaChevronRight, FaDatabase, FaEnvelope, FaLock, FaShieldAlt, FaUserShield } from "react-icons/fa";
 
 export const metadata = {
-    title: "Privacy Policy | SNK Juinor College",
-    description: "Privacy Policy for Shri Nanasaheb Kulkarni Juinor College, Borli Panchatan.",
+    title: "Privacy Policy | S. Patil Junior College",
+    description: "Privacy Policy for S. Patil Junior College, Borli Panchatan.",
 };
 
 const sections = [
@@ -52,7 +52,7 @@ const sections = [
         content: [
             {
                 subtitle: "We Do Not Sell Your Data",
-                text: "SNK Juinor College does not sell, trade, or rent your personal information to third parties for commercial purposes.",
+                text: "S. Patil Junior College does not sell, trade, or rent your personal information to third parties for commercial purposes.",
             },
             {
                 subtitle: "Trusted Third Parties",
@@ -115,7 +115,7 @@ export default function PrivacyPage() {
                     </div>
                     <h1 className="text-4xl md:text-5xl font-bold mb-4 tracking-tight">Privacy Policy</h1>
                     <p className="text-red-200/80 text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
-                        Your privacy matters to us. This policy explains how SNK Juinor College collects,
+                        Your privacy matters to us. This policy explains how S. Patil Junior College collects,
                         uses, and protects your personal information.
                     </p>
                     <p className="mt-5 text-xs text-red-300/60 uppercase tracking-widest">Last updated: March 2026</p>
@@ -136,7 +136,7 @@ export default function PrivacyPage() {
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-10">
                     <p className="text-gray-600 leading-relaxed text-sm md:text-base">
                         Welcome to the official website of{" "}
-                        <span className="font-semibold text-gray-800">Shri Nanasaheb Kulkarni Juinor College</span>,
+                        <span className="font-semibold text-gray-800">S. Patil Junior College</span>,
                         Borli Panchatan, Shrivardhan, Raigad. We are committed to protecting the personal
                         information of our students, parents, staff, and website visitors. Please read this
                         Privacy Policy carefully to understand how we handle your data.
@@ -249,11 +249,11 @@ export default function PrivacyPage() {
                     </p>
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                         <a
-                            href="mailto:snkcollege@gmail.com"
+                            href="mailto:spcollege@gmail.com"
                             className="inline-flex items-center gap-2 bg-white text-[#7a1c1c] font-semibold text-sm px-6 py-2.5 rounded-full hover:bg-red-50 transition-all duration-200 hover:scale-105 shadow"
                         >
                             <FaEnvelope />
-                            snkcollege@gmail.com
+                            spcollege@gmail.com
                         </a>
                         <Link
                             href="/contact"

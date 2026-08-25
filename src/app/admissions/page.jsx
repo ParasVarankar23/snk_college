@@ -13,7 +13,7 @@ const admissionSteps = [
     {
         title: "Step 1: Registration & Choose College",
         description:
-            "Visit https://mahafyjcadmissions.in/, complete registration, and choose Shri Nanasaheb Kulkarni  Junior College, Borli Panchatan during the college selection process.",
+            "Visit https://mahafyjcadmissions.in/, complete registration, and choose S. Patil Junior College, Borli Panchatan during the college selection process.",
         link: "https://mahafyjcadmissions.in",
         hasLink: true,
     },
@@ -89,12 +89,12 @@ export default function AdmissionPage() {
 
                     <h1 className="text-xl font-bold text-slate-950 md:text-3xl">
                         Admission Process for{" "}
-                        <span className="text-[#7a1c1c]">SNK Junior College</span>
+                        <span className="text-[#7a1c1c]">S. Patil Junior College</span>
                     </h1>
 
                     <p className="mx-auto mt-4 max-w-3xl text-base leading-8 text-slate-600 md:text-lg">
                         Follow the step-by-step admission process to apply for admission to
-                        Shri Nanasaheb Kulkarni Junior College, Borli Panchatan.
+                        S. Patil Junior College, Borli Panchatan.
                     </p>
                 </motion.div>
 

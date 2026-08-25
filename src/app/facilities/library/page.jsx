@@ -33,7 +33,7 @@ function CountUp({ to, suffix = "" }) {
 }
 
 const paragraphs = [
-    "The library at Shri Nanasaheb Kulkarni Junior College is an important center of learning that supports students and teachers in their academic activities.",
+    "The library at S. Patil Junior College is an important center of learning that supports students and teachers in their academic activities.",
     "The library provides a collection of textbooks, reference books, journals, and other educational resources that help students gain deeper knowledge in their respective subjects.",
     "A quiet and comfortable reading environment encourages students to develop reading habits and improve their academic performance. A quiet and comfortable reading environment encourages students to develop reading habits and improve their academic performance.",
 ];

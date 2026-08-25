@@ -9,7 +9,7 @@ const infoItems = [
 ];
 
 const paragraphs = [
-    "The Computer Laboratory at Shri Nanasaheb Kulkarni Junior College provides students with modern computing facilities to enhance their digital knowledge and technical skills.",
+    "The Computer Laboratory at S. Patil Junior College provides students with modern computing facilities to enhance their digital knowledge and technical skills.",
     "The lab is equipped with 20 computers that help students learn computer fundamentals, internet usage, and basic software applications essential for modern education.",
     "The department is guided by Patange Madam, who serves as the Head of the Computer Section and ensures that students receive proper guidance in computer education.",
 ];

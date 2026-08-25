@@ -11,7 +11,7 @@ const sports = [
 ];
 
 const paragraphs = [
-    "Shri Nanasaheb Kulkarni Junior College encourages students to participate in sports and physical activities for maintaining health, discipline, and teamwork.",
+    "S. Patil Junior College encourages students to participate in sports and physical activities for maintaining health, discipline, and teamwork.",
     "The college organizes various indoor and outdoor sports activities that help students develop physical fitness and competitive spirit.",
     "Students actively participate in sports events, tournaments, and inter-college competitions which promote leadership and teamwork.",
 ];

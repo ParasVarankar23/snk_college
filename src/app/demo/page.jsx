@@ -52,9 +52,9 @@ export default function AdmissionPreviewPage() {
         dob: "15/08/2009",
         bloodGroup: "O+",
         aadhaarNumber: "XXXX XXXX XXXX",
-        mobileNumber: "8830210723",
-        alternateMobileNumber: "8087892925",
-        email: "siddhipatil2026@gmail.com",
+        mobileNumber: "9345678901",
+        alternateMobileNumber: "8883242424",
+        email: "Kavyapatil2026@gmail.com",
         nationality: "Indian",
         religion: "Hindu",
         casteCategory: "OBC",
@@ -66,14 +66,14 @@ export default function AdmissionPreviewPage() {
         state: "Maharashtra",
         pinCode: "402403",
 
-        fatherName: "Abhay Patil",
+        fatherName: "Siddhartha Patil",
         fatherOccupation: "Business",
-        fatherMobile: "9421160366",
+        fatherMobile: "9623424324",
         fatherAadhaar: "XXXX XXXX XXXX",
 
-        motherName: "Shubhangi Patil",
+        motherName: "Neha Patil",
         motherOccupation: "Homemaker",
-        motherMobile: "8087892925",
+        motherMobile: "8883242424",
         motherAadhaar: "XXXX XXXX XXXX",
 
         annualFamilyIncome: "₹ 2,50,000",
@@ -97,7 +97,7 @@ export default function AdmissionPreviewPage() {
         reservationCategory: "OBC",
         minorityStatus: "No",
         disabilityStatus: "No",
-        emergencyContactNumber: "8087892925",
+        emergencyContactNumber: "8883242424",
 
         selectedStream: "Science",
         mediumSelection: "English",
@@ -107,8 +107,8 @@ export default function AdmissionPreviewPage() {
 
         place: "Borli Panchatan",
         declarationDate: today,
-        declarationStudentName: "Siddhi Abhay Patil",
-        declarationParentName: "Abhay Patil",
+        declarationStudentName: "Kavya Siddhartha Patil",
+        declarationParentName: "Siddhartha Patil",
     };
 
     return (
@@ -149,7 +149,7 @@ export default function AdmissionPreviewPage() {
                     <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
                             <p className="text-[20px] font-bold uppercase tracking-[0.28em] text-[#7a1c1c]">
-                                Shri Nanasaheb Kulkarni Junior College
+                                S. Patil Junior College
                             </p>
                             <h1 className="mt-1 text-[22px] font-black tracking-tight text-slate-900">
                                 FYJC / 11th Admission Form
@@ -202,7 +202,7 @@ export default function AdmissionPreviewPage() {
                     {/* Student Personal Details */}
                     <SectionTitle icon={User} title="Student Personal Details" />
                     <div className="grid grid-cols-4 gap-2">
-                        <DataItem label="Full Name" value="Siddhi Abhay Patil" span={2} />
+                        <DataItem label="Full Name" value="Kavya Siddhartha Patil" span={2} />
                         <DataItem label="Gender" value={formData.gender} />
                         <DataItem label="Date of Birth" value={formData.dob} />
                         <DataItem label="Blood Group" value={formData.bloodGroup} />
@@ -265,7 +265,7 @@ export default function AdmissionPreviewPage() {
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-[8px] font-bold uppercase tracking-[0.28em] text-[#7a1c1c]">
-                                Shri Nanasaheb Kulkarni – Page 2 of 2
+                                S. Patil – Page 2 of 2
                             </p>
                             <h2 className="mt-1 text-[20px] font-black text-slate-900">Admission Summary</h2>
                         </div>

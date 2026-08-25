@@ -8,7 +8,7 @@ import { useMemo, useState } from "react";
 const historyMilestones = [
     {
         title: "Foundation And Vision",
-        text: "SNK Junior College was founded with a clear mission: provide quality higher-secondary education to rural and semi-urban students and create equal opportunities for academic growth.",
+        text: "S. Patil Junior College was founded with a clear mission: provide quality higher-secondary education to rural and semi-urban students and create equal opportunities for academic growth.",
     },
     {
         title: "Growth In Streams",
@@ -20,12 +20,12 @@ const historyMilestones = [
     },
     {
         title: "Modern Learning Approach",
-        text: "By integrating updated teaching methods, co-curricular activities, and guidance programs, SNK Junior College continues to prepare students for higher studies and responsible citizenship.",
+        text: "By integrating updated teaching methods, co-curricular activities, and guidance programs, S. Patil Junior College continues to prepare students for higher studies and responsible citizenship.",
     },
 ];
 
 const descriptionLines = [
-    "Shri Nanasaheb Kulkarni Junior College, Borli Panchatan, has built a strong academic identity by combining disciplined learning with student-friendly guidance.",
+    "S. Patil Junior College, Borli Panchatan, has built a strong academic identity by combining disciplined learning with student-friendly guidance.",
     "The institution emphasizes balanced growth through classroom excellence, cultural participation, and character-building values that shape confident young learners.",
     "With dedicated faculty support and stream-wise focus in Science, Commerce, and Arts, the college creates a dependable pathway for 11th and 12th students to achieve their future goals.",
 ];
@@ -45,8 +45,8 @@ export default function AboutSection() {
 
             <div className="absolute inset-0 -z-20">
                 <Image
-                    src="/college/college.jpg"
-                    alt="SNK College Campus"
+                    src="/college/spatil.jpg"
+                    alt="S. Patil College Campus"
                     fill
                     sizes="100vw"
                     className="object-cover"
@@ -63,7 +63,7 @@ export default function AboutSection() {
                     </div>
 
                     <h2 className="mb-3 text-3xl font-bold text-white md:text-4xl lg:text-[2.75rem]">
-                        About SNK Junior College
+                        About S. Patil Junior College
                     </h2>
 
                     <div className="grid gap-6 lg:grid-cols-[1.3fr_1fr] lg:gap-8">

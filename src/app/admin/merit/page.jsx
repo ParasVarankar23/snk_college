@@ -15,7 +15,7 @@ export default function AdminMeritPage() {
     const [form, setForm] = useState({
         title: "",
         description: "",
-        collegeName: "Shri Nanasaheb Kulkarni Junior College, Borli Panchatan",
+        collegeName: "S. Patil Junior College, Borli Panchatan",
         file: null,
     });
 

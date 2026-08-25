@@ -66,13 +66,13 @@ export default function Footer() {
                                 />
                             </div>
                             <div>
-                                <h2 className="font-bold text-base leading-tight">SNK Junior College</h2>
+                                <h2 className="font-bold text-base leading-tight">S. Patil Junior College</h2>
                                 <p className="text-xs text-red-300 font-medium tracking-wide">Est. Borli Panchatan</p>
                             </div>
                         </div>
 
                         <p className="text-sm text-red-100/80 leading-relaxed mb-6">
-                            Shri Nanasaheb Kulkarni Junior College, Borli Panchatan,
+                            S. Patil Junior College, Borli Panchatan,
                             Shrivardhan, Raigad. Committed to quality education and nurturing
                             students toward academic excellence.
                         </p>
@@ -164,8 +164,8 @@ export default function Footer() {
                                 <span className="w-8 h-8 min-w-[2rem] rounded-lg bg-white/10 flex items-center justify-center text-red-300 group-hover:bg-red-700/50 transition-colors duration-200">
                                     <FaEnvelope className="text-xs" />
                                 </span>
-                                <a href="mailto:snkcollege@gmail.com" className="text-sm text-red-100/80 hover:text-white transition-colors duration-200 break-all">
-                                    snkcollege@gmail.com
+                                <a href="mailto:spcollege@gmail.com" className="text-sm text-red-100/80 hover:text-white transition-colors duration-200 break-all">
+                                    spcollege@gmail.com
                                 </a>
                             </li>
                         </ul>
@@ -190,7 +190,7 @@ export default function Footer() {
                 {/* COPYRIGHT */}
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-red-200/60">
                     <p>
-                        © {new Date().getFullYear()} Shri Nanasaheb Kulkarni Junior College, Borli Panchatan. All Rights Reserved.
+                        © {new Date().getFullYear()} S. Patil Junior College, Borli Panchatan. All Rights Reserved.
                     </p>
                     <div className="flex items-center gap-4">
                         <Link href="/privacy" className="hover:text-white transition-colors duration-200">Privacy Policy</Link>

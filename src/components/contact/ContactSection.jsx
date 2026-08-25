@@ -31,19 +31,19 @@ const itemVariants = {
 
 const officeContacts = [
     {
-        name: "Abhay Patil",
+        name: "Soham Chandorkar",
         phone: "+91 9876543210",
-        email: "abhay@snkcollege.com",
+        email: "amit@spcollege.com",
     },
     {
-        name: "Deepa Surve",
+        name: "Suresh Dhumal",
         phone: "+91 9876543211",
-        email: "deepa@snkcollege.com",
+        email: "suresh@spcollege.com",
     },
     {
-        name: "Uttam Divekar",
+        name: "Shrawan Khot",
         phone: "+91 9876543212",
-        email: "uttam@snkcollege.com",
+        email: "shrawan@spcollege.com",
     },
 ];
 
@@ -136,7 +136,7 @@ export default function ContactPage() {
                         </h2>
 
                         <p className="mt-3 text-slate-600">
-                            Thank you for your interest in SNK Junior College. Our admission
+                            Thank you for your interest in S. Patil Junior College. Our admission
                             team will contact you shortly.
                         </p>
 
@@ -186,7 +186,7 @@ export default function ContactPage() {
                     </div>
                     <h1 className="text-xl font-bold text-slate-950 md:text-3xl">
                         Admission Inquiry for{" "}
-                        <span className="text-[#7a1c1c]">SNK Junior College</span>
+                        <span className="text-[#7a1c1c]">S. Patil Junior College</span>
                     </h1>
 
                     <p className="mx-auto mt-4 max-w-3xl text-base leading-8 text-slate-600 md:text-lg">
@@ -437,7 +437,7 @@ export default function ContactPage() {
 
                                 <div className="mt-5 space-y-2 text-slate-600 leading-7">
                                     <p className="font-medium text-[#7a1c1c]">
-                                        Shri Nanasaheb Kulkarni Junior College
+                                        S. Patil Junior College
                                     </p>
                                     <p>Borli Panchatan, Near Government Hospital</p>
                                     <p>Shrivardhan, Raigad</p>

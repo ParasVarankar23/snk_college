@@ -180,7 +180,7 @@ export default function SignupPage() {
                         className="max-w-2xl text-2xl font-bold leading-tight text-slate-950 sm:text-3xl xl:text-4xl"
                     >
                         Join{" "}
-                        <span className="text-[#7a1c1c]">SNK Juinor College</span>
+                        <span className="text-[#7a1c1c]">S. Patil Junior College</span>
                     </motion.h1>
 
                     <motion.p

@@ -484,7 +484,7 @@ function AdmissionFormInner() {
                     key: orderData.keyId,
                     amount: orderData.amountInPaise,
                     currency: orderData.currency,
-                    name: "SNK Juinor College",
+                    name: "S. Patil Junior College",
                     description: `FYJC Admission Form Fee (Rs ${FORM_PRICE_INR})`,
                     order_id: orderData.order?.id,
                     prefill: {
@@ -654,7 +654,7 @@ function AdmissionFormInner() {
                                     Online Admission Portal
                                 </div>
                                 <div>
-                                    <p className="text-sm font-medium text-slate-500">Shri Nanasaheb Kulkarni Juinor College, Borli Panchatan</p>
+                                    <p className="text-sm font-medium text-slate-500">S. Patil Junior College, Borli Panchatan</p>
                                     <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-900 md:text-4xl">
                                         FYJC / 11th Admission Form
                                     </h1>

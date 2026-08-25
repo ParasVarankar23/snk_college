@@ -176,14 +176,14 @@ export default function LoginPage() {
                         className="max-w-2xl text-2xl font-bold leading-tight text-slate-950 sm:text-3xl xl:text-4xl"
                     >
                         Welcome to{" "}
-                        <span className="text-[#7a1c1c]">SNK Juinor College</span>
+                        <span className="text-[#7a1c1c]">S. Patil Junior College</span>
                     </motion.h1>
 
                     <motion.p
                         variants={itemVariants}
                         className="mt-5 max-w-2xl text-justify text-base leading-8 text-slate-600 md:text-lg"
                     >
-                        Shri Nanasaheb Kulkarni Juinor College, Borli Panchatan is
+                        S. Patil Junior College, Borli Panchatan is
                         committed to providing quality education and building a strong
                         academic foundation for students. Our institution focuses on
                         academic excellence, discipline, and holistic development.
